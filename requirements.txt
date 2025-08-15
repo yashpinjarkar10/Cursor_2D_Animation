@@ -1,0 +1,9 @@
+manim==0.18.*
+moviepy==1.0.*
+ffmpeg-python==0.2.*
+pydantic==2.*
+typer==0.12.*
+rich==13.*
+python-dotenv==1.0.*
+langgraph>=0.2
+langchain>=0.2
