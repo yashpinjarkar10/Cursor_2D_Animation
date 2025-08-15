@@ -1,0 +1,6 @@
+manim
+jupyter
+crawl4ai
+# crawl4ai-setup # This command is used to install the necessary dependencies for the crawl4AI project.
+supabase
+langchain_google_genai
