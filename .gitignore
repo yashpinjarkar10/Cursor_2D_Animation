@@ -2,3 +2,6 @@
 .venv
 __pycache__
 *.pyc
+*.md
+*.json
+crawl4AI*
