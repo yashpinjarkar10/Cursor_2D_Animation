@@ -14,34 +14,48 @@ def format_section(key: str, value) -> str:
     return section
 
 
-def split_section(section: str, max_len: int) -> List[str]:
-    """Hard split a section if it exceeds max_len."""
-    if len(section) <= max_len:
-        return [section]
-    return [section[i:i+max_len] for i in range(0, len(section), max_len)]
+# def split_section(section: str, max_len: int) -> List[str]:
+#     """Hard split a section if it exceeds max_len."""
+#     if len(section) <= max_len:
+#         return [section]
+#     return [section[i:i+max_len] for i in range(0, len(section), max_len)]
+
+def split_section(section: str, max_words: int, overlap_words: int = 12) -> List[str]:
+    """Split a long section into smaller chunks by word count with overlapping words."""
+    words = section.split()
+    chunks = []
+    start = 0
+    while start < len(words):
+        end = min(start + max_words, len(words))
+        chunk = " ".join(words[start:end])
+        chunks.append(chunk)
+        if end == len(words):
+            break
+        # move start forward but keep overlap
+        start = end - overlap_words if end - overlap_words > start else end
+    return chunks
 
 
-def split_into_chunks(sections: List[str], max_len: int) -> List[str]:
-    """Group sections into chunks, hard splitting long sections if needed."""
+def split_into_chunks(sections: List[str], max_words: int) -> List[str]:
+    """Group sections into chunks, treating max_words as word limit."""
     chunks, current, current_len = [], [], 0
 
     def flush():
         if current:
-            chunks.append("".join(current))
+            chunks.append(" ".join(current))
 
     for section in sections:
-        # Hard split if one section exceeds max_len
-        if len(section) > max_len:
+        words = section.split()
+        if len(words) > max_words:
             flush()
-            chunks.extend(split_section(section, max_len))
+            chunks.extend(split_section(section, max_words))
             current, current_len = [], 0
-        elif current_len + len(section) > max_len and current:
+        elif current_len + len(words) > max_words and current:
             flush()
-            current, current_len = [section], len(section)
+            current, current_len = [section], len(words)
         else:
             current.append(section)
-            current_len += len(section)
-
+            current_len += len(words)
     flush()
     return chunks
 
@@ -57,11 +71,15 @@ def make_header(name: str, class_: str, type_: str, chunk_num: int = None) -> st
     if chunk_num is not None:
         header.append(f"## Chunk: {chunk_num}")
     return "\n".join(header) + "\n\n"
+import re
+from typing import List, Dict, Any
 
-async def chunk_manim_docs_to_dict(md_text: str)-> List[Dict[str, Any]]:
+
+async def chunk_manim_docs_to_dict(md_text: str) -> List[Dict[str, Any]]:
     chunks = []
-    # Extract code blocks but keep them in place
     code_blocks = {}
+
+    # --- Step 1: Extract code blocks but keep placeholders ---
     def _code_replacer(match):
         i = len(code_blocks) + 1
         placeholder = f"<CODE_BLOCK_{i}>"
@@ -70,7 +88,10 @@ async def chunk_manim_docs_to_dict(md_text: str)-> List[Dict[str, Any]]:
 
     md_text_with_placeholders = re.sub(r'```.*?```', _code_replacer, md_text, flags=re.S)
 
-    # Extract class name and description
+    # Keep a working copy so we can track what gets consumed
+    consumed_text = md_text_with_placeholders
+
+    # --- Step 2: Extract class name and description ---
     class_match = re.search(r'_class_\s+(\w+)\((.*?)\)', md_text_with_placeholders, re.S)
     if class_match:
         class_name = class_match.group(1)
@@ -82,10 +103,11 @@ async def chunk_manim_docs_to_dict(md_text: str)-> List[Dict[str, Any]]:
             "signature": class_signature,
             "content": class_description
         })
+        consumed_text = consumed_text.replace(class_match.group(0), "")
     else:
         class_name = None
 
-    # Parameters section
+    # --- Step 3: Parameters ---
     param_match = re.search(r'Parameters:(.*?)(?=\n[A-Z][a-zA-Z]+:|\nExamples|\nMethods|\nAttributes|\Z)', md_text_with_placeholders, re.S)
     if param_match:
         chunks.append({
@@ -93,8 +115,9 @@ async def chunk_manim_docs_to_dict(md_text: str)-> List[Dict[str, Any]]:
             "class": class_name,
             "content": param_match.group(1).strip()
         })
+        consumed_text = consumed_text.replace(param_match.group(0), "")
 
-    # Returns section
+    # --- Step 4: Returns ---
     return_match = re.search(r'Returns:(.*?)(?=\n[A-Z][a-zA-Z]+:|\nExamples|\nMethods|\nAttributes|\Z)', md_text_with_placeholders, re.S)
     if return_match:
         chunks.append({
@@ -102,8 +125,9 @@ async def chunk_manim_docs_to_dict(md_text: str)-> List[Dict[str, Any]]:
             "class": class_name,
             "content": return_match.group(1).strip()
         })
+        consumed_text = consumed_text.replace(return_match.group(0), "")
 
-    # Methods section (capture each method signature and description)
+    # --- Step 5: Methods ---
     method_blocks = re.split(r'(?=\n(?:[a-zA-Z_][a-zA-Z0-9_]*\())', md_text_with_placeholders)
     for block in method_blocks:
         block = block.strip()
@@ -114,7 +138,6 @@ async def chunk_manim_docs_to_dict(md_text: str)-> List[Dict[str, Any]]:
         if sig_match and not block.startswith("array("):
             method_name = sig_match.group(1)
 
-            # Split method parts
             params_match = re.search(r'Parameters:(.*?)(?=\nReturns:|\Z)', block, re.S)
             returns_match = re.search(r'Returns:(.*?)(?=\n[A-Z][a-zA-Z]+:|\Z)', block, re.S)
 
@@ -125,21 +148,21 @@ async def chunk_manim_docs_to_dict(md_text: str)-> List[Dict[str, Any]]:
                 "signature": block.split("\n")[0],
                 "content": block
             }
-
             if params_match:
                 method_chunk["parameters"] = params_match.group(1).strip()
             if returns_match:
                 method_chunk["returns"] = returns_match.group(1).strip()
 
-            # Restore any code blocks inside this method
+            # Restore code blocks
             for placeholder, code in code_blocks.items():
                 if placeholder in method_chunk["content"]:
                     method_chunk.setdefault("examples", []).append(code)
                     method_chunk["content"] = method_chunk["content"].replace(placeholder, code)
 
             chunks.append(method_chunk)
+            consumed_text = consumed_text.replace(block, "")
 
-    # Restore top-level examples
+    # --- Step 6: Restore top-level examples ---
     for i, (placeholder, code) in enumerate(code_blocks.items(), 1):
         chunks.append({
             "type": "example",
@@ -147,27 +170,29 @@ async def chunk_manim_docs_to_dict(md_text: str)-> List[Dict[str, Any]]:
             "name": f"example_{i}",
             "content": code
         })
+        consumed_text = consumed_text.replace(placeholder, "")
+
+    # --- Step 7: Remaining free text ---
+    remaining = consumed_text.strip()
+    if remaining:
+        chunks.append({
+            "type": "Unclassified",
+            "name": class_name if class_name else "",
+            "content": remaining
+        })
 
     return chunks
 
-def clean_markdown(md_text: str) -> str:
-    """Clean markdown text by removing unnecessary markers and formatting."""
-    match = re.search(r'# ', md_text)
-    if match:
-        md_text = md_text[match.start():]
 
-    # Remove copy-to-clipboard markers if present
-    md_text = re.sub(r'\[!\[.*?\]\(.*?\)\]\(.*?\)', '', md_text)
-    md_text = re.sub(r'copy\s*to\s*clipboard', '', md_text, flags=re.I)
-    md_text = re.sub(r'\[(.*?)\]\(.*?\)', r'\1', md_text)  # normal hyperlinks
-    return md_text.strip()
 
-async def chunk_manim_docs_to_markdown(markdown: str, max_len: int = 2000) -> List[Tuple[str,str]]:
-    """Chunk Manim docs markdown into sections, hard splitting if a section exceeds max_len."""
-    cleaned_md = clean_markdown(markdown)
-    if len(cleaned_md) < max_len:
-        return [cleaned_md]
-    chunk_dicts = await chunk_manim_docs_to_dict(cleaned_md)
+async def chunk_manim_docs_to_markdown(markdown: str, max_words: int = 2000) -> List[Tuple[str, str]]:
+    """Chunk Manim docs markdown into sections, hard splitting if a section exceeds max_words."""
+
+    words = markdown.split()
+    if len(words) < max_words:
+        return [(markdown.strip(), "")]
+
+    chunk_dicts = await chunk_manim_docs_to_dict(markdown)
     print(f"Extracted {len(chunk_dicts)} sections from markdown.")
     md_chunks = []
 
@@ -176,7 +201,8 @@ async def chunk_manim_docs_to_markdown(markdown: str, max_len: int = 2000) -> Li
         name = chunk_dict.get("name", "")
         class_ = chunk_dict.get("class", "")
         type_ = chunk_dict.get("type", "")
-        title = " ".join([name, class_, type_]).strip()
+        title = " ".join([name, class_, type_]).strip() if (name and class_) else ""
+
         # Build sections
         sections = [
             format_section(k, v)
@@ -184,22 +210,22 @@ async def chunk_manim_docs_to_markdown(markdown: str, max_len: int = 2000) -> Li
             if k not in ["type", "name", "class"]
         ]
 
+        header_words = make_header(name, class_, type_).strip().split()
+        header_len = len(header_words)
+
         # Split sections into chunks
-        chunks = split_into_chunks(sections, max_len)
+        chunks = split_into_chunks(sections, max_words - header_len)
 
         # Add headers
         if len(chunks) == 1:
             md_chunks.append(
-                (make_header(name, class_, type_) + chunks[0].strip(),
-                 title)
-                 )
+                (make_header(name, class_, type_) + chunks[0].strip(), title)
+            )
         else:
-            for i, chunk in enumerate(chunks, 1):
+            for i, chunk in enumerate(chunks):
                 md_chunks.append(
-                    (
-                    make_header(name, class_, type_, i) + chunk.strip(),
-                    title)
-                    )
+                    (make_header(name, class_, type_, i) + chunk.strip(), title)
+                )
 
     return md_chunks
 

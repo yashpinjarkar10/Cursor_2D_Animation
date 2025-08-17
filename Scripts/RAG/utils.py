@@ -73,10 +73,14 @@ async def insert_chunk(chunk: ProcessedChunk):
 
 async def extract_section_info(url:str,chunk: str) -> Dict[str, Any]:
     """Extracts headers and stats from a chunk."""
-    headers = re.findall(r'^(#+)\s+([^\[]+)', chunk, re.MULTILINE)
+    # headers = re.findall(r'^(#+)\s+([^\[]+)', chunk, re.MULTILINE)
     # header_str = '; '.join([ h[1] for h in headers]) if headers else ''
-    header_str = headers[1] if headers else ''
-
+    # header_str = headers[0][1] if headers else ''
+    # Find all headers (lines starting with #)
+    headers = re.findall(r'^(#+)\s*(.*)', chunk, re.MULTILINE)
+    # Sort headers: first by level (number of #), then by order of appearance
+    headers_sorted = sorted(enumerate(headers), key=lambda x: (len(x[1][0]), x[0]))
+    header_str = headers_sorted[0][1][1] if headers_sorted else ''
     match = re.search(r'Qualified name:\s*(.+)', chunk)
     relative_path = match.group(1).strip().strip('`') if match else None
     if not relative_path and 'reference' in url:
@@ -102,8 +106,10 @@ async def process_chunk(chunk_number: int,chunk:str,url:str,title="",doc_header=
     meta["doc_header"] = doc_header
     if title:
         meta['headers'] = title
+    if doc_header and ( doc_header not in meta["headers"]):
+        meta["headers"] = meta["headers"] + " " + doc_header
     return ProcessedChunk(
-        title= meta["headers"] or doc_header,
+        title= meta["headers"],
         url=url,
         chunk_number=chunk_number,
         metadata=meta,
@@ -113,7 +119,7 @@ async def process_chunk(chunk_number: int,chunk:str,url:str,title="",doc_header=
 
 async def process_doc(crawl_result:CrawlMdResult) -> List[ProcessedChunk]:
     """Process a single chunk of text."""
-    print("Characters in doc",len(crawl_result.filtered_markdown))
+    # print("Characters in doc",len(crawl_result.filtered_markdown))
     chunks= await chunk_manim_docs_to_markdown(crawl_result.filtered_markdown)
     doc_meta = await extract_section_info(crawl_result.url, crawl_result.filtered_markdown)
     doc_header = doc_meta.get("headers", "")
