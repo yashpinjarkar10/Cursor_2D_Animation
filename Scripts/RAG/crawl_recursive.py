@@ -18,6 +18,17 @@ class CrawlMdResult:
     # raw_markdown: str
     filtered_markdown: str
 
+def clean_markdown(md_text: str) -> str:
+    """Clean markdown text by removing unnecessary markers and formatting."""
+    match = re.search(r'# ', md_text)
+    if match:
+        md_text = md_text[match.start():]
+    # Remove copy-to-clipboard markers if present
+    md_text = re.sub(r'\[!\[.*?\]\(.*?\)\]\(.*?\)', '', md_text)
+    md_text = re.sub(r'copy\s*to\s*clipboard', '', md_text, flags=re.I)
+    md_text = re.sub(r'\[(.*?)\]\(.*?\)', r'\1', md_text)  # normal hyperlinks
+    return md_text.strip()
+
 def is_soft_404_error(e):
     """Handle soft 404 errors by checking if the URL is a valid page."""
     if ("page you requested does not exist" in str(e).lower() )or ("page not found" in str(e).lower()):
@@ -85,7 +96,7 @@ async def crawl_recursive_internal_links(start_urls, max_depth=3, max_concurrent
                     results_all.append(
                         CrawlMdResult(url= result.url, 
                                     # raw_markdown= result.markdown,
-                                    filtered_markdown= result.markdown.fit_markdown)
+                                    filtered_markdown= clean_markdown(result.markdown.fit_markdown))
                         )
                     for link in result.links.get("internal", []):
                         next_url = normalize_url(link["href"])
