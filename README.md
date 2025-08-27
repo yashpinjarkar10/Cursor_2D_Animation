@@ -54,7 +54,7 @@ Cursor_2D_Animation/
 ## 🛠️ Installation
 
 ### Prerequisites
-- Python 3.8+
+- Python 3.10+
 - FFmpeg (for video rendering)
 - Git
 
