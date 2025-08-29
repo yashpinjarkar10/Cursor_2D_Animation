@@ -1,4 +1,4 @@
-
+// Constants Definitions
 const RULER_MAJOR_INTERVAL=5, RULER_MINOR_INTERVAL=0.5;
 const DEFAULT_PPS=60, MIN_PPS=20, MAX_PPS=400;
 const PRELOAD_MARGIN=0.6;
@@ -10,6 +10,7 @@ const IMPORT_DEBUG=true;
 const OVERLAY_OFFSET_STEP=30;
 const OVERLAY_MAX_AUTO_OFFSET=8;
 
+// Project Object
 const project={
   videoClips:[],audioClips:[],overlays:[],
   inPoint:null,outPoint:null,loop:false,
@@ -17,6 +18,7 @@ const project={
   ui:{snapTolerance:0.1}
 };
 
+// Global Variables
 let globalTime=0,isPlaying=false,draggingPlayhead=false;
 let selectedVideoId=null,selectedOverlayId=null,selectedAudioId=null;
 let rippleDelete=false,activeClip=null,nextClip=null;
@@ -24,6 +26,7 @@ let currentVideo=null,nextVideo=null,inGapMode=false;
 let frameLoopRunning=false,lastPerf=null,pendingVideoFrameCallback=null;
 const audioElements=new Map();
 
+// Query Selectors
 const qs=s=>document.querySelector(s);
 const videoMain=qs('#videoMain'),overlayStage=qs('#overlayStage');
 const videoTrackContent=qs('#videoTrackContent'),overlayTrackContent=qs('#overlayTrackContent');
@@ -48,6 +51,7 @@ const exportBtn=qs('#exportBtn'),renderBtn=qs('#renderBtn'),autoFitBtn=qs('#auto
 const voStatus=qs('#voStatus'),voStateSpan=qs('#voState'),voLevelEl=qs('#voLevel'),cancelVoBtn=qs('#cancelVoBtn');
 const importStatus = qs('#importStatus');
 
+// Utility Functions
 const genId=p=>p+'_'+Math.random().toString(36).slice(2,9);
 const fmt=s=>{ if(s==null||!isFinite(s))return'--:--:--.--'; const ms=Math.floor((s%1)*1000),sec=Math.floor(s)%60,min=Math.floor(s/60)%60,hr=Math.floor(s/3600);return `${String(hr).padStart(2,'0')}:${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}.${String(ms).padStart(3,'0')}`; };
 const pps=()=>project.settings.pixelsPerSecond;
@@ -59,6 +63,7 @@ function findClipAt(t){return project.videoClips.find(c=>t>=c.start&&t<c.end)||n
 function nextClipAfter(c){if(!c)return null;const i=project.videoClips.indexOf(c);return project.videoClips[i+1]||null;}
 const lastTrackEnd=arr=>arr.length?(arr[arr.length-1].end??(arr[arr.length-1].offset+(arr[arr.length-1].duration||0))):0;
 
+// Undo/Redo System
 const undoStack=[],redoStack=[];let pendingSnapshot=null;
 function snapshot(l='change',immediate=false){if(!immediate){pendingSnapshot=l;return;}undoStack.push(JSON.stringify(project));if(undoStack.length>120)undoStack.shift();redoStack.length=0;pendingSnapshot=null;updateUndoRedo();}
 function flushSnapshot(){if(pendingSnapshot)snapshot(pendingSnapshot,true);}
@@ -66,6 +71,7 @@ function undo(){flushSnapshot();if(!undoStack.length)return;const cur=JSON.strin
 function redo(){flushSnapshot();if(!redoStack.length)return;const cur=JSON.stringify(project);const nxt=redoStack.pop();undoStack.push(cur);Object.assign(project,JSON.parse(nxt));rebuildAll();}
 function updateUndoRedo(){undoBtn.disabled=!undoStack.length;redoBtn.disabled=!redoStack.length;}
 
+// Rebuild Functions
 function rebuildAll(){
   updateTimelineWidths();buildRuler();buildVideoClips();buildOverlayClips();buildAudioClips();buildLayers();updateOverlayZ();
   if(project.videoClips.length&&!activeClip){activateClip(project.videoClips[0],true);globalTime=activeClip.start;}
@@ -95,6 +101,8 @@ function miniRuler(el,start,end){
     root.appendChild(div);
   }
 }
+
+// Build Clips Functions
 function buildVideoClips(){
   videoTrackContent.innerHTML='';
   project.videoClips.forEach(c=>{
@@ -113,17 +121,83 @@ function buildOverlayClips(){
     clip.innerHTML=`<div class="clip-label">${o.type==='text'?'TEXT':'IMG'}</div><div class="handle left" data-edge="left"></div><div class="handle right" data-edge="right"></div>`;
     clip.addEventListener('mousedown',e=>startOverlayClipDrag(e,o));clip.addEventListener('click',e=>{selectOverlay(o.id);e.stopPropagation();});
     overlayTrackContent.appendChild(clip);miniRuler(clip,o.start,o.end);
-    // Stage node that is rendered over the video
+
+    // Stage node rendered over the video
     const ov = document.createElement('div');
     ov.className = 'overlay';
-    // NEW: absolute positioning and sane defaults
+    ov.dataset.id = o.id;
+
+    // Defaults for movement/cropping
+    if(o.x==null) o.x = 100;
+    if(o.y==null) o.y = 100;
+    if(o.scale==null) o.scale = 1;
+    if(o.opacity==null) o.opacity = 1;
+    if(o.cropPad==null) o.cropPad = 0; // 0..0.45
+
+    // Optional default box size (helps cropping visuals)
+    if(o.width==null) o.width = 300;
+    if(o.height==null) o.height = 180;
+
     Object.assign(ov.style, {
       position: 'absolute',
-      transformOrigin: 'top left',
-      pointerEvents: 'none',
-      whiteSpace: 'pre'
+      left: o.x+'px',
+      top: o.y+'px',
+      width: o.width+'px',
+      height: o.height+'px',
+      transform: `scale(${o.scale})`,
+      opacity: o.opacity,
+      mixBlendMode: o.blend || 'normal',
+      pointerEvents: 'auto',
+      userSelect: 'none',
+      cursor: o.locked ? 'not-allowed' : 'move',
+      overflow: 'hidden' // assists clipping
     });
-    ov.dataset.id = o.id;
+
+    // Content
+    if(o.type === 'image'){
+      // Use <img> for better sizing fidelity
+      const img = document.createElement('img');
+      img.src = o.imageSrc;
+      img.draggable = false;
+      Object.assign(img.style, {
+        display: 'block',
+        width: '100%',
+        height: '100%',
+        objectFit: 'contain',
+        pointerEvents: 'none'
+      });
+      ov.appendChild(img);
+    } else if(o.type === 'text'){
+      ov.textContent = o.text || 'Text';
+      Object.assign(ov.style, {
+        color: o.color || '#ffffff',
+        fontFamily: o.fontFamily || 'Arial',
+        fontSize: (o.fontSize||32)+'px',
+        lineHeight: '1.1',
+        whiteSpace: 'pre-wrap',
+        textAlign: 'left'
+      });
+    }
+
+    // Drag to move
+    ov.addEventListener('mousedown', (e)=>{
+      if(o.locked) return;
+      e.preventDefault();
+      selectOverlay(o.id);
+      ovDrag = { id:o.id, sx:e.clientX, sy:e.clientY, x0:o.x, y0:o.y };
+      document.addEventListener('mousemove', ovDragMove);
+      document.addEventListener('mouseup', ovDragEnd);
+    });
+
+    // Wheel to crop in/out (uniform inset)
+    ov.addEventListener('wheel', (e)=>{
+      e.preventDefault();
+      const step = (e.deltaY>0 ? 1 : -1) * 0.02; // 2% per notch
+      o.cropPad = Math.max(0, Math.min(0.45, (o.cropPad||0) + step));
+      updateOverlaysVisual();
+      snapshot('ovCrop');
+    }, { passive:false });
+
     overlayStage.appendChild(ov);
   });
   updateOverlaysVisual();updateSelectionHighlights();
@@ -165,6 +239,7 @@ function buildLayers(){
 }
 function updateOverlayZ(){project.overlays.forEach((o,i)=>{const el=overlayStage.querySelector(`.overlay[data-id="${o.id}"]`);if(el)el.style.zIndex=String(100+i);});}
 
+// Selection and Update Functions
 function selectVideo(id){selectedVideoId=id;selectedOverlayId=null;selectedAudioId=null;updateSelectionHighlights();updateInspector();}
 function selectOverlay(id){selectedOverlayId=id;selectedVideoId=null;selectedAudioId=null;updateSelectionHighlights();updateInspector();}
 function selectAudio(id){selectedAudioId=id;selectedVideoId=null;selectedOverlayId=null;updateSelectionHighlights();updateInspector();}
@@ -181,33 +256,43 @@ function updateOverlaysVisual(){
     const el = overlayStage.querySelector(`.overlay[data-id="${o.id}"]`);
     if(!el) return;
 
+    // Ensure safe defaults
+    if(o.x==null) o.x = 100;
+    if(o.y==null) o.y = 100;
+    if(o.scale==null) o.scale = 1;
+    if(o.opacity==null) o.opacity = 1;
+    if(o.cropPad==null) o.cropPad = 0;
+    if(o.width==null) o.width = 300;
+    if(o.height==null) o.height = 180;
+
     el.style.left = o.x + 'px';
     el.style.top = o.y + 'px';
+    el.style.width = o.width + 'px';
+    el.style.height = o.height + 'px';
     el.style.transform = `scale(${o.scale})`;
     el.style.opacity = o.opacity;
     el.style.mixBlendMode = o.blend || 'normal';
+    el.style.pointerEvents = o.locked ? 'none' : 'auto';
 
-    const show = t >= o.start && t < o.end && o.visible;
+    // Crop via CSS clip‑path (uniform inset for img/text)
+    const p = Math.max(0, Math.min(0.45, o.cropPad||0)) * 100;
+    el.style.clipPath = p ? `inset(${p}% ${p}% ${p}% ${p}%)` : 'none';
+
+    const show = t >= o.start && t < o.end && o.visible !== false;
     el.style.display = show ? 'block' : 'none';
 
     if(o.type === 'text'){
-      el.textContent = o.text;
-      el.style.fontSize = o.fontSize + 'px';
-      el.style.color = o.color;
-    } else if (!el.dataset.img) {
-      el.innerHTML = '';
-      const img = document.createElement('img');
-      img.src = o.imageSrc;
-      // NEW: let the image be visible and not collapse
-      img.style.maxWidth = '100%';
-      img.style.maxHeight = '100%';
-      img.style.display = 'block';
-      el.appendChild(img);
-      el.dataset.img = '1';
+      // Keep style in sync if user edits text props elsewhere
+      el.textContent = o.text || 'Text';
+      el.style.color = o.color || '#ffffff';
+      el.style.fontFamily = o.fontFamily || 'Arial';
+      el.style.fontSize = (o.fontSize||32)+'px';
     }
   });
   updateOverlayZ();
 }
+
+// Inspector Updates
 function updateInspector(){
   [videoClipSection,overlaySection,audioSection,applyBtn].forEach(e=>e.classList.add('hidden'));
   if(selectedVideoId){
@@ -248,6 +333,7 @@ applyBtn.addEventListener('click',()=>{
   }
 });
 
+// Time and Playhead Management
 function updateTime(force){
   tcCurrent.textContent=fmt(globalTime); tcDuration.textContent=fmt(projectDuration());
   playheadEl.style.left=t2x(globalTime)+'px'; keepPlayheadVisible();
@@ -266,15 +352,14 @@ function updateRangeMarkers(){
   tcIn.textContent=fmt(project.inPoint); tcOut.textContent=fmt(project.outPoint);
 }
 
+// Video Element Ensuring
 function ensureOverlayLayerStacking(){
   const parent = videoMain?.parentElement;
   if (!parent || !overlayStage || !videoMain) return;
 
-  // Ensure parent is a positioned container and clips content
   if (getComputedStyle(parent).position === 'static') parent.style.position = 'relative';
   parent.style.overflow = 'hidden';
 
-  // Current (visible) video
   Object.assign(videoMain.style, {
     position: 'absolute',
     inset: '0',
@@ -283,7 +368,6 @@ function ensureOverlayLayerStacking(){
     zIndex: '10'
   });
 
-  // Preloaded (next) video stays under overlay as well
   if (nextVideo) {
     Object.assign(nextVideo.style, {
       position: 'absolute',
@@ -291,17 +375,17 @@ function ensureOverlayLayerStacking(){
       width: '100%',
       height: '100%',
       zIndex: '9',
-      pointerEvents: 'none',
-      opacity: '0'
+      opacity: '0',
+      pointerEvents: 'none'
     });
   }
 
-  // Overlay stage above both videos
+  // Allow mouse events to reach overlays for drag & crop
   Object.assign(overlayStage.style, {
     position: 'absolute',
     inset: '0',
     zIndex: '20',
-    pointerEvents: 'none'
+    pointerEvents: 'auto'
   });
 }
 
@@ -337,6 +421,7 @@ function schedulePreload(){
   }
 }
 
+// Playback Controls
 playPauseBtn.addEventListener('click',()=>isPlaying?pause():play());
 replayBtn.addEventListener('click',()=>{
   pause();globalTime=boundedStart();
@@ -409,6 +494,7 @@ function cancelVideoFrameCallback(){
   pendingVideoFrameCallback=null;
 }
 
+// Audio Playback Functions
 function updateAudioPlay(t){
   project.audioClips.forEach(a=>{
     const active=t>=a.offset&&t<a.offset+a.duration;
@@ -426,6 +512,7 @@ function updateAudioPlay(t){
 }
 function stopAllAudio(){audioElements.forEach(a=>a.pause());audioElements.clear();}
 
+// Drag Handlers
 let dragObj=null;
 function snapTime(raw){
   const targets=[];project.videoClips.forEach(c=>targets.push(c.start,c.end));
@@ -482,6 +569,23 @@ function audioDragMove(e){
 }
 function audioDragEnd(){dragObj=null;flushSnapshot();document.removeEventListener('mousemove',audioDragMove);document.removeEventListener('mouseup',audioDragEnd);}
 
+let ovDrag = null;
+function ovDragMove(e){
+  if(!ovDrag) return;
+  const o = project.overlays.find(x=>x.id===ovDrag.id);
+  if(!o || o.locked) return;
+  o.x = ovDrag.x0 + (e.clientX - ovDrag.sx);
+  o.y = ovDrag.y0 + (e.clientY - ovDrag.sy);
+  updateOverlaysVisual();
+}
+function ovDragEnd(){
+  document.removeEventListener('mousemove', ovDragMove);
+  document.removeEventListener('mouseup', ovDragEnd);
+  ovDrag = null;
+  snapshot('ovMove');
+}
+
+// Edit Functions (Split, Delete, Duplicate)
 function splitSelected(){if(!selectedVideoId)return;const clip=project.videoClips.find(c=>c.id===selectedVideoId);const t=globalTime;if(!clip||t<=clip.start+0.05||t>=clip.end-0.05)return;const rel=clip.in+(t-clip.start);const first={...clip,id:genId('v1'),out:rel,end:clip.start+(rel-clip.in)};const second={...clip,id:genId('v2'),in:rel,start:first.end,end:first.end+(clip.out-rel)};const idx=project.videoClips.indexOf(clip);project.videoClips.splice(idx,1,first,second);snapshot('split');rebuildAll();selectVideo(first.id);}
 function deleteSelected(){
   if(selectedVideoId){const clip=project.videoClips.find(c=>c.id===selectedVideoId);if(!clip)return;const idx=project.videoClips.indexOf(clip);const removed=clip.end-clip.start;URL.revokeObjectURL(clip.src);project.videoClips.splice(idx,1);if(rippleDelete){for(let i=idx;i<project.videoClips.length;i++){project.videoClips[i].start-=removed;project.videoClips[i].end-=removed;}}snapshot('delClip');selectedVideoId=null;rebuildAll();}
@@ -497,6 +601,7 @@ btnClipInSet.addEventListener('click',()=>{if(!selectedVideoId)return;const c=pr
 btnClipOutSet.addEventListener('click',()=>{if(!selectedVideoId)return;const c=project.videoClips.find(v=>v.id===selectedVideoId);const rel=c.in+(globalTime-c.start);if(rel<=c.in+0.05||rel>c.duration)return;c.out=rel;c.end=c.start+(c.out-c.in);snapshot('trimOut');rebuildAll();});
 btnFitToRange.addEventListener('click',()=>{if(!selectedVideoId)return;if(project.inPoint==null||project.outPoint==null)return;const c=project.videoClips.find(v=>v.id===selectedVideoId);const len=project.outPoint-project.inPoint;if(len<0.05)return;c.in=Math.min(c.duration-len,c.in);c.out=c.in+len;c.start=project.inPoint;c.end=c.start+(c.out-c.in);snapshot('fitRange');rebuildAll();selectVideo(c.id);});
 
+// Import Helpers
 /* ---- Import Status Helper ---- */
 function setImportStatus(msg,color='#9aa'){if(importStatus){importStatus.textContent=msg;importStatus.style.color=color;}if(IMPORT_DEBUG)console.log('[Import][Status]',msg);}
 
@@ -571,6 +676,7 @@ function importImageFiles(files){
   snapshot('importImages'); rebuildAll(); setImportStatus(`Images: ${files.length}`,'#7fb');
 }
 
+// Input Event Listeners
 inputVideo.addEventListener('change',e=>{setImportStatus('Video input change');importVideoFiles(e.target.files);e.target.value='';});
 inputAudio.addEventListener('change',e=>{setImportStatus('Audio input change');importAudioFiles(e.target.files);e.target.value='';});
 inputImage.addEventListener('change',e=>{setImportStatus('Image input change');importImageFiles(e.target.files);e.target.value='';});
@@ -583,6 +689,7 @@ window.addEventListener('drop',e=>{
   importImageFiles(files.filter(f=>f.type.startsWith('image/')));
 });
 
+// Add Text Button
 addTextBtn.addEventListener('click',()=>{
   const countAtTime=project.overlays.filter(o=>Math.abs(o.start-globalTime)<0.001).length;
   const idx=Math.min(countAtTime,OVERLAY_MAX_AUTO_OFFSET);
@@ -592,7 +699,7 @@ addTextBtn.addEventListener('click',()=>{
   project.overlays.push(o); snapshot('addText'); rebuildAll(); selectOverlay(o.id);
 });
 
-
+// Button and Shortcut Listeners
 /* Buttons & shortcuts*/
 splitBtn.addEventListener('click',splitSelected);
 deleteBtn.addEventListener('click',deleteSelected);
@@ -629,8 +736,6 @@ exportBtn.addEventListener('click',()=>{
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='project.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500);
 });
 
-renderBtn.addEventListener('click',()=>alert('Render pipeline omitted.'));
-
 window.addEventListener('keydown',e=>{
   if(e.target.matches('input,textarea'))return;
   switch(e.key.toLowerCase()){
@@ -650,6 +755,7 @@ window.addEventListener('keydown',e=>{
   }
 });
 
+// Voice Over Recording
 /* Voice Over */
 let voRecorder=null,voStream=null,voChunks=[],voRecording=false,voStartOffset=0,voAnalyser=null,voAudioCtx=null,voMeterRAF=null,lastVoClipId=null;
 function setVOState(text,mode){
@@ -696,6 +802,250 @@ cancelVoBtn?.addEventListener('click',()=>{
   lastVoClipId=null;cancelVoBtn.classList.add('hidden');setVOState('Idle','');
 });
 
+// Render Project Function
+// 1) Full A/V render: canvas compositing + WebAudio mixing + MediaRecorder export
+async function renderProjectAV() {
+  // Range and basic guards
+  const start = boundedStart();
+  const end = boundedEnd();
+  const duration = Math.max(0, end - start);
+  if (duration <= 0) {
+    try { setImportStatus('Nothing to render', '#f66'); } catch {}
+    return;
+  }
+
+  // Pause UI playback to avoid interference
+  const wasPlaying = isPlaying;
+  try { pause(); } catch {}
+
+  // Canvas setup
+  const vw = videoMain?.videoWidth || videoMain?.clientWidth || 1280;
+  const vh = videoMain?.videoHeight || videoMain?.clientHeight || 720;
+  const fps = Math.max(10, Math.min(60, project.settings.frameRate || 30));
+  const canvas = document.createElement('canvas');
+  canvas.width = vw;
+  canvas.height = vh;
+  const ctx = canvas.getContext('2d');
+
+  // WebAudio mixing graph
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const mix = audioCtx.createGain();
+  mix.gain.value = 1;
+  const mixDest = audioCtx.createMediaStreamDestination();
+  mix.connect(mixDest);
+
+  // Video element dedicated to rendering (video frames + its audio into the mix)
+  const rv = document.createElement('video');
+  Object.assign(rv, { playsInline: true, crossOrigin: 'anonymous', preload: 'auto' });
+  // Keep element silent to speakers; audio flows through WebAudio
+  rv.muted = false;
+  rv.volume = 0;
+
+  let rvSrcNode;
+  try {
+    rvSrcNode = audioCtx.createMediaElementSource(rv);
+    const rvGain = audioCtx.createGain();
+    rvGain.gain.value = 1;
+    rvSrcNode.connect(rvGain).connect(mix);
+  } catch {
+    // If a node already exists for this element in this context, ignore (browser quirk on reruns)
+  }
+
+  // Helper: preload overlay images
+  const imgCache = new Map();
+  async function preloadOverlayImages() {
+    const promises = [];
+    project.overlays.forEach(o => {
+      if (o.type === 'image' && !imgCache.has(o.imageSrc)) {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.src = o.imageSrc;
+        const p = new Promise(res => { img.onload = res; img.onerror = res; });
+        imgCache.set(o.imageSrc, img);
+        promises.push(p);
+      }
+    });
+    await Promise.all(promises);
+  }
+
+  // Draw overlays for timeline time t
+  function drawOverlays(t) {
+    const overlays = project.overlays.filter(o => o.visible && t >= o.start && t < o.end);
+    for (const o of overlays) {
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, Math.min(1, o.opacity ?? 1));
+      ctx.globalCompositeOperation = (o.blend || 'normal');
+
+      // Position and scale
+      ctx.translate(o.x || 0, o.y || 0);
+      ctx.scale(o.scale || 1, o.scale || 1);
+
+      if (o.type === 'text') {
+        ctx.fillStyle = o.color || '#ffffff';
+        const size = o.fontSize || 32;
+        const family = o.fontFamily || 'Arial';
+        ctx.font = `${size}px ${family}`;
+        ctx.textBaseline = 'top';
+        const lines = String(o.text ?? '').split('\n');
+        let yy = 0;
+        for (const line of lines) {
+          ctx.fillText(line, 0, yy);
+          yy += size * 1.2;
+        }
+      } else if (o.type === 'image') {
+        const img = imgCache.get(o.imageSrc);
+        if (img && img.complete && img.naturalWidth > 0) ctx.drawImage(img, 0, 0);
+      }
+      ctx.restore();
+    }
+  }
+
+  // Decode and schedule audio clips in the selected range
+  async function scheduleAudioClips() {
+    const tasks = project.audioClips.map(async a => {
+      const clipStart = Math.max(a.offset, start);
+      const clipEnd = Math.min(a.offset + a.duration, end);
+      const playLen = clipEnd - clipStart;
+      if (playLen <= 0 || a.mute) return;
+
+      // Try to decode for sample-accurate scheduling
+      try {
+        const resp = await fetch(a.src);
+        const buf = await resp.arrayBuffer();
+        const decoded = await audioCtx.decodeAudioData(buf);
+        const src = audioCtx.createBufferSource();
+        src.buffer = decoded;
+        const g = audioCtx.createGain();
+        g.gain.value = a.volume ?? 1;
+        src.connect(g).connect(mix);
+
+        const when = audioCtx.currentTime + (clipStart - start);
+        const offset = Math.max(0, start - a.offset);
+        src.start(Math.max(audioCtx.currentTime, when), offset, playLen);
+      } catch {
+        // Fallback: media element source (less precise, but keeps audio in export)
+        const el = new Audio(a.src);
+        el.crossOrigin = 'anonymous';
+        el.preload = 'auto';
+        el.volume = 0; // silence speakers
+        const g = audioCtx.createGain();
+        g.gain.value = a.volume ?? 1;
+        try {
+          const node = audioCtx.createMediaElementSource(el);
+          node.connect(g).connect(mix);
+        } catch {}
+        const delayMs = Math.max(0, (clipStart - start) * 1000);
+        setTimeout(() => {
+          try { el.currentTime = Math.max(0, start - a.offset); } catch {}
+          el.play().catch(() => {});
+          // Stop near clip end
+          setTimeout(() => { try { el.pause(); } catch {} }, Math.max(0, playLen * 1000 + 50));
+        }, delayMs);
+      }
+    });
+    await Promise.allSettled(tasks);
+  }
+
+  // Canvas + audio into a single MediaStream
+  const stream = canvas.captureStream(fps);
+  const audioTrack = mixDest.stream.getAudioTracks()[0];
+  if (audioTrack) stream.addTrack(audioTrack);
+
+  const mime =
+    ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm']
+      .find(MediaRecorder.isTypeSupported) || 'video/webm';
+
+  const recorder = new MediaRecorder(stream, {
+    mimeType: mime,
+    videoBitsPerSecond: 6_000_000,
+    audioBitsPerSecond: 192_000
+  });
+
+  const chunks = [];
+  recorder.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+  const stopped = new Promise(res => recorder.addEventListener('stop', res, { once: true }));
+
+  // Utility: ensure render video element is ready for a clip
+  async function ensureClipLoaded(clip) {
+    if (!clip) return;
+    if (!rv.dataset.clipId || rv.dataset.clipId !== clip.id) {
+      rv.pause();
+      rv.src = clip.src;
+      rv.dataset.clipId = clip.id;
+      await new Promise(r => {
+        const to = setTimeout(r, 1000);
+        rv.onloadedmetadata = () => { clearTimeout(to); r(); };
+      });
+    }
+  }
+
+  // Main draw loop sync\'d to the audio clock
+  let currentClipId = null;
+  const t0 = audioCtx.currentTime;
+  const rafLoop = async () => {
+    const t = start + (audioCtx.currentTime - t0);
+    if (t >= end) {
+      try { recorder.stop(); } catch {}
+      return;
+    }
+
+    const clip = findClipAt(t);
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, vw, vh);
+
+    if (clip) {
+      if (currentClipId !== clip.id) {
+        await ensureClipLoaded(clip);
+        currentClipId = clip.id;
+      }
+      const desired = clip.in + (t - clip.start);
+      try {
+        if (Math.abs((rv.currentTime || 0) - desired) > 0.08) rv.currentTime = Math.min(desired, rv.duration || desired);
+      } catch {}
+      if (rv.paused) rv.play().catch(() => {});
+      try { ctx.drawImage(rv, 0, 0, vw, vh); } catch {}
+    }
+
+    // Overlays
+    drawOverlays(t);
+
+    requestAnimationFrame(rafLoop);
+  };
+
+  try { setImportStatus('Rendering...', '#fc6'); } catch {}
+  await audioCtx.resume();
+  await preloadOverlayImages();
+  await scheduleAudioClips();
+  recorder.start(250);
+  requestAnimationFrame(rafLoop);
+
+  // Wait for recorder to finish
+  await stopped;
+
+  // Build the file and download
+  const blob = new Blob(chunks, { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'export.webm';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+
+  // Cleanup
+  try { rv.pause(); rv.removeAttribute('src'); rv.load?.(); } catch {}
+  try { audioCtx.close(); } catch {}
+  try { setImportStatus('Render done', '#6c6'); } catch {}
+  if (wasPlaying) try { play(); } catch {}
+}
+
+renderBtn.addEventListener('click', () => {
+  renderProjectAV().catch(err => {
+    console.error('[Render] failed', err);
+    try { setImportStatus('Render failed', '#f66'); } catch {}
+  });
+});
+
+// Initialization
 /* INIT */
 function init(){
   if(importReady) return;
