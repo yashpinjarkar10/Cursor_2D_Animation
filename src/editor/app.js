@@ -1068,3 +1068,68 @@ function init(){
 }
 init();
 window.project=project;
+
+// Add this near the end of your existing app.js, after the DOM is ready.
+
+(function initQueryBox() {
+  const input = document.getElementById("queryInput");
+  const submit = document.getElementById("querySubmit");
+  const output = document.getElementById("queryOutput");
+
+  if (!input || !submit || !output) return;
+
+  const setStatus = (text, cls) => {
+    output.textContent = String(text || "");
+    output.className = `query-output ${cls || ""}`.trim();
+  };
+
+  const sendQuery = async () => {
+    const topic = input.value.trim();
+    if (!topic) {
+      setStatus("Please enter a topic.", "error");
+      return;
+    }
+
+    submit.disabled = true;
+    setStatus("Sending...", "pending");
+
+    try {
+      const res = await fetch("/api/render", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ topic }),
+      });
+
+      const raw = await res.text();
+      let data = null;
+      try {
+        data = JSON.parse(raw);
+      } catch (_) {
+        // Non‑JSON response
+      }
+
+      if (!res.ok) {
+        const msg = (data && (data.detail || data.error)) || raw || "Request failed";
+        setStatus(`Error ${res.status}: ${msg}`, "error");
+        return;
+      }
+
+      const payload = data || { raw };
+      const shown =
+        (typeof payload.output === "string" && payload.output) ||
+        (typeof payload.status === "string" && payload.status) ||
+        raw;
+
+      setStatus(shown, "success");
+    } catch (err) {
+      setStatus(`Network error: ${err}`, "error");
+    } finally {
+      submit.disabled = false;
+    }
+  };
+
+  submit.addEventListener("click", sendQuery);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") sendQuery();
+  });
+})();
