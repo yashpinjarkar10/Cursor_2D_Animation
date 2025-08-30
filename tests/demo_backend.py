@@ -5,7 +5,7 @@ from code_to_video import render_manim_code
 
 app = FastAPI()
 
-# Input model for request body
+# Input mod for request body
 class Query(BaseModel):
     topic: str
 
