@@ -115,3 +115,40 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--text);height:100%;
   #rightPanel{order:3;}
   #centerPanel{order:1;}
 }
+/* --- Query Section (minimal additions, no overrides) --- */
+#querySection.query-section{
+  padding:12px 14px;
+  border-top:1px solid var(--border);
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+#querySection h4{
+  margin:0;
+  font-size:12px;
+  letter-spacing:.6px;
+  font-weight:600;
+  color:var(--text-dim);
+}
+.query-row{
+  display:flex;
+  gap:6px;
+}
+#queryInput{
+  flex:1;
+  min-width:0;
+  background:#1a1b1e;
+  border:1px solid #454a51;
+  color:var(--text);
+  padding:5px 6px;
+  border-radius:4px;
+  font-size:12px;
+}
+.query-output{
+  font-size:12px;
+  color:var(--text);
+  background:#23262a;border:1px solid #343941;padding:8px;border-radius:6px;min-height:20px;
+}
+.query-output.pending{color:#c9d1d9;}
+.query-output.success{color:#9ef5b0;}
+.query-output.error{color:#ffb8b8;}

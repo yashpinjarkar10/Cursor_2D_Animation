@@ -122,6 +122,30 @@
 
       <button class="btn sm accent hidden" id="applyBtn">Apply</button>
     </div>
+    <!-- Query Section (Non-invasive addition) -->
+    <!-- Place this inside #rightPanel, preferably after the existing #inspector block -->
+    <section id="querySection" class="query-section">
+      <h4 id="queryTitle">Query</h4>
+      <label for="queryInput" class="query-label">Enter topic</label>
+      <div class="query-row">
+        <input
+          id="queryInput"
+          type="text"
+          placeholder="Type a topic (e.g., Pythagoras theorem)"
+          aria-label="Query topic"
+        />
+        <button
+          id="querySubmit"
+          class="btn sm accent"
+          type="button"
+          title="Submit query"
+        >
+          Submit
+        </button>
+      </div>
+      <!-- Response will be rendered here -->
+      <div id="queryOutput" class="query-output" role="status" aria-live="polite"></div>
+    </section>
   </aside>
 </main>
 
