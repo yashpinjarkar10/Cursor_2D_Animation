@@ -1,3 +1,13 @@
+---
+title: Cursor 2d Animation
+emoji: 📚
+colorFrom: purple
+colorTo: indigo
+sdk: docker
+pinned: false
+license: mit
+short_description: Backend server for generating animation code
+---
 # Cursor 2D Animation Pipeline
 
 An intelligent educational animation generation system that converts topics into high-quality Manim animations using AI-powered LangGraph pipelines, web search, and RAG (Retrieval Augmented Generation).
@@ -167,3 +177,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 **Built with ❤️ for educational content creators and AI enthusiasts**
+---
