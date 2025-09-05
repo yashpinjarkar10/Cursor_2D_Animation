@@ -13,11 +13,8 @@ jobs:
         with:
           fetch-depth: 0
           lfs: true
-      - name: Push to Hugging Face Space
+
+      - name: Push to HF Space
         env:
-            HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: |
-            git config --global user.email "2411chirag@gmail.com"
-            git config --global user.name "Chirag Agrawal"
-            git remote add space https://chiragagrawal24:$HF_TOKEN@huggingface.co/spaces/chiragagrawal24/cursor_2d_animation
-            git push -f space main
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: git push -f https://chiragagrawal24:$HF_TOKEN@huggingface.co/spaces/chiragagrawal24/cursor_2d_animation main
