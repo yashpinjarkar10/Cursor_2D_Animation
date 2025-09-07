@@ -9,6 +9,7 @@ const DURATION_MIN_ACCEPT=0.05;
 const IMPORT_DEBUG=true;
 const OVERLAY_OFFSET_STEP=30;
 const OVERLAY_MAX_AUTO_OFFSET=8;
+const SHOW_GENERATED_CODE = false;
 
 // Project Object
 const project={
@@ -139,64 +140,56 @@ function buildOverlayClips(){
     if(o.height==null) o.height = 180;
 
     Object.assign(ov.style, {
-      position: 'absolute',
-      left: o.x+'px',
-      top: o.y+'px',
-      width: o.width+'px',
-      height: o.height+'px',
-      transform: `scale(${o.scale})`,
-      opacity: o.opacity,
-      mixBlendMode: o.blend || 'normal',
-      pointerEvents: 'auto',
-      userSelect: 'none',
-      cursor: o.locked ? 'not-allowed' : 'move',
-      overflow: 'hidden' // assists clipping
-    });
+  position: 'absolute',
+  left: o.x + 'px',
+  top: o.y + 'px',
+  width: o.width + 'px',
+  height: o.height + 'px',
+  transform: `scale(${o.scale})`,
+  opacity: o.opacity,
+  mixBlendMode: o.blend || 'normal',
+  cursor: o.locked ? 'default' : 'move',
+  userSelect: 'none',
+  pointerEvents: o.locked ? 'none' : 'auto',
+  border: o.type === 'text' ? '1px dashed #6cf' : 'none',
+  color: o.color || '#fff',
+  fontSize: (o.fontSize || 32) + 'px',
+  fontFamily: o.fontFamily || 'Arial',
+  lineHeight: '1.15',
+  textShadow: '0 0 4px #000',
+  overflow: 'hidden'
+});
 
     // Content
-    if(o.type === 'image'){
-      // Use <img> for better sizing fidelity
-      const img = document.createElement('img');
-      img.src = o.imageSrc;
-      img.draggable = false;
-      Object.assign(img.style, {
-        display: 'block',
-        width: '100%',
-        height: '100%',
-        objectFit: 'contain',
-        pointerEvents: 'none'
-      });
-      ov.appendChild(img);
-    } else if(o.type === 'text'){
-      ov.textContent = o.text || 'Text';
-      Object.assign(ov.style, {
-        color: o.color || '#ffffff',
-        fontFamily: o.fontFamily || 'Arial',
-        fontSize: (o.fontSize||32)+'px',
-        lineHeight: '1.1',
-        whiteSpace: 'pre-wrap',
-        textAlign: 'left'
-      });
-    }
+    if (o.type === 'image') {
+  const img = new Image();
+  img.src = o.imageSrc || o.src || '';
+  img.style.width = '100%';
+  img.style.height = '100%';
+  img.style.objectFit = 'cover';
+  ov.appendChild(img);
+} else if (o.type === 'text') {
+  ov.textContent = o.text || 'Text';
+}
 
     // Drag to move
-    ov.addEventListener('mousedown', (e)=>{
-      if(o.locked) return;
-      e.preventDefault();
-      selectOverlay(o.id);
-      ovDrag = { id:o.id, sx:e.clientX, sy:e.clientY, x0:o.x, y0:o.y };
-      document.addEventListener('mousemove', ovDragMove);
-      document.addEventListener('mouseup', ovDragEnd);
-    });
+    ov.addEventListener('mousedown', (e) => {
+  if (o.locked) return;
+  e.preventDefault();
+  ovDrag = { id: o.id, sx: e.clientX, sy: e.clientY, x0: o.x, y0: o.y };
+  document.addEventListener('mousemove', ovDragMove);
+  document.addEventListener('mouseup', ovDragEnd);
+});
 
-    // Wheel to crop in/out (uniform inset)
-    ov.addEventListener('wheel', (e)=>{
-      e.preventDefault();
-      const step = (e.deltaY>0 ? 1 : -1) * 0.02; // 2% per notch
-      o.cropPad = Math.max(0, Math.min(0.45, (o.cropPad||0) + step));
-      updateOverlaysVisual();
-      snapshot('ovCrop');
-    }, { passive:false });
+    // Wheel to crop (replace placeholder)
+    ov.addEventListener('wheel', (e) => {
+  if (o.locked) return;
+  e.preventDefault();
+  const delta = e.deltaY > 0 ? 0.02 : -0.02;
+  o.cropPad = Math.max(0, Math.min(0.45, (o.cropPad || 0) + delta));
+  updateOverlaysVisual();
+  snapshot('crop');
+});
 
     overlayStage.appendChild(ov);
   });
@@ -214,7 +207,7 @@ function buildAudioClips(){
 }
 function buildLayers(){
   layersList.innerHTML='';
-  [...project.overlays].slice().reverse().forEach(o=>{
+  project.overlays.slice().reverse().forEach(o=>{
     const li=document.createElement('li');li.className='layer-item';li.dataset.id=o.id;
     li.innerHTML=`<button class="vis-btn">${o.visible?'👁':'🚫'}</button>
       <button class="lock-btn">${o.locked?'🔒':'🔓'}</button>
@@ -334,7 +327,7 @@ applyBtn.addEventListener('click',()=>{
 });
 
 // Time and Playhead Management
-function updateTime(force){
+function updateTime(redraw){
   tcCurrent.textContent=fmt(globalTime); tcDuration.textContent=fmt(projectDuration());
   playheadEl.style.left=t2x(globalTime)+'px'; keepPlayheadVisible();
   updateOverlaysVisual(); // always refresh overlays
@@ -370,14 +363,12 @@ function ensureOverlayLayerStacking(){
 
   if (nextVideo) {
     Object.assign(nextVideo.style, {
-      position: 'absolute',
-      inset: '0',
-      width: '100%',
-      height: '100%',
-      zIndex: '9',
-      opacity: '0',
-      pointerEvents: 'none'
-    });
+  position: 'absolute',
+  inset: '0',
+  opacity: '0',
+  pointerEvents: 'none',
+  zIndex: '5'
+});
   }
 
   // Allow mouse events to reach overlays for drag & crop
@@ -437,7 +428,7 @@ function play(){
   if(clip){
     if(activeClip && activeClip.id===clip.id && currentVideo && currentVideo.src){
       const desired=clip.in+(globalTime-clip.start); if(Math.abs(currentVideo.currentTime-desired)>0.06){try{currentVideo.currentTime=desired;}catch{}}
-      isPlaying=true;playPauseBtn.textContent='Pause';currentVideo.play().catch(()=>{});attachVideoFrameCallback();updateAudioPlay(globalTime);startPlayheadLoop();return;
+      isPlaying=true;playPauseBtn.textContent='Pause';try { currentVideo.play().catch(()=>{}); } catch{}attachVideoFrameCallback();updateAudioPlay(globalTime);startPlayheadLoop();return;
     } else activateClip(clip,false);
   } else enterGapMode();
   isPlaying=true;playPauseBtn.textContent='Pause';updateAudioPlay(globalTime);startPlayheadLoop();
@@ -471,7 +462,8 @@ function playheadRAF(){
         if(nxt)activateClip(nxt,true);else if(globalTime>=boundedEnd())handlePlaybackEnd();else enterGapMode();
       } else schedulePreload();
     } else {
-      globalTime+=dt;if(globalTime>=boundedEnd())handlePlaybackEnd();
+      globalTime += dt;
+if (globalTime >= end) { handlePlaybackEnd(); return; }
     }
     updateAudioPlay(globalTime);updateTime(false);
   }
@@ -482,8 +474,9 @@ function attachVideoFrameCallback(){
   if(!currentVideo||!currentVideo.requestVideoFrameCallback)return;
   const cb=()=>{
     if(isPlaying&&activeClip&&!inGapMode){
-      globalTime=activeClip.start+(currentVideo.currentTime-activeClip.in);
-      updateAudioPlay(globalTime);updateTime(false);
+      globalTime = activeClip.start + currentVideo.currentTime - activeClip.in;
+if (globalTime >= activeClip.end - 1e-3) handlePlaybackEnd();
+updateTime(false);
     }
     if(isPlaying)pendingVideoFrameCallback=currentVideo.requestVideoFrameCallback(cb);
   };
@@ -500,13 +493,17 @@ function updateAudioPlay(t){
     const active=t>=a.offset&&t<a.offset+a.duration;
     let el=audioElements.get(a.id);
     if(active){
-      if(!el){
-        el=new Audio(a.src);el.crossOrigin='anonymous';el.volume=a.mute?0:a.volume;el.currentTime=t-a.offset;
-        audioElements.set(a.id,el);if(isPlaying)el.play().catch(()=>{});
-      }else{
-        const target=t-a.offset;if(Math.abs(el.currentTime-target)>0.25)el.currentTime=target;
-        el.volume=a.mute?0:a.volume;if(isPlaying&&el.paused)el.play().catch(()=>{});
-      }
+      if (!el) {
+  el = new Audio(a.src);
+  el.crossOrigin = 'anonymous';
+  el.muted = !!a.mute;
+  el.volume = a.volume ?? 1;
+  audioElements.set(a.id, el);
+  el.play().catch(()=>{});
+} else if (el.paused) {
+  el.play().catch(()=>{});
+}
+el.currentTime = Math.max(0, t - a.offset);
     }else if(el){el.pause();audioElements.delete(a.id);}
   });
 }
@@ -624,10 +621,18 @@ function importVideoFiles(files){
     let resolved=false;
     const finalize=durRaw=>{
       if(resolved)return; resolved=true;
-      let dur=durRaw; if(!isFinite(dur)||dur<DURATION_MIN_ACCEPT){dur=clip.duration;console.warn('[Import][Video] fallback duration for',file.name);}
-      clip.duration=dur; clip.out=dur; clip.end=clip.start+(clip.out-clip.in); delete clip._provisional;
-      processed++; rebuildAll(); setImportStatus(`Video ${processed}/${files.length}`);
-      if(processed===files.length){snapshot('importVideo');selectVideo(clip.id);updateTime(true);}
+      if(!isFinite(durRaw) || durRaw < DURATION_MIN_ACCEPT){
+  clip.duration = PROVISIONAL_MIN_DURATION;
+  clip.out = PROVISIONAL_MIN_DURATION;
+} else {
+  clip.duration = durRaw;
+  clip.out = durRaw;
+}
+clip.end = clip.start + (clip.out - clip.in);
+clip._provisional = false;
+processed++;
+rebuildAll();
+if(processed === files.length) setImportStatus('Videos imported','#8f8');
     };
     const timeout=setTimeout(()=>finalize(NaN),METADATA_TIMEOUT_MS);
     function poll(){ if(vid.readyState>=1&&!resolved) finalize(vid.duration); else if(!resolved) setTimeout(poll,450); }
@@ -647,13 +652,25 @@ function importAudioFiles(files){
     let url;try{url=URL.createObjectURL(file);}catch(e){console.error('[Import][Audio] URL fail',e);return;}
     const audio=new Audio(); audio.src=url; audio.preload='metadata'; audio.crossOrigin='anonymous';
     let resolved=false;
-    const start=lastTrackEnd(project.audioClips.map(a=>({end:a.offset+a.duration})));
+    const start=lastTrackEnd(project.audioClips.map(a=>({end:a.offset+(a.duration||0)})));
     const finalize=dur=>{
       if(resolved)return; resolved=true;
-      if(!isFinite(dur)||dur<=0) dur=1;
-      project.audioClips.push({id:genId('a'),src:url,name:file.name,duration:dur,offset:start+done,volume:1,mute:false});
-      done++; rebuildAll(); setImportStatus(`Audio ${done}/${files.length}`,'#9ec');
-      if(done===files.length) snapshot('importAudio');
+      if(!isFinite(dur) || dur < DURATION_MIN_ACCEPT) dur = 1;
+const clip = {
+  id: genId('a'),
+  src: url,
+  name: file.name,
+  duration: dur,
+  offset: start,
+  volume: 1,
+  mute: false,
+  isVO: false
+};
+project.audioClips.push(clip);
+done++;
+snapshot('audImport');
+rebuildAll();
+if(done === files.length) setImportStatus('Audio imported','#8fb');
     };
     const timeout=setTimeout(()=>finalize(NaN),METADATA_TIMEOUT_MS);
     audio.addEventListener('loadedmetadata',()=>{clearTimeout(timeout);finalize(audio.duration);},{once:true});
@@ -668,10 +685,22 @@ function importImageFiles(files){
   [...files].forEach((file,i)=>{
     let url;try{url=URL.createObjectURL(file);}catch(e){console.error('[Import][Img] URL fail',e);return;}
     project.overlays.push({
-      id:genId('img'),type:'image',imageSrc:url,start:globalTime,end:globalTime+5,
-      x:120+i*OVERLAY_OFFSET_STEP,y:120+i*OVERLAY_OFFSET_STEP,scale:1,opacity:1,fontSize:32,color:'#ffffff',
-      fontFamily:'Arial',visible:true,locked:false,blend:'normal'
-    });
+    id: genId('img'),
+    type: 'image',
+    imageSrc: url,
+    start: globalTime,
+    end: globalTime + 5,
+    x: 100 + i * OVERLAY_OFFSET_STEP,
+    y: 100 + i * OVERLAY_OFFSET_STEP,
+    scale: 1,
+    opacity: 1,
+    width: 300,
+    height: 180,
+    cropPad: 0,
+    visible: true,
+    locked: false,
+    blend: 'normal'
+});
   });
   snapshot('importImages'); rebuildAll(); setImportStatus(`Images: ${files.length}`,'#7fb');
 }
@@ -979,7 +1008,7 @@ async function renderProjectAV() {
     }
   }
 
-  // Main draw loop sync\'d to the audio clock
+  // Main draw loop sync'd to the audio clock
   let currentClipId = null;
   const t0 = audioCtx.currentTime;
   const rafLoop = async () => {
@@ -1045,91 +1074,434 @@ renderBtn.addEventListener('click', () => {
   });
 });
 
-// Initialization
-/* INIT */
-function init(){
-  if(importReady) return;
-  importReady = true;
+/* ===== Backend Interaction (PATCH) ===== */
 
-  ensureInputsEnabled();
-  timelineZoom.value = project.settings.pixelsPerSecond;
-
-  snapshot('init', true);
-  rebuildAll();
-  updateUndoRedo();
-  setVOState('Idle','');
-  setImportStatus('Ready');
-
-  // NEW: make sure overlays sit above the video from the beginning
-  ensureOverlayLayerStacking();
-
-  if(location.protocol==='file:')
-    console.warn('[Import] Running over file:// - use a local server for best reliability.');
+function renderCode(code){
+  const pre = document.getElementById("codeOutput");
+  if(!pre) return;
+  if(!SHOW_GENERATED_CODE){
+    pre.textContent = '';          // Clear any existing content
+    pre.style.display = 'none';    // Hide element
+    return;
+  }
+  pre.style.display = 'block';
+  pre.textContent = code;
 }
-init();
-window.project=project;
+//  if(pre) pre.textContent = code;
+//}
 
-// Add this near the end of your existing app.js, after the DOM is ready.
+const API_BASE = ""; // same-origin (proxy)
+function renderStatus(msg){
+  console.log("[STATUS]", msg);
+  const el = document.getElementById("status");
+  if(el) el.textContent = msg;
+}
 
-(function initQueryBox() {
-  const input = document.getElementById("queryInput");
-  const submit = document.getElementById("querySubmit");
-  const output = document.getElementById("queryOutput");
-
-  if (!input || !submit || !output) return;
-
-  const setStatus = (text, cls) => {
-    output.textContent = String(text || "");
-    output.className = `query-output ${cls || ""}`.trim();
-  };
-
-  const sendQuery = async () => {
-    const topic = input.value.trim();
-    if (!topic) {
-      setStatus("Please enter a topic.", "error");
+// in `app.js`
+async function submitQuery(raw){
+  const q = (raw || document.getElementById('userQuery')?.value || '').trim();
+  if(!q){ renderStatus('Enter a query'); return; }
+  renderStatus('Sending...');
+  try{
+    const resp = await fetch(`${API_BASE}/api/render`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ query: q })
+    });
+    if(!resp.ok){
+      const txt = await resp.text();
+      renderStatus('Backend error ' + resp.status);
+      console.error('Backend error', txt);
       return;
     }
-
-    submit.disabled = true;
-    setStatus("Sending...", "pending");
-
-    try {
-      const res = await fetch("/api/render", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topic }),
-      });
-
-      const raw = await res.text();
-      let data = null;
-      try {
-        data = JSON.parse(raw);
-      } catch (_) {
-        // Non‑JSON response
-      }
-
-      if (!res.ok) {
-        const msg = (data && (data.detail || data.error)) || raw || "Request failed";
-        setStatus(`Error ${res.status}: ${msg}`, "error");
-        return;
-      }
-
-      const payload = data || { raw };
-      const shown =
-        (typeof payload.output === "string" && payload.output) ||
-        (typeof payload.status === "string" && payload.status) ||
-        raw;
-
-      setStatus(shown, "success");
-    } catch (err) {
-      setStatus(`Network error: ${err}`, "error");
-    } finally {
-      submit.disabled = false;
+    const data = await resp.json();
+    renderStatus(data.success ? 'Received code' : 'Received (has error)');
+    if(data.code) renderCode(data.code);
+    // Optionally auto‑render Manim video if code ok
+    if(data.success && data.code){
+      try{ autoRenderManimCode(data.code); }catch(e){ console.warn(e); }
     }
-  };
+  }catch(e){
+    renderStatus('Network fail');
+    console.error(e);
+  }
+}
+document.addEventListener('DOMContentLoaded', ()=>{
+  const btn = document.getElementById('submitBtn');
+  btn && btn.addEventListener('click', ()=>submitQuery());
+});
 
-  submit.addEventListener("click", sendQuery);
-  input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") sendQuery();
+
+let _manimRenderInFlight = false;
+
+async function autoRenderManimCode(code){
+  if(!code) return;
+  if(_manimRenderInFlight){
+    console.warn("[MANIM] Already rendering");
+    return;
+  }
+  _manimRenderInFlight = true;
+  renderStatus("Rendering Manim...");
+  let resp;
+  try{
+    resp = await fetch('/api/render_manim', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ code })
+});
+  }catch(e){
+    console.error('[MANIM][NETWORK]', e);
+renderStatus('Render network error');
+_manimRenderInFlight = false;
+return;
+  }
+
+  if(!resp.ok){
+    let err;
+    try{ err = await resp.json(); }catch{}
+    console.error("[MANIM][FAIL]", resp.status, err);
+    renderStatus(err?.detail || "Render failed");
+    _manimRenderInFlight = false;
+    return;
+  }
+
+  try{
+    const blob = await resp.blob();
+const url = URL.createObjectURL(blob);
+await insertGeneratedVideoIntoTimeline(url);
+renderStatus('Manim video added');
+  }catch(e){
+    console.error('[MANIM][PARSE]', e);
+renderStatus('Video handling failed');
+}finally{
+    _manimRenderInFlight = false;
+  }
+}
+
+async function insertGeneratedVideoIntoTimeline(videoUrl){
+  return new Promise((resolve,reject)=>{
+    const v = document.createElement("video");
+    v.preload = "metadata";
+    v.src = videoUrl;
+    v.crossOrigin = "anonymous";
+    v.addEventListener("loadedmetadata", ()=>{
+      let duration = v.duration;
+      if(!isFinite(duration) || duration <= 0) duration = 5;
+      tryInsertTimelineClip(genId("manim"), videoUrl, duration);
+      rebuildAll();
+      resolve();
+    }, { once:true });
+    v.addEventListener("error", ()=>{
+      console.error("[MANIM][LOAD] Video load error", videoUrl);
+      renderStatus("Video load error");
+      reject(new Error("Video load error"));
+    }, { once:true });
   });
+}
+
+function tryInsertTimelineClip(id, src, duration){
+  if(!isFinite(duration) || duration <= 0) duration = 5;
+  const start = lastTrackEnd(project.videoClips);
+  const clip = {
+    id,
+    src,
+    name: "Manim",
+    duration,
+    start,
+    in: 0,
+    out: duration,
+    end: start + duration
+  };
+  project.videoClips.push(clip);
+  snapshot("addManim");
+  rebuildAll();
+  selectVideo(id);
+}
+
+/* === UNIFIED MEDIA PLAYBACK & RENDER PATCH =================
+
+/* 1. Unified media addition */
+const UNIFIED_MEDIA_TYPES = {
+  video: 'video',
+  generatedVideo: 'generatedVideo',
+  audio: 'audio',
+  voiceover: 'voiceover',
+  text: 'text',
+  image: 'image'
+};
+
+/* Adds any supported media type; uses existing project arrays */
+function addUnifiedMedia(type, opts = {}) {
+  switch (type) {
+    case UNIFIED_MEDIA_TYPES.video:
+    case UNIFIED_MEDIA_TYPES.generatedVideo: {
+      const start = lastTrackEnd(project.videoClips);
+      const duration = Math.max(0.2, opts.duration || 5);
+      const clip = {
+        id: genId(type === UNIFIED_MEDIA_TYPES.generatedVideo ? 'vg' : 'v'),
+        src: opts.src,
+        name: opts.name || (type === UNIFIED_MEDIA_TYPES.generatedVideo ? 'Generated Video' : (opts.label || 'Video')),
+        duration,
+        start,
+        in: 0,
+        out: duration,
+        end: start + duration
+      };
+      project.videoClips.push(clip);
+      snapshot('addVideo');
+      rebuildAll();
+      selectVideo(clip.id);
+      break;
+    }
+    case UNIFIED_MEDIA_TYPES.audio:
+    case UNIFIED_MEDIA_TYPES.voiceover: {
+      const start = lastTrackEnd(project.audioClips.map(a => ({ end: a.offset + a.duration })));
+      const duration = Math.max(0.2, opts.duration || 3);
+      const clip = {
+        id: genId(type === UNIFIED_MEDIA_TYPES.voiceover ? 'a_vo' : 'a'),
+        src: opts.src,
+        name: opts.name || (type === UNIFIED_MEDIA_TYPES.voiceover ? 'VoiceOver' : (opts.label || 'Audio')),
+        duration,
+        offset: start,
+        volume: 1,
+        mute: false,
+        isVO: type === UNIFIED_MEDIA_TYPES.voiceover
+      };
+      project.audioClips.push(clip);
+      snapshot('addAudio');
+      rebuildAll();
+      selectAudio(clip.id);
+      break;
+    }
+    case UNIFIED_MEDIA_TYPES.text: {
+      const start = opts.start != null ? opts.start : globalTime;
+      const overlay = {
+        id: genId('txt'),
+        type: 'text',
+        text: opts.text || 'New Text',
+        start,
+        end: start + (opts.length || 5),
+        x: opts.x ?? 120,
+        y: opts.y ?? 120,
+        width: opts.width || 320,
+        height: opts.height || 180,
+        scale: opts.scale || 1,
+        opacity: opts.opacity ?? 1,
+        fontSize: opts.fontSize || 32,
+        color: opts.color || '#ffffff',
+        cropPad: 0,
+        visible: true
+      };
+      project.overlays.push(overlay);
+      snapshot('addText');
+      rebuildAll();
+      selectOverlay(overlay.id);
+      break;
+    }
+    case UNIFIED_MEDIA_TYPES.image: {
+      const start = opts.start != null ? opts.start : globalTime;
+      const overlay = {
+        id: genId('img'),
+        type: 'image',
+        imageSrc: opts.src,
+        start,
+        end: start + (opts.length || 5),
+        x: opts.x ?? 140,
+        y: opts.y ?? 140,
+        width: opts.width || 360,
+        height: opts.height || 200,
+        scale: opts.scale || 1,
+        opacity: opts.opacity ?? 1,
+        cropPad: 0,
+        visible: true
+      };
+      project.overlays.push(overlay);
+      snapshot('addImage');
+      rebuildAll();
+      selectOverlay(overlay.id);
+      break;
+    }
+    default:
+      console.warn('[UnifiedMedia] Unknown type:', type);
+  }
+}
+
+/* 2. Unified timeline jump & play */
+function playFrom(t) {
+  pause();
+  globalTime = Math.max(0, Math.min(boundedEnd(), t));
+  const c = findClipAt(globalTime);
+  if (c) {
+    activateClip(c, true);
+    if (currentVideo && isFinite(currentVideo.duration)) {
+      try { currentVideo.currentTime = c.in + (globalTime - c.start); } catch {}
+    }
+  } else {
+    enterGapMode();
+  }
+  updateAudioPlay(globalTime);
+  updateTime(true);
+  play(); // unified play wrapper below
+}
+
+/* 3. Master clock based playback override (preserves original) */
+let _origPlay = typeof play === 'function' ? play : null;
+let _origPause = typeof pause === 'function' ? pause : null;
+
+let unifiedClockStartPerf = 0;
+
+function unifiedPlaybackRAF() {
+  if (!isPlaying) return;
+  const end = boundedEnd();
+  const now = performance.now();
+  const newTime = (now - unifiedClockStartPerf) / 1000;
+  globalTime = newTime;
+  if (globalTime >= end - 1e-5) {
+    globalTime = end;
+    updateAudioPlay(globalTime);
+    updateTime(true);
+    handleUnifiedPlaybackEnd();
+    return;
+  }
+  const c = findClipAt(globalTime);
+  if (c) {
+    if (activeClip !== c) {
+      activateClip(c, true);
+    }
+    if (currentVideo && isFinite(currentVideo.duration)) {
+      const target = c.in + (globalTime - c.start);
+      if (Math.abs(currentVideo.currentTime - target) > 0.045) {
+        try { currentVideo.currentTime = target; } catch {}
+      }
+    }
+  } else {
+    enterGapMode();
+  }
+  updateAudioPlay(globalTime);
+  updateTime(false);
+  requestAnimationFrame(unifiedPlaybackRAF);
+}
+
+function handleUnifiedPlaybackEnd() {
+  isPlaying = false;
+  playPauseBtn.textContent = 'Play';
+  stopAllAudio();
+  if (currentVideo) try { currentVideo.pause(); } catch {}
+}
+
+/* Override play/pause safely (idempotent) */
+play = function () {
+  if (isPlaying) return;
+  isPlaying = true;
+  playPauseBtn.textContent = 'Pause';
+  unifiedClockStartPerf = performance.now() - globalTime * 1000;
+  requestAnimationFrame(unifiedPlaybackRAF);
+};
+
+pause = function () {
+  if (!isPlaying) return;
+  isPlaying = false;
+  playPauseBtn.textContent = 'Play';
+  stopAllAudio();
+  if (currentVideo) try { currentVideo.pause(); } catch {}
+};
+
+/* 4. Element interaction: add double‑click play on all media (idempotent) */
+function hookUnifiedElementPlayback() {
+  // Video clips
+  document.querySelectorAll('#videoTrackContent .clip.video').forEach(el => {
+    if (el.dataset.unifiedHook) return;
+    el.dataset.unifiedHook = '1';
+    el.addEventListener('dblclick', e => {
+      e.stopPropagation();
+      const id = el.dataset.id;
+      const clip = project.videoClips.find(v => v.id === id);
+      if (clip) playFrom(clip.start);
+    });
+  });
+  // Overlay timeline clips
+  document.querySelectorAll('#overlayTrackContent .clip.overlay').forEach(el => {
+    if (el.dataset.unifiedHook) return;
+    el.dataset.unifiedHook = '1';
+    el.addEventListener('dblclick', e => {
+      e.stopPropagation();
+      const id = el.dataset.id;
+      const ov = project.overlays.find(o => o.id === id);
+      if (ov) playFrom(ov.start);
+    });
+  });
+  // Audio clips
+  document.querySelectorAll('#audioTrackContent .clip.audio').forEach(el => {
+    if (el.dataset.unifiedHook) return;
+    el.dataset.unifiedHook = '1';
+    el.addEventListener('dblclick', e => {
+      e.stopPropagation();
+      const id = el.dataset.id;
+      const a = project.audioClips.find(o => o.id === id);
+      if (a) playFrom(a.offset);
+    });
+  });
+  // Stage overlays
+  document.querySelectorAll('#overlayStage .overlay').forEach(el => {
+    if (el.dataset.unifiedHook) return;
+    el.dataset.unifiedHook = '1';
+    el.addEventListener('dblclick', e => {
+      e.stopPropagation();
+      const id = el.dataset.id;
+      const ov = project.overlays.find(o => o.id === id);
+      if (ov) playFrom(ov.start);
+    });
+  });
+}
+
+/* 5. Wrap rebuildAll to reapply hooks */
+if (typeof rebuildAll === 'function') {
+  const _rebAll = rebuildAll;
+  rebuildAll = function () {
+    _rebAll();
+    try { hookUnifiedElementPlayback(); } catch {}
+  };
+}
+
+/* 6. Unified export (reuses existing renderProjectAV) */
+async function exportUnified() {
+  // Ensure any pending snapshot flushed
+  flushSnapshot?.();
+  await renderProjectAV();
+}
+window.exportUnified = exportUnified;
+window.addUnifiedMedia = addUnifiedMedia;
+window.playFrom = playFrom;
+
+/* 7. Optional: add a dedicated export button dynamically (if not in DOM) */
+(function ensureUnifiedExportButton() {
+  if (!document.getElementById('unifiedExportBtn')) {
+    const btn = document.createElement('button');
+    btn.id = 'unifiedExportBtn';
+    btn.textContent = 'Export Unified';
+    btn.style.marginLeft = '8px';
+    const ref = document.getElementById('renderBtn');
+    (ref?.parentElement || document.body).appendChild(btn);
+    btn.addEventListener('click', () => exportUnified());
+  }
 })();
+
+/* 8. Keyboard shortcut: Shift+E for unified export, Shift+Space to play from start */
+window.addEventListener('keydown', e => {
+  if (e.target.matches('input,textarea')) return;
+  if (e.shiftKey && e.code === 'KeyE') {
+    e.preventDefault();
+    exportUnified();
+  } else if (e.shiftKey && e.code === 'Space') {
+    e.preventDefault();
+    playFrom(0);
+  }
+});
+
+/* 9. Safety: if original playhead loop still running, pause it once (only first time) */
+if (typeof window.__UNIFIED_PLAYBACK_INSTALLED === 'undefined') {
+  window.__UNIFIED_PLAYBACK_INSTALLED = true;
+  try { if (frameLoopRunning && _origPause) _origPause(); } catch {}
+  hookUnifiedElementPlayback();
+  console.log('[UnifiedMedia] Playback & export system active');
+}

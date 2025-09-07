@@ -5,6 +5,7 @@
   <title>Mini Video Editor</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 <body>
 <header id="topBar">
@@ -28,7 +29,6 @@
     <button class="btn sm" id="autoFitBtn" title="Fit entire timeline width">AutoFit</button>
     <button class="btn sm accent" id="renderBtn">Render</button>
     <button class="btn sm" id="exportBtn">Export JSON</button>
-
   </div>
   <div class="history">
     <button class="btn sm" id="undoBtn" title="Undo (Ctrl+Z)">Undo</button>
@@ -122,29 +122,15 @@
 
       <button class="btn sm accent hidden" id="applyBtn">Apply</button>
     </div>
-    <!-- Query Section (Non-invasive addition) -->
-    <!-- Place this inside #rightPanel, preferably after the existing #inspector block -->
+    <!-- Query Section -->
     <section id="querySection" class="query-section">
       <h4 id="queryTitle">Query</h4>
-      <label for="queryInput" class="query-label">Enter topic</label>
-      <div class="query-row">
-        <input
-          id="queryInput"
-          type="text"
-          placeholder="Type a topic (e.g., Pythagoras theorem)"
-          aria-label="Query topic"
-        />
-        <button
-          id="querySubmit"
-          class="btn sm accent"
-          type="button"
-          title="Submit query"
-        >
-          Submit
-        </button>
-      </div>
-      <!-- Response will be rendered here -->
+
       <div id="queryOutput" class="query-output" role="status" aria-live="polite"></div>
+      <input id="userQuery" placeholder="Type their query">
+      <button id="submitBtn">Generate</button>
+      <pre id="codeOutput"></pre>
+      <div id="status"></div>
     </section>
   </aside>
 </main>
