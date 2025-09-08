@@ -40,7 +40,7 @@ async def forward_to_backend(request: Request):
     try:
         data = await request.json()
         query = data.get("query")
-        resp = requests.post(BACKEND_URL, json={"query": query}, timeout=120)
+        resp = requests.post(BACKEND_URL, json={"query": query}, timeout=500)
 
         if resp.status_code == 200:
             return JSONResponse(content=resp.json())
