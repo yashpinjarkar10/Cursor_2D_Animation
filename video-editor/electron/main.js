@@ -675,7 +675,7 @@ ipcMain.handle('trim-video', async (event, inputPath, outputPath, startTime, dur
                 resolve({ success: true, outputPath });
             })
             .on('error', (err) => {
-                reject({ success: false, error: err.message });
+                reject(new Error(err.message || 'Failed to trim video'));
             })
             .run();
     });
@@ -683,11 +683,15 @@ ipcMain.handle('trim-video', async (event, inputPath, outputPath, startTime, dur
 
 // Join videos
 ipcMain.handle('join-videos', async (event, videoPaths, outputPath) => {
+    // Ensure output directory exists
+    const outputDir = path.dirname(outputPath);
+    await fs.mkdir(outputDir, { recursive: true });
+    
     return new Promise((resolve, reject) => {
         const command = ffmpeg();
 
-        videoPaths.forEach(path => {
-            command.input(path);
+        videoPaths.forEach(videoPath => {
+            command.input(videoPath);
         });
 
         command
@@ -695,7 +699,7 @@ ipcMain.handle('join-videos', async (event, videoPaths, outputPath) => {
                 resolve({ success: true, outputPath });
             })
             .on('error', (err) => {
-                reject({ success: false, error: err.message });
+                reject(new Error(err.message || 'Failed to join videos'));
             })
             .mergeToFile(outputPath);
     });
@@ -713,53 +717,154 @@ ipcMain.handle('add-audio', async (event, videoPath, audioPath, outputPath) => {
                 resolve({ success: true, outputPath });
             })
             .on('error', (err) => {
-                reject({ success: false, error: err.message });
+                reject(new Error(err.message || 'Failed to add audio'));
             })
             .run();
     });
 });
 
-// Export video with quality settings
-ipcMain.handle('export-video', async (event, inputPath, outputPath, options = {}) => {
+// Crop video - crops video to specified region
+ipcMain.handle('crop-video', async (event, inputPath, outputPath, cropParams) => {
+    const { x, y, width, height } = cropParams;
+    
+    // Ensure output directory exists
+    const outputDir = path.dirname(outputPath);
+    await fs.mkdir(outputDir, { recursive: true });
+    
+    return new Promise((resolve, reject) => {
+        ffmpeg(inputPath)
+            .videoFilter(`crop=${width}:${height}:${x}:${y}`)
+            .output(outputPath)
+            .on('end', () => {
+                resolve({ success: true, outputPath });
+            })
+            .on('error', (err) => {
+                reject(new Error(err.message || 'Failed to crop video'));
+            })
+            .run();
+    });
+});
+
+// Export video with quality settings - Non-blocking with progress updates
+ipcMain.handle('export-video', async (event, inputPath, outputPath, options = {}, sessionId = null) => {
+    const taskId = `export_${Date.now()}`;
+    
     const {
         quality = 'high',
         aspectRatio = '16:9',
         resolution,
     } = options;
 
-    return new Promise((resolve, reject) => {
-        const command = ffmpeg(inputPath);
-
-        // Set quality
-        if (quality === 'high') {
-            command.videoBitrate('5000k');
-        } else if (quality === 'medium') {
-            command.videoBitrate('2500k');
-        } else {
-            command.videoBitrate('1000k');
-        }
-
-        // Set resolution if specified
-        if (resolution) {
-            command.size(resolution);
-        }
-
-        // Set aspect ratio
-        command.aspect(aspectRatio);
-
-        command
-            .output(outputPath)
-            .on('progress', (progress) => {
-                mainWindow.webContents.send('export-progress', progress);
-            })
-            .on('end', () => {
-                resolve({ success: true, outputPath });
-            })
-            .on('error', (err) => {
-                reject({ success: false, error: err.message });
-            })
-            .run();
+    // Mark as in progress
+    activeGenerations.set(taskId, { status: 'exporting', inputPath, outputPath, sessionId });
+    
+    // Send initial progress
+    mainWindow.webContents.send('export-progress', {
+        taskId,
+        status: 'exporting',
+        message: 'Starting export...',
+        progress: 0
     });
+
+    // Run export in background
+    (async () => {
+        try {
+            // Check if cancelled
+            if (!activeGenerations.has(taskId)) {
+                console.log('Export cancelled before start:', taskId);
+                return;
+            }
+
+            await new Promise((resolve, reject) => {
+                const command = ffmpeg(inputPath);
+
+                // Set quality
+                if (quality === 'high') {
+                    command.videoBitrate('5000k');
+                } else if (quality === 'medium') {
+                    command.videoBitrate('2500k');
+                } else {
+                    command.videoBitrate('1000k');
+                }
+
+                // Set resolution if specified
+                if (resolution) {
+                    command.size(resolution);
+                }
+
+                // Set aspect ratio
+                command.aspect(aspectRatio);
+
+                command
+                    .output(outputPath)
+                    .on('progress', (progress) => {
+                        if (!activeGenerations.has(taskId)) {
+                            command.kill('SIGKILL');
+                            return;
+                        }
+                        mainWindow.webContents.send('export-progress', {
+                            taskId,
+                            status: 'exporting',
+                            message: `Exporting: ${Math.round(progress.percent || 0)}%`,
+                            progress: progress.percent || 0
+                        });
+                    })
+                    .on('end', () => resolve())
+                    .on('error', (err) => reject(err))
+                    .run();
+            });
+
+            // Check if cancelled after export
+            if (!activeGenerations.has(taskId)) {
+                console.log('Export cancelled after completion:', taskId);
+                try { await fs.unlink(outputPath); } catch (e) {}
+                return;
+            }
+
+            // Save a copy to session folder if sessionId provided
+            let sessionCopyPath = null;
+            if (sessionId) {
+                const tempFolder = path.join(__dirname, '..', 'temp_folder');
+                const sessionPath = path.join(tempFolder, sessionId);
+                const exportsDir = path.join(sessionPath, 'exports');
+                await fs.mkdir(exportsDir, { recursive: true });
+                
+                const exportFilename = `export_${Date.now()}.mp4`;
+                sessionCopyPath = path.join(exportsDir, exportFilename);
+                await fs.copyFile(outputPath, sessionCopyPath);
+                console.log('Export copy saved to session:', sessionCopyPath);
+            }
+
+            // Mark as complete
+            activeGenerations.delete(taskId);
+
+            // Send completion event
+            mainWindow.webContents.send('export-complete', {
+                taskId,
+                success: true,
+                outputPath: outputPath,
+                sessionCopyPath: sessionCopyPath
+            });
+
+        } catch (error) {
+            if (!activeGenerations.has(taskId)) {
+                console.log('Export cancelled during error handling:', taskId);
+                return;
+            }
+
+            console.error('Export error:', error.message);
+            activeGenerations.delete(taskId);
+
+            mainWindow.webContents.send('export-complete', {
+                taskId,
+                success: false,
+                error: error.message
+            });
+        }
+    })();
+
+    // Return taskId immediately
+    return { taskId, status: 'started' };
 });
 
 // Select file dialog

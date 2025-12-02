@@ -120,7 +120,7 @@ const Toolbar = ({ onGenerateVideo, onExport, isRendering }) => {
 
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium mb-2">Quality</label>
+                                <label className="block text-sm font-medium mb-2">Quality (Bitrate)</label>
                                 <select
                                     className="input w-full"
                                     value={exportSettings.quality}
@@ -130,6 +130,7 @@ const Toolbar = ({ onGenerateVideo, onExport, isRendering }) => {
                                     <option value="medium">Medium (2500 kbps)</option>
                                     <option value="low">Low (1000 kbps)</option>
                                 </select>
+                                <p className="text-xs text-gray-500 mt-1">Higher bitrate = better quality, larger file size</p>
                             </div>
 
                             <div>
@@ -153,11 +154,13 @@ const Toolbar = ({ onGenerateVideo, onExport, isRendering }) => {
                                     value={exportSettings.resolution}
                                     onChange={(e) => setExportSettings({ ...exportSettings, resolution: e.target.value })}
                                 >
-                                    <option value="1920x1080">1920x1080 (Full HD)</option>
-                                    <option value="1280x720">1280x720 (HD)</option>
-                                    <option value="3840x2160">3840x2160 (4K)</option>
-                                    <option value="640x480">640x480 (SD)</option>
+                                    <option value="3840x2160">3840×2160 (4K UHD)</option>
+                                    <option value="1920x1080">1920×1080 (1080p Full HD)</option>
+                                    <option value="1280x720">1280×720 (720p HD)</option>
+                                    <option value="854x480">854×480 (480p SD)</option>
+                                    <option value="640x360">640×360 (360p)</option>
                                 </select>
+                                <p className="text-xs text-gray-500 mt-1">Pixel dimensions of the output video</p>
                             </div>
                         </div>
 

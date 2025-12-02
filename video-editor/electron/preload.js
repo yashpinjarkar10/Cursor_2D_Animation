@@ -51,13 +51,20 @@ contextBridge.exposeInMainWorld('electronAPI', {
         ipcRenderer.invoke('join-videos', videoPaths, outputPath),
     addAudio: (videoPath, audioPath, outputPath) =>
         ipcRenderer.invoke('add-audio', videoPath, audioPath, outputPath),
-    exportVideo: (inputPath, outputPath, options) =>
-        ipcRenderer.invoke('export-video', inputPath, outputPath, options),
+    cropVideo: (inputPath, outputPath, cropParams) =>
+        ipcRenderer.invoke('crop-video', inputPath, outputPath, cropParams),
+    exportVideo: (inputPath, outputPath, options, sessionId) =>
+        ipcRenderer.invoke('export-video', inputPath, outputPath, options, sessionId),
 
     // File dialogs
     selectFile: (options) => ipcRenderer.invoke('select-file', options),
     saveFile: (options) => ipcRenderer.invoke('save-file', options),
 
-    // Progress listeners
+    // Export progress/completion events
     onExportProgress: (callback) => ipcRenderer.on('export-progress', callback),
+    onExportComplete: (callback) => ipcRenderer.on('export-complete', callback),
+    removeExportListeners: () => {
+        ipcRenderer.removeAllListeners('export-progress');
+        ipcRenderer.removeAllListeners('export-complete');
+    },
 });

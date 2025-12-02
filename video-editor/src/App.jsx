@@ -309,11 +309,39 @@ function App() {
       }
     };
 
+    // Handle export progress updates
+    const handleExportProgress = (event, data) => {
+      setGeneratingTasks(prev => {
+        const existing = prev.find(t => t.taskId === data.taskId);
+        if (existing) {
+          return prev.map(t => t.taskId === data.taskId 
+            ? { ...t, status: data.status, message: data.message, progress: data.progress }
+            : t
+          );
+        }
+        return prev;
+      });
+    };
+
+    // Handle export completion
+    const handleExportComplete = (event, data) => {
+      // Remove from generating tasks
+      setGeneratingTasks(prev => prev.filter(task => task.taskId !== data.taskId));
+      
+      if (data.success) {
+        showToast(`Video exported successfully!${data.sessionCopyPath ? ' Copy saved to session.' : ''}`, 'success');
+      } else {
+        showToast(`Export failed: ${data.error}`, 'error');
+      }
+    };
+
     window.electronAPI.onManimProgress(handleProgress);
     window.electronAPI.onGenerationProgress(handleGenerationProgress);
     window.electronAPI.onGenerationComplete(handleGenerationComplete);
     window.electronAPI.onRenderProgress(handleRenderProgress);
     window.electronAPI.onRenderComplete(handleRenderComplete);
+    window.electronAPI.onExportProgress(handleExportProgress);
+    window.electronAPI.onExportComplete(handleExportComplete);
     window.electronAPI.onSessionRefresh(handleSessionRefresh);
     window.electronAPI.onClearGeneratedVideos(handleClearGeneratedVideos);
     initSession();
@@ -322,6 +350,7 @@ function App() {
       // Cleanup listeners
       window.electronAPI.removeGenerationListeners?.();
       window.electronAPI.removeRenderListeners?.();
+      window.electronAPI.removeExportListeners?.();
     };
   }, [sessionId, showToast]);
 
@@ -408,10 +437,22 @@ function App() {
       return;
     }
 
-    setIsRendering(true);
-    setRenderProgress('Exporting video...');
     try {
-      // If multiple clips, join them first
+      // First, show save dialog to get output path
+      const result = await window.electronAPI.saveFile({
+        title: 'Export Video',
+        defaultPath: 'video.mp4',
+        filters: [{ name: 'Video', extensions: ['mp4'] }],
+      });
+
+      if (result.canceled || !result.filePath) {
+        return; // User cancelled
+      }
+
+      const outputPath = result.filePath;
+      let inputPath;
+
+      // If multiple clips, join them first (this part is still blocking for now)
       if (clips.length > 1) {
         const videoPaths = clips.map(c => c.videoPath || c.videoUrl).filter(Boolean);
         if (videoPaths.length === 0) {
@@ -419,49 +460,40 @@ function App() {
           return;
         }
 
-        const sessionPath = await window.electronAPI.getSessionPath?.(sessionId) || '';
-        const joinedPath = `${sessionPath}${sessionId}_joined.mp4`;
+        // Create temp joined file path in session folder
+        const joinedPath = `temp_folder/${sessionId}/exports/${sessionId}_joined_${Date.now()}.mp4`;
         
-        setRenderProgress('Joining videos...');
+        showToast('Joining clips...', 'info');
         await window.electronAPI.joinVideos(videoPaths, joinedPath);
-
-        // Then export
-        const result = await window.electronAPI.saveFile({
-          title: 'Export Video',
-          defaultPath: 'video.mp4',
-          filters: [{ name: 'Video', extensions: ['mp4'] }],
-        });
-
-        if (!result.canceled && result.filePath) {
-          setRenderProgress('Exporting final video...');
-          await window.electronAPI.exportVideo(joinedPath, result.filePath, options);
-          showToast(`Video exported successfully to ${result.filePath}`, 'success');
-        }
+        inputPath = joinedPath;
       } else {
-        // Export single clip
-        const result = await window.electronAPI.saveFile({
-          title: 'Export Video',
-          defaultPath: 'video.mp4',
-          filters: [{ name: 'Video', extensions: ['mp4'] }],
-        });
-
-        if (!result.canceled && result.filePath) {
-          const videoPath = clips[0].videoPath || clips[0].videoUrl;
-          if (!videoPath) {
-            showToast('No valid video path for export', 'error');
-            return;
-          }
-          setRenderProgress('Exporting video...');
-          await window.electronAPI.exportVideo(videoPath, result.filePath, options);
-          showToast(`Video exported successfully to ${result.filePath}`, 'success');
+        inputPath = clips[0].videoPath || clips[0].videoUrl;
+        if (!inputPath) {
+          showToast('No valid video path for export', 'error');
+          return;
         }
       }
+
+      // Start non-blocking export
+      const exportResult = await window.electronAPI.exportVideo(inputPath, outputPath, options, sessionId);
+      
+      if (exportResult.status === 'started') {
+        // Add to generating tasks - progress updates will come via events
+        setGeneratingTasks(prev => [...prev, {
+          taskId: exportResult.taskId,
+          prompt: `Export: ${outputPath.split(/[/\\]/).pop()}`,
+          status: 'exporting',
+          message: 'Starting export...',
+          progress: 0,
+          isExport: true
+        }]);
+        showToast('Export started', 'info');
+      } else {
+        showToast(`Failed to start export: ${exportResult.error}`, 'error');
+      }
     } catch (error) {
-      console.error('Error exporting video:', error);
-      showToast(`Error exporting video: ${error.message}`, 'error');
-    } finally {
-      setIsRendering(false);
-      setRenderProgress('');
+      console.error('Error starting export:', error);
+      showToast(`Error starting export: ${error.message}`, 'error');
     }
   };
 

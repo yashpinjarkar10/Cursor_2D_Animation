@@ -101,43 +101,54 @@ const AssetPanel = ({ clips, onAddClip, onSelectClip, generatingTasks = [], onCa
                 {/* Generating Tasks Progress */}
                 {generatingTasks.length > 0 && (
                     <div className="space-y-2 mb-3">
-                        {generatingTasks.map((task) => (
-                            <div
-                                key={task.taskId}
-                                className={`panel p-3 ${task.isRender ? 'border-purple-500/50 bg-purple-500/10' : 'border-yellow-500/50 bg-yellow-500/10'}`}
-                            >
-                                <div className="flex items-start gap-2">
-                                    <Loader2 className={`w-4 h-4 flex-shrink-0 animate-spin ${task.isRender ? 'text-purple-400' : 'text-yellow-400'}`} />
-                                    <div className="flex-1 overflow-hidden">
-                                        <div className={`text-sm font-medium truncate ${task.isRender ? 'text-purple-400' : 'text-yellow-400'}`}>
-                                            {task.isRender ? 'Rendering...' : 'Generating...'}
+                        {generatingTasks.map((task) => {
+                            // Determine colors based on task type
+                            const isRender = task.isRender;
+                            const isExport = task.isExport;
+                            const borderColor = isExport ? 'border-green-500/50' : isRender ? 'border-purple-500/50' : 'border-yellow-500/50';
+                            const bgColor = isExport ? 'bg-green-500/10' : isRender ? 'bg-purple-500/10' : 'bg-yellow-500/10';
+                            const textColor = isExport ? 'text-green-400' : isRender ? 'text-purple-400' : 'text-yellow-400';
+                            const progressColor = isExport ? 'bg-green-500' : isRender ? 'bg-purple-500' : 'bg-yellow-500';
+                            const label = isExport ? 'Exporting...' : isRender ? 'Rendering...' : 'Generating...';
+                            
+                            return (
+                                <div
+                                    key={task.taskId}
+                                    className={`panel p-3 ${borderColor} ${bgColor}`}
+                                >
+                                    <div className="flex items-start gap-2">
+                                        <Loader2 className={`w-4 h-4 flex-shrink-0 animate-spin ${textColor}`} />
+                                        <div className="flex-1 overflow-hidden">
+                                            <div className={`text-sm font-medium truncate ${textColor}`}>
+                                                {label}
+                                            </div>
+                                            <div className="text-xs text-gray-400 mt-1 truncate">
+                                                {task.prompt?.substring(0, 40)}{task.prompt?.length > 40 ? '...' : ''}
+                                            </div>
+                                            <div className="text-xs text-gray-500 mt-1">
+                                                {task.message}
+                                            </div>
+                                            {/* Progress bar */}
+                                            <div className="mt-2 h-1 bg-dark-700 rounded-full overflow-hidden">
+                                                <div 
+                                                    className={`h-full transition-all duration-300 ${progressColor}`}
+                                                    style={{ width: `${task.progress || 0}%` }}
+                                                />
+                                            </div>
                                         </div>
-                                        <div className="text-xs text-gray-400 mt-1 truncate">
-                                            {task.prompt?.substring(0, 40)}{task.prompt?.length > 40 ? '...' : ''}
-                                        </div>
-                                        <div className="text-xs text-gray-500 mt-1">
-                                            {task.message}
-                                        </div>
-                                        {/* Progress bar */}
-                                        <div className="mt-2 h-1 bg-dark-700 rounded-full overflow-hidden">
-                                            <div 
-                                                className={`h-full transition-all duration-300 ${task.isRender ? 'bg-purple-500' : 'bg-yellow-500'}`}
-                                                style={{ width: `${task.progress || 0}%` }}
-                                            />
-                                        </div>
+                                        {onCancelGeneration && (
+                                            <button
+                                                onClick={() => onCancelGeneration(task.taskId)}
+                                                className="text-gray-400 hover:text-red-400 transition-colors"
+                                                title={isExport ? 'Cancel export' : isRender ? 'Cancel render' : 'Cancel generation'}
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </button>
+                                        )}
                                     </div>
-                                    {onCancelGeneration && (
-                                        <button
-                                            onClick={() => onCancelGeneration(task.taskId)}
-                                            className="text-gray-400 hover:text-red-400 transition-colors"
-                                            title={task.isRender ? 'Cancel render' : 'Cancel generation'}
-                                        >
-                                            <X className="w-4 h-4" />
-                                        </button>
-                                    )}
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
                 
