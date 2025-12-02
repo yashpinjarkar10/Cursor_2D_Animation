@@ -1,0 +1,42 @@
+# Electron + Vite requires CommonJS for main process
+dist-electron/
+
+# Vite build output
+dist/
+
+# Build output
+release/
+out/
+
+# Session data
+sessions/
+
+# Node modules
+node_modules/
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.local
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Python
+*.pyc
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.Python
