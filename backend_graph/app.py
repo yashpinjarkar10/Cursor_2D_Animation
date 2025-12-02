@@ -757,6 +757,112 @@ async def get_code(filename: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error reading code file: {str(e)}")
 
+class RenderRequest(BaseModel):
+    filename: str
+    code: str
+    SceneName: str = "Scene1"
+
+@app.post("/render")
+async def render_video(request: RenderRequest):
+    """
+    Execute the Manim code and return the video output.
+    """
+    filename = request.filename
+    code = request.code
+    SceneName = request.SceneName
+
+    if not code:
+        error_msg = "No code to execute"
+        raise HTTPException(status_code=400, detail=error_msg)
+    
+    # Create temporary Python file
+    temp_file = tempfile.NamedTemporaryFile(
+        mode='w',
+        suffix='.py',
+        delete=False,
+        dir='.',
+        encoding='utf-8'
+    )
+    
+    try:
+        # Write code to temp file
+        temp_file.write(code)
+        temp_file.close()
+        temp_file_path = temp_file.name
+        
+        print(f"  Created temp file: {temp_file_path}")
+        
+        # Save the code to a permanent file as well
+        code_output_path = OUTPUT_DIR / f"generated_code_{Path(temp_file_path).stem}.py"
+        with open(code_output_path, 'w', encoding='utf-8') as f:
+            f.write(code)
+        print(f"  Saved code to: {code_output_path}")
+        
+        # Execute Manim
+        print(f"  Running: manim -ql {temp_file_path} {SceneName}")
+        result = subprocess.run(
+            ["manim", "-ql", temp_file_path, SceneName],
+            capture_output=True,
+            text=True,
+            timeout=120  # 2 minutes timeout
+        )
+        
+        if result.returncode != 0:
+            error_msg = result.stderr.strip() or "Unknown execution error"
+            print(f"✗ Manim execution failed:")
+            print(result.stderr)
+            raise HTTPException(status_code=500, detail=error_msg)
+        
+        # Find the generated video
+        # Manim outputs to media/videos/{filename}/480p15/Scene1.mp4
+        video_pattern = Path("media/videos")
+        
+        # Search for the generated video
+        temp_filename = Path(temp_file_path).stem
+        expected_video_dir = video_pattern / temp_filename / "480p15"
+        expected_video_path = expected_video_dir / "Scene1.mp4"
+        
+        if expected_video_path.exists():
+            # Copy video to output directory
+            final_video_path = OUTPUT_DIR / f"animation_{temp_filename}.mp4"
+            shutil.copy2(expected_video_path, final_video_path)
+            
+            print(f"✓ Video generated successfully: {final_video_path}")
+            
+            # Clean up temp file
+            try:
+                os.remove(temp_file_path)
+            except:
+                pass
+            
+            # return {
+            #     "video_path": str(final_video_path),
+            #     "error": None,
+            #     "temp_file_path": None
+            # }
+            return FileResponse(
+                    path=str(final_video_path),
+                    media_type="video/mp4",
+                    filename=f"animation_{filename}.mp4",
+                    headers={
+                        "X-Success": "true",
+                        "X-Code-File-Path": str(OUTPUT_DIR / f"generated_code_{Path(final_video_path).stem.replace('animation_', '')}.py")
+                    }
+                )
+        else:
+            error_msg = f"Video file not found at expected path: {expected_video_path}"
+            print(f"✗ {error_msg}")
+            raise HTTPException(status_code=500, detail=error_msg)
+    except subprocess.TimeoutExpired:
+        error_msg = "Manim execution timed out (120 seconds)"
+        print(f"✗ {error_msg}")
+        raise HTTPException(status_code=500, detail=error_msg)
+    
+    except Exception as e:
+        print(f"\n✗ EXCEPTION: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
 
 @app.get("/")
 async def root():
