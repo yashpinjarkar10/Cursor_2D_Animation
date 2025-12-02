@@ -7,6 +7,8 @@ __pycache__/
 .venv/
 venv/
 uv.lock
+node_modules
+
 # environments
 .env
 # Distribution / packaging
@@ -23,3 +25,10 @@ dist/
 
 # Project outputs
 out/
+media/
+generated_videos/
+temp_folder/
+
+#AI instruction files
+task.md
+walkthrough.md.resolved
