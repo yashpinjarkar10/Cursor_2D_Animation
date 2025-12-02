@@ -1,37 +1,333 @@
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  console.error('Stack:', error.stack);
+  const { dialog } = require('electron');
+  dialog.showErrorBox('Application Error', `${error.message}\n\n${error.stack}`);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
 const { app, BrowserWindow, ipcMain, dialog, Menu } = require('electron');
 const path = require('path');
 const fs = require('fs').promises;
 const { spawn } = require('child_process');
 const ffmpeg = require('fluent-ffmpeg');
-const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
 const axios = require('axios');
 
+// Get ffmpeg path - handle both dev and production
+function getFfmpegPath() {
+    // Try to get the path from @ffmpeg-installer/ffmpeg
+    let ffmpegInstallerPath;
+    try {
+        ffmpegInstallerPath = require('@ffmpeg-installer/ffmpeg').path;
+    } catch (e) {
+        console.error('Failed to get ffmpeg-installer path:', e);
+    }
+    
+    // In production, the path might be inside asar, we need to use unpacked version
+    if (ffmpegInstallerPath && ffmpegInstallerPath.includes('app.asar')) {
+        ffmpegInstallerPath = ffmpegInstallerPath.replace('app.asar', 'app.asar.unpacked');
+    }
+    
+    return ffmpegInstallerPath || 'ffmpeg';
+}
+
+const ffmpegPath = getFfmpegPath();
+console.log('FFmpeg path:', ffmpegPath);
 ffmpeg.setFfmpegPath(ffmpegPath);
 
 let mainWindow;
 let config;
 
+// Determine if running in development or production
+const isDev = process.env.VITE_DEV_SERVER_URL !== undefined;
+
 // Track active generation tasks
 const activeGenerations = new Map();
+
+// Get the correct base path for resources
+function getBasePath() {
+    if (isDev) {
+        return path.join(__dirname, '..');
+    }
+    // In production, resources are in app.asar or unpacked
+    return path.join(process.resourcesPath, 'app.asar.unpacked');
+}
+
+// Get writable temp folder path (works in both dev and production)
+function getTempFolderPath() {
+    if (isDev) {
+        // In development, use temp_folder in project directory
+        return path.join(__dirname, '..', 'temp_folder');
+    }
+    // In production, use app's userData directory which is always writable
+    return path.join(app.getPath('userData'), 'temp_folder');
+}
+
+// Get user config path (writable location for user settings)
+function getUserConfigPath() {
+    return path.join(app.getPath('userData'), 'user-config.json');
+}
+
+// Load user config (for user-modified settings like backend URL)
+async function loadUserConfig() {
+    try {
+        const userConfigPath = getUserConfigPath();
+        const data = await fs.readFile(userConfigPath, 'utf-8');
+        return JSON.parse(data);
+    } catch (e) {
+        return {};
+    }
+}
+
+// Save user config
+async function saveUserConfig(userConfig) {
+    try {
+        const userConfigPath = getUserConfigPath();
+        await fs.writeFile(userConfigPath, JSON.stringify(userConfig, null, 2));
+        return true;
+    } catch (e) {
+        console.error('Failed to save user config:', e);
+        return false;
+    }
+}
 
 // Load configuration
 async function loadConfig() {
     try {
-        const configPath = path.join(__dirname, '..', 'config.json');
-        const configData = await fs.readFile(configPath, 'utf-8');
-        config = JSON.parse(configData);
+        // Try multiple config locations for default config
+        const configPaths = [
+            path.join(__dirname, '..', 'config.json'),
+            path.join(getBasePath(), 'config.json'),
+            path.join(app.getAppPath(), 'config.json')
+        ];
+        
+        for (const configPath of configPaths) {
+            try {
+                const configData = await fs.readFile(configPath, 'utf-8');
+                config = JSON.parse(configData);
+                console.log('Config loaded from:', configPath);
+                break;
+            } catch (e) {
+                // Try next path
+            }
+        }
+        
+        if (!config) {
+            config = { VIDEO_GENERATION_URL: 'http://localhost:8000' };
+        }
+        
+        // Load user config and override defaults
+        const userConfig = await loadUserConfig();
+        if (userConfig.VIDEO_GENERATION_URL) {
+            config.VIDEO_GENERATION_URL = userConfig.VIDEO_GENERATION_URL;
+            console.log('Using user-configured backend URL:', config.VIDEO_GENERATION_URL);
+        }
     } catch (error) {
         console.error('Failed to load config:', error);
         config = { VIDEO_GENERATION_URL: 'http://localhost:8000' };
     }
 }
 
+// Show settings dialog
+async function showSettingsDialog() {
+    const { BrowserWindow: SettingsWindow } = require('electron');
+    
+    const settingsWin = new BrowserWindow({
+        width: 500,
+        height: 250,
+        parent: mainWindow,
+        modal: true,
+        resizable: false,
+        minimizable: false,
+        maximizable: false,
+        title: 'Settings',
+        webPreferences: {
+            nodeIntegration: false,
+            contextIsolation: true,
+        },
+        backgroundColor: '#1a1a1a',
+    });
+    
+    settingsWin.setMenuBarVisibility(false);
+    
+    const currentUrl = config.VIDEO_GENERATION_URL || 'http://localhost:8000';
+    
+    const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            * { box-sizing: border-box; margin: 0; padding: 0; }
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                background: #1a1a1a;
+                color: #fff;
+                padding: 24px;
+                display: flex;
+                flex-direction: column;
+                height: 100vh;
+            }
+            h2 { margin-bottom: 20px; font-size: 18px; color: #fff; }
+            .form-group { margin-bottom: 20px; }
+            label { display: block; margin-bottom: 8px; color: #aaa; font-size: 14px; }
+            input {
+                width: 100%;
+                padding: 10px 12px;
+                border: 1px solid #444;
+                border-radius: 6px;
+                background: #2a2a2a;
+                color: #fff;
+                font-size: 14px;
+                outline: none;
+            }
+            input:focus { border-color: #0066ff; }
+            .buttons {
+                display: flex;
+                gap: 12px;
+                margin-top: auto;
+                justify-content: flex-end;
+            }
+            button {
+                padding: 10px 20px;
+                border: none;
+                border-radius: 6px;
+                font-size: 14px;
+                cursor: pointer;
+                transition: background 0.2s;
+            }
+            .btn-primary {
+                background: #0066ff;
+                color: #fff;
+            }
+            .btn-primary:hover { background: #0052cc; }
+            .btn-secondary {
+                background: #444;
+                color: #fff;
+            }
+            .btn-secondary:hover { background: #555; }
+            .status { 
+                margin-top: 12px; 
+                font-size: 12px; 
+                color: #888;
+                text-align: center;
+            }
+            .status.success { color: #4caf50; }
+            .status.error { color: #f44336; }
+        </style>
+    </head>
+    <body>
+        <h2>Settings</h2>
+        <div class="form-group">
+            <label for="backendUrl">Backend URL (Manim Server)</label>
+            <input type="text" id="backendUrl" value="${currentUrl}" placeholder="http://localhost:8000">
+        </div>
+        <div id="status" class="status"></div>
+        <div class="buttons">
+            <button class="btn-secondary" onclick="window.close()">Cancel</button>
+            <button class="btn-primary" onclick="saveSettings()">Save</button>
+        </div>
+        <script>
+            async function saveSettings() {
+                const url = document.getElementById('backendUrl').value.trim();
+                const status = document.getElementById('status');
+                
+                if (!url) {
+                    status.textContent = 'Please enter a valid URL';
+                    status.className = 'status error';
+                    return;
+                }
+                
+                // Validate URL format
+                try {
+                    new URL(url);
+                } catch (e) {
+                    status.textContent = 'Invalid URL format';
+                    status.className = 'status error';
+                    return;
+                }
+                
+                status.textContent = 'Saving...';
+                status.className = 'status';
+                
+                // Send to main process via custom protocol
+                window.location.href = 'app://save-settings?url=' + encodeURIComponent(url);
+            }
+            
+            document.getElementById('backendUrl').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') saveSettings();
+            });
+        </script>
+    </body>
+    </html>
+    `;
+    
+    // Handle the custom protocol for saving
+    settingsWin.webContents.on('will-navigate', async (event, url) => {
+        if (url.startsWith('app://save-settings')) {
+            event.preventDefault();
+            const urlParams = new URL(url);
+            const backendUrl = decodeURIComponent(urlParams.searchParams.get('url'));
+            
+            // Save to user config
+            const userConfig = await loadUserConfig();
+            userConfig.VIDEO_GENERATION_URL = backendUrl;
+            const saved = await saveUserConfig(userConfig);
+            
+            if (saved) {
+                // Update current config
+                config.VIDEO_GENERATION_URL = backendUrl;
+                
+                // Notify renderer about the change
+                mainWindow.webContents.send('settings-changed', { VIDEO_GENERATION_URL: backendUrl });
+                
+                dialog.showMessageBox(settingsWin, {
+                    type: 'info',
+                    title: 'Settings Saved',
+                    message: 'Backend URL has been updated.',
+                    detail: `New URL: ${backendUrl}`,
+                    buttons: ['OK']
+                }).then(() => {
+                    settingsWin.close();
+                });
+            } else {
+                dialog.showMessageBox(settingsWin, {
+                    type: 'error',
+                    title: 'Error',
+                    message: 'Failed to save settings',
+                    buttons: ['OK']
+                });
+            }
+        }
+    });
+    
+    settingsWin.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(htmlContent));
+}
+
 function createWindow() {
+    console.log('Creating window...');
+    console.log('isDev:', isDev);
+    console.log('__dirname:', __dirname);
+    console.log('app.getAppPath():', app.getAppPath());
+    
+    // Determine preload path based on environment
+    let preloadPath;
+    if (isDev) {
+        preloadPath = path.join(__dirname, 'preload.cjs');
+    } else {
+        // In production, preload is in dist-electron folder
+        preloadPath = path.join(app.getAppPath(), 'dist-electron', 'preload.cjs');
+    }
+    
+    console.log('Preload path:', preloadPath);
+    
     mainWindow = new BrowserWindow({
         width: 1600,
         height: 1000,
         webPreferences: {
-            preload: path.join(__dirname, 'preload.cjs'),
+            preload: preloadPath,
             contextIsolation: true,
             nodeIntegration: false,
             webSecurity: false, // Allow loading local file:// URLs for video playback
@@ -58,7 +354,15 @@ function createWindow() {
                 { role: 'copy' },
                 { role: 'paste' },
                 { role: 'delete' },
-                { role: 'selectAll' }
+                { role: 'selectAll' },
+                { type: 'separator' },
+                {
+                    label: 'Settings...',
+                    accelerator: 'CmdOrCtrl+,',
+                    click: () => {
+                        showSettingsDialog();
+                    }
+                }
             ]
         },
         {
@@ -101,15 +405,32 @@ function createWindow() {
     Menu.setApplicationMenu(menu);
 
     // Load the app
-    if (process.env.VITE_DEV_SERVER_URL) {
+    if (isDev) {
+        console.log('Loading dev server URL:', process.env.VITE_DEV_SERVER_URL);
         mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL);
         mainWindow.webContents.openDevTools();
     } else {
-        mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+        // In production, load from dist folder inside app.asar
+        const indexPath = path.join(app.getAppPath(), 'dist', 'index.html');
+        console.log('Loading production file:', indexPath);
+        mainWindow.loadFile(indexPath);
     }
 
+    // Handle load errors
+    mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
+        console.error('Failed to load:', errorCode, errorDescription);
+        dialog.showErrorBox('Load Error', `Failed to load application: ${errorDescription}`);
+    });
+
     mainWindow.once('ready-to-show', () => {
+        console.log('Window ready to show');
         mainWindow.show();
+    });
+    
+    // Log renderer process errors
+    mainWindow.webContents.on('crashed', () => {
+        console.error('Renderer process crashed');
+        dialog.showErrorBox('Error', 'The application crashed. Please restart.');
     });
 }
 
@@ -171,8 +492,8 @@ ipcMain.handle('generate-video', async (event, prompt, generationId, sessionId) 
                 progress: 20
             });
             
-            // Create directories in session folder (inside video-editor/temp_folder)
-            const tempFolder = path.join(__dirname, '..', 'temp_folder');
+            // Create directories in session folder
+            const tempFolder = getTempFolderPath();
             const sessionPath = path.join(tempFolder, sessionId || 'default');
             const videosDir = path.join(sessionPath, 'videos');
             const codeDir = path.join(sessionPath, 'code');
@@ -335,6 +656,30 @@ ipcMain.handle('cancel-generation', async (event, taskId) => {
     return { success: false, error: 'Task not found' };
 });
 
+// Get current settings
+ipcMain.handle('get-settings', async () => {
+    return {
+        VIDEO_GENERATION_URL: config.VIDEO_GENERATION_URL || 'http://localhost:8000'
+    };
+});
+
+// Update settings
+ipcMain.handle('update-settings', async (event, newSettings) => {
+    try {
+        const userConfig = await loadUserConfig();
+        
+        if (newSettings.VIDEO_GENERATION_URL) {
+            userConfig.VIDEO_GENERATION_URL = newSettings.VIDEO_GENERATION_URL;
+            config.VIDEO_GENERATION_URL = newSettings.VIDEO_GENERATION_URL;
+        }
+        
+        await saveUserConfig(userConfig);
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+});
+
 // Read a local file
 ipcMain.handle('read-local-file', async (event, filePath) => {
     try {
@@ -348,7 +693,7 @@ ipcMain.handle('read-local-file', async (event, filePath) => {
 // Load session files (videos and code) from session directory
 ipcMain.handle('load-session-files', async (event, sessionId) => {
     try {
-        const tempFolder = path.join(__dirname, '..', 'temp_folder');
+        const tempFolder = getTempFolderPath();
         const sessionPath = path.join(tempFolder, sessionId);
         const videosDir = path.join(sessionPath, 'videos');
         const codeDir = path.join(sessionPath, 'code');
@@ -438,10 +783,10 @@ ipcMain.handle('get-code-file', async (event, filename) => {
     }
 });
 
-// Create session directory in temp_folder (inside video-editor)
+// Create session directory
 ipcMain.handle('create-session', async (event, sessionId) => {
     try {
-        const tempFolder = path.join(__dirname, '..', 'temp_folder');
+        const tempFolder = getTempFolderPath();
         
         // Clean up old sessions before creating new one
         try {
@@ -481,7 +826,7 @@ ipcMain.handle('create-session', async (event, sessionId) => {
 // Clear all session data
 ipcMain.handle('clear-session', async (event, sessionId) => {
     try {
-        const tempFolder = path.join(__dirname, '..', 'temp_folder');
+        const tempFolder = getTempFolderPath();
         const sessionPath = path.join(tempFolder, sessionId);
         await fs.rm(sessionPath, { recursive: true, force: true });
         return { success: true };
@@ -493,7 +838,7 @@ ipcMain.handle('clear-session', async (event, sessionId) => {
 // Clear all generated videos
 ipcMain.handle('clear-generated-videos', async () => {
     try {
-        const tempFolder = path.join(__dirname, '..', 'temp_folder');
+        const tempFolder = getTempFolderPath();
         // Clear all session folders
         const exists = await fs.access(tempFolder).then(() => true).catch(() => false);
         if (exists) {
@@ -509,7 +854,7 @@ ipcMain.handle('clear-generated-videos', async () => {
 // Save file to session
 ipcMain.handle('save-to-session', async (event, sessionId, filename, content) => {
     try {
-        const tempFolder = path.join(__dirname, '..', 'temp_folder');
+        const tempFolder = getTempFolderPath();
         const sessionPath = path.join(tempFolder, sessionId);
         const filePath = path.join(sessionPath, filename);
         await fs.writeFile(filePath, content);
@@ -547,7 +892,7 @@ ipcMain.handle('render-manim', async (event, sessionId, code, sceneName = 'Scene
     // Run rendering in background
     (async () => {
         try {
-            const tempFolder = path.join(__dirname, '..', 'temp_folder');
+            const tempFolder = getTempFolderPath();
             const sessionPath = path.join(tempFolder, sessionId);
             const rendersPath = path.join(sessionPath, 'renders');
             const codePath = path.join(sessionPath, 'code');
@@ -858,7 +1203,7 @@ ipcMain.handle('export-video', async (event, inputPath, outputPath, options = {}
             // Save a copy to session folder if sessionId provided
             let sessionCopyPath = null;
             if (sessionId) {
-                const tempFolder = path.join(__dirname, '..', 'temp_folder');
+                const tempFolder = getTempFolderPath();
                 const sessionPath = path.join(tempFolder, sessionId);
                 const exportsDir = path.join(sessionPath, 'exports');
                 await fs.mkdir(exportsDir, { recursive: true });

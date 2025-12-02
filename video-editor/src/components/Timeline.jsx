@@ -13,6 +13,9 @@ const Timeline = ({
     onReorderClips,
     onTrimClip,
     onTrimAudio,
+    onMoveAudio,
+    onMoveText,
+    onUpdateText,
     onSplitClip,
     onSplitAudio,
     onSelectText,
@@ -25,10 +28,14 @@ const Timeline = ({
     const [trimPreview, setTrimPreview] = useState(null);
     const [audioTrimMode, setAudioTrimMode] = useState(null);
     const [audioTrimPreview, setAudioTrimPreview] = useState(null);
+    const [textTrimMode, setTextTrimMode] = useState(null); // { textId, handle: 'start' | 'end' }
+    const [textTrimPreview, setTextTrimPreview] = useState(null);
+    const [textDragMode, setTextDragMode] = useState(null); // { textId, startX, originalStartTime }
     const [splitMode, setSplitMode] = useState(null); // { clipId, type: 'video' | 'audio' }
     const [splitPosition, setSplitPosition] = useState(null); // Percentage position for the split line
     const [splitTimePreview, setSplitTimePreview] = useState(null); // { time, clipId } for showing split time
     const [splitFramePreview, setSplitFramePreview] = useState(null); // { dataUrl, time } for frame preview
+    const [audioDragMode, setAudioDragMode] = useState(null); // { audioId, startX, originalStartTime }
     const timelineRef = useRef(null);
     const timelineContentRef = useRef(null);
     const previewVideoRef = useRef(null);
@@ -341,14 +348,160 @@ const Timeline = ({
         setSplitFramePreview(null);
     };
 
-    // Get audio clip style using consecutive positions (no gaps)
-    const getAudioClipStyle = (audio) => {
-        const pos = audioPositions[audio.timelineId || audio.id];
-        if (!pos) return { width: '60px', left: '0px' };
+    // Audio clip dragging to move start time
+    const handleAudioDragStart = (e, audio) => {
+        e.stopPropagation();
+        e.preventDefault();
+        const audioId = audio.timelineId || audio.id;
+        const startTime = audio.startTime || 0;
+        setAudioDragMode({
+            audioId,
+            startX: e.clientX,
+            originalStartTime: startTime
+        });
+    };
+
+    // Handle audio drag move (attach to window for smooth dragging)
+    useEffect(() => {
+        if (!audioDragMode) return;
+
+        const handleMouseMove = (e) => {
+            if (!audioDragMode || !timelineRef.current) return;
+            const deltaX = e.clientX - audioDragMode.startX;
+            const deltaTime = deltaX / pixelsPerSecond;
+            const newStartTime = Math.max(0, audioDragMode.originalStartTime + deltaTime);
+            
+            if (onMoveAudio) {
+                onMoveAudio(audioDragMode.audioId, newStartTime);
+            }
+        };
+
+        const handleMouseUp = () => {
+            setAudioDragMode(null);
+        };
+
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mouseup', handleMouseUp);
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, [audioDragMode, pixelsPerSecond, onMoveAudio]);
+
+    // Text clip dragging to move start time
+    const handleTextDragStart = (e, text) => {
+        e.stopPropagation();
+        e.preventDefault();
+        const startTime = text.startTime || 0;
+        setTextDragMode({
+            textId: text.id,
+            startX: e.clientX,
+            originalStartTime: startTime
+        });
+    };
+
+    // Handle text drag move
+    useEffect(() => {
+        if (!textDragMode) return;
+
+        const handleMouseMove = (e) => {
+            if (!textDragMode || !timelineRef.current) return;
+            const deltaX = e.clientX - textDragMode.startX;
+            const deltaTime = deltaX / pixelsPerSecond;
+            const newStartTime = Math.max(0, textDragMode.originalStartTime + deltaTime);
+            
+            if (onMoveText) {
+                onMoveText(textDragMode.textId, newStartTime);
+            }
+        };
+
+        const handleMouseUp = () => {
+            setTextDragMode(null);
+        };
+
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mouseup', handleMouseUp);
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, [textDragMode, pixelsPerSecond, onMoveText]);
+
+    // Handle text trim start
+    const handleTextTrimStart = (e, text, handle) => {
+        e.stopPropagation();
+        setTextTrimMode({ textId: text.id, handle, initialX: e.clientX, text });
+    };
+
+    // Text trim drag handling
+    useEffect(() => {
+        if (!textTrimMode) return;
+
+        const handleMouseMove = (e) => {
+            const deltaX = e.clientX - textTrimMode.initialX;
+            const deltaTime = deltaX / pixelsPerSecond;
+            
+            const text = textTrimMode.text;
+            let newStartTime = text.startTime || 0;
+            let newDuration = text.duration || 3;
+
+            if (textTrimMode.handle === 'start') {
+                const newStart = Math.max(0, (text.startTime || 0) + deltaTime);
+                const oldEnd = (text.startTime || 0) + (text.duration || 3);
+                newStartTime = newStart;
+                newDuration = Math.max(0.5, oldEnd - newStart);
+            } else {
+                newDuration = Math.max(0.5, (text.duration || 3) + deltaTime);
+            }
+
+            setTextTrimPreview({ textId: text.id, startTime: newStartTime, duration: newDuration });
+        };
+
+        const handleMouseUp = () => {
+            if (textTrimPreview && onUpdateText) {
+                const text = textOverlays.find(t => t.id === textTrimPreview.textId);
+                if (text) {
+                    onUpdateText({
+                        ...text,
+                        startTime: textTrimPreview.startTime,
+                        duration: textTrimPreview.duration
+                    });
+                }
+            }
+            setTextTrimMode(null);
+            setTextTrimPreview(null);
+        };
+
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mouseup', handleMouseUp);
+
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, [textTrimMode, textTrimPreview, onUpdateText, pixelsPerSecond, textOverlays]);
+
+    // Get text clip style
+    const getTextClipStyle = (text) => {
+        const startTime = textTrimPreview?.textId === text.id ? textTrimPreview.startTime : (text.startTime || 0);
+        const duration = textTrimPreview?.textId === text.id ? textTrimPreview.duration : (text.duration || 3);
         
         return {
-            width: `${Math.max(pos.width * pixelsPerSecond, 60)}px`,
-            left: `${pos.left * pixelsPerSecond}px`,
+            width: `${Math.max(duration * pixelsPerSecond, 50)}px`,
+            left: `${startTime * pixelsPerSecond}px`,
+        };
+    };
+
+    // Get audio clip style using startTime for position
+    const getAudioClipStyle = (audio) => {
+        const startTime = audio.startTime || 0;
+        const trimStart = audio.trimStart || 0;
+        const trimEnd = audio.trimEnd || audio.duration || 0;
+        const duration = trimEnd - trimStart;
+        
+        return {
+            width: `${Math.max(duration * pixelsPerSecond, 60)}px`,
+            left: `${startTime * pixelsPerSecond}px`,
         };
     };
 
@@ -664,10 +817,16 @@ const Timeline = ({
                                                     onSelectClip && onSelectClip(audio);
                                                 }
                                             }}
+                                            onMouseDown={(e) => {
+                                                // Only start drag if not clicking on trim handles or buttons
+                                                if (!isInSplitMode && e.target === e.currentTarget) {
+                                                    handleAudioDragStart(e, audio);
+                                                }
+                                            }}
                                             onMouseMove={(e) => isInSplitMode && handleSplitMouseMove(e, audio)}
                                             onMouseLeave={() => isInSplitMode && handleSplitMouseLeave()}
                                             className={`absolute top-1 bottom-1 rounded transition-all
-                                                ${isInSplitMode ? 'cursor-crosshair ring-2 ring-orange-500' : 'cursor-pointer'}
+                                                ${isInSplitMode ? 'cursor-crosshair ring-2 ring-orange-500' : audioDragMode ? 'cursor-grabbing' : 'cursor-grab'}
                                                 ${isSelected && !isInSplitMode ? 'ring-2 ring-primary-500 bg-green-600' : 'bg-green-600 hover:bg-green-500'}
                                             `}
                                             style={audioStyle}
@@ -701,7 +860,7 @@ const Timeline = ({
                                                 onMouseDown={(e) => handleAudioTrimStart(e, audio, 'start')}
                                             />
 
-                                            <div className="px-2 py-1 h-full flex flex-col justify-between overflow-hidden">
+                                            <div className="px-2 py-1 h-full flex flex-col justify-between overflow-hidden pointer-events-none">
                                                 <span className="text-xs font-medium text-white truncate">
                                                     🎵 {audio.name}
                                                 </span>
@@ -765,37 +924,60 @@ const Timeline = ({
                                     No text overlays - Add from Properties panel
                                 </div>
                             ) : (
-                                textOverlays.map((text) => (
-                                    <div
-                                        key={text.id}
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onSelectText && onSelectText(text.id);
-                                        }}
-                                        className={`absolute top-1 bottom-1 rounded cursor-pointer bg-purple-600 hover:bg-purple-500
-                                            ${selectedClip?.id === text.id ? 'ring-2 ring-primary-500' : ''}
-                                        `}
-                                        style={{
-                                            left: `${(text.startTime || 0) * pixelsPerSecond}px`,
-                                            width: `${Math.max((text.duration || 3) * pixelsPerSecond, 50)}px`,
-                                        }}
-                                    >
-                                        <div className="px-2 py-1 h-full flex items-center justify-between overflow-hidden">
-                                            <span className="text-xs font-medium text-white truncate">
-                                                {text.text || 'Text'}
-                                            </span>
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    onRemoveText && onRemoveText(text.id);
-                                                }}
-                                                className="text-white/50 hover:text-red-400"
-                                            >
-                                                <Trash2 className="w-3 h-3" />
-                                            </button>
+                                textOverlays.map((text) => {
+                                    const textStyle = getTextClipStyle(text);
+                                    const isSelected = selectedClip?.id === text.id;
+                                    return (
+                                        <div
+                                            key={text.id}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                onSelectText && onSelectText(text.id);
+                                            }}
+                                            onMouseDown={(e) => {
+                                                // Only start drag if not clicking on trim handles or buttons
+                                                if (e.target === e.currentTarget) {
+                                                    handleTextDragStart(e, text);
+                                                }
+                                            }}
+                                            className={`absolute top-1 bottom-1 rounded transition-all
+                                                ${textDragMode ? 'cursor-grabbing' : 'cursor-grab'}
+                                                ${isSelected ? 'ring-2 ring-primary-500 bg-purple-600' : 'bg-purple-600 hover:bg-purple-500'}
+                                            `}
+                                            style={textStyle}
+                                        >
+                                            {/* Left trim handle */}
+                                            <div
+                                                className="absolute left-0 top-0 bottom-0 w-2 bg-pink-500 cursor-ew-resize rounded-l opacity-0 hover:opacity-100 transition-opacity z-10"
+                                                onMouseDown={(e) => handleTextTrimStart(e, text, 'start')}
+                                            />
+
+                                            <div className="px-2 py-1 h-full flex items-center justify-between overflow-hidden pointer-events-none">
+                                                <span className="text-xs font-medium text-white truncate flex-1">
+                                                    {text.text || 'Text'}
+                                                </span>
+                                                <span className="text-xs text-white/60 ml-1">
+                                                    {formatDuration(text.duration || 3)}
+                                                </span>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        onRemoveText && onRemoveText(text.id);
+                                                    }}
+                                                    className="text-white/50 hover:text-red-400 pointer-events-auto ml-1"
+                                                >
+                                                    <Trash2 className="w-3 h-3" />
+                                                </button>
+                                            </div>
+
+                                            {/* Right trim handle */}
+                                            <div
+                                                className="absolute right-0 top-0 bottom-0 w-2 bg-pink-500 cursor-ew-resize rounded-r opacity-0 hover:opacity-100 transition-opacity z-10"
+                                                onMouseDown={(e) => handleTextTrimStart(e, text, 'end')}
+                                            />
                                         </div>
-                                    </div>
-                                ))
+                                    );
+                                })
                             )}
                         </div>
                     </div>

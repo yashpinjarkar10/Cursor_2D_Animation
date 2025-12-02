@@ -67,4 +67,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
         ipcRenderer.removeAllListeners('export-progress');
         ipcRenderer.removeAllListeners('export-complete');
     },
+
+    // Settings
+    getSettings: () => ipcRenderer.invoke('get-settings'),
+    updateSettings: (settings) => ipcRenderer.invoke('update-settings', settings),
+    onSettingsChanged: (callback) => ipcRenderer.on('settings-changed', callback),
+    removeSettingsListeners: () => {
+        ipcRenderer.removeAllListeners('settings-changed');
+    },
 });

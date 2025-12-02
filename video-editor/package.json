@@ -1,7 +1,9 @@
 {
   "name": "video-editor",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "A powerful video editor for creating cursor animations and video overlays with Manim support",
+  "author": "Your Name <your-email@example.com>",
   "main": "dist-electron/main.cjs",
   "scripts": {
     "dev": "vite",
@@ -14,18 +16,46 @@
   },
   "build": {
     "appId": "com.videoeditior.app",
-    "productName": "Video Editor",
+    "productName": "Cursor 2D Video Editor",
     "directories": {
       "output": "release"
     },
     "files": [
       "dist/**/*",
       "dist-electron/**/*",
-      "node_modules/**/*",
+      "config.json",
       "package.json"
     ],
+    "extraResources": [
+      {
+        "from": "node_modules/@ffmpeg-installer",
+        "to": "ffmpeg",
+        "filter": ["**/*"]
+      }
+    ],
+    "asar": true,
+    "asarUnpack": [
+      "node_modules/@ffmpeg-installer/**/*",
+      "node_modules/fluent-ffmpeg/**/*"
+    ],
     "win": {
-      "target": "nsis"
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Cursor 2D Video Editor"
     }
   },
   "dependencies": {
