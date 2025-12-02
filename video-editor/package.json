@@ -4,6 +4,10 @@
   "version": "1.0.0",
   "description": "A powerful video editor for creating cursor animations and video overlays with Manim support",
   "author": "Yash Pinjarkar",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yashpinjarkar10/Cursor_2D_Animation.git"
+  },
   "main": "dist-electron/main.cjs",
   "scripts": {
     "dev": "vite",
