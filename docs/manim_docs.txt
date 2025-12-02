@@ -1,0 +1,1395 @@
+# Manim — Comprehensive Reference & Tutorial
+
+> A single-file, runnable **Markdown** guide to Manim (Manim Community Edition) intended for learning, examples, and use as a RAG knowledge source. Contains: installation, core API, essential examples, CLI commands, tips, and ready-to-run code snippets.
+
+---
+
+## Table of Contents
+
+1. Quick overview
+2. Installation
+3. Project structure & CLI
+4. Core concepts
+
+   * Scenes
+   * Mobjects (VMobject, Mobject, Group)
+   * Text & Math
+   * Shapes & Geometry
+   * SVG & Images
+5. Animation primitives & transforms
+6. Updaters & dynamic objects
+7. Camera, view, and 3D
+8. Graphing, axes & plots
+9. Rendering options & performance tips
+10. Examples (ready-to-run)
+11. How to structure this file for RAG
+12. Troubleshooting & best practices
+13. Further resources
+
+---
+
+## 1. Quick overview
+
+Manim is a Python library for programmatically creating mathematical animations. Scenes describe what to render; mobjects (mathematical objects) are the visual building blocks; animations show transitions between states.
+
+> This document targets Manim Community Edition (stable release series). Use the CLI examples below to render scenes.
+
+---
+
+## 2. Installation
+
+### 1) Recommended: pip (virtualenv)
+
+```bash
+python -m venv .venv
+source .venv/bin/activate  # mac/linux
+# .venv\Scripts\activate.ps1 on Windows PowerShell
+pip install -U pip
+pip install manim
+```
+
+### 2) Conda
+
+```bash
+conda create -n manim python=3.11
+conda activate manim
+pip install manim
+```
+
+### 3) Docker (quick isolated environment)
+
+Refer to Manim's docs for official Docker usage and options.
+
+---
+
+## 3. Project structure & CLI
+
+Create a Python file for scenes, e.g. `scenes.py`.
+
+Basic CLI render commands (run from project folder):
+
+```bash
+# Render 'HelloScene' from scenes.py at low quality and preview
+manim -pql scenes.py HelloScene
+
+# Render with higher quality
+manim -pqh scenes.py HelloScene
+
+# Render a single frame (static image)
+manim -s scenes.py HelloScene
+
+# Render specific range of animation (frame slice)
+manim -pql scenes.py HelloScene -n 2 # render starting at animation index
+
+# Set output file name and resolution
+manim -pql -r 1920,1080 -o output.mp4 scenes.py HelloScene
+```
+
+**Note:** `-p` opens on finish, `-q` quality (l=low, h=high), `-s` single frame, `-r` resolution, `-o` output filename.
+
+---
+
+## 4. Core concepts
+
+### Scenes
+
+A `Scene` class defines animations inside a `construct` method.
+
+```py
+from manim import *
+
+class HelloScene(Scene):
+    def construct(self):
+        t = Text("Hello, Manim")
+        self.play(Write(t))
+        self.wait()
+```
+
+Run with `manim -pql scenes.py HelloScene`.
+
+### Mobjects (Mobject, VMobject, Group, VGroup)
+
+* `Mobject`: The base class for scene objects.
+* `VMobject`: Vectorized Mobject (paths, strokes, fills).
+* `Group` / `VGroup`: Containers to group multiple mobjects.
+
+Example shapes:
+
+```py
+sq = Square(side_length=2)
+circle = Circle(radius=1)
+line = Line(LEFT, RIGHT)
+```
+
+### Text & Math
+
+* `Text` — uses system fonts for plain text.
+* `MathTex` / `Tex` / `TexTemplate` — LaTeX rendering.
+
+```py
+title = Text("A Title")
+formula = MathTex(r"E = mc^2")
+```
+
+### Shapes & Geometry
+
+Shapes such as `Rectangle`, `Polygon`, `RegularPolygon`, `Arc`, `Ellipse`, `Dot`, `Vector`.
+
+```py
+poly = RegularPolygon(n=5)
+arc = Arc(radius=2,start_angle=0,angle=PI/2)
+```
+
+### SVG & Image
+
+* `SVGMobject("file.svg")`
+* `ImageMobject("image.png")`
+
+Use vector art from SVG files to import complex shapes.
+
+---
+
+## 5. Animation primitives & transforms
+
+Basic way to animate in `construct` is `self.play(...)`.
+
+Common animation calls:
+
+* `Write(mobj)` — writes text strokes
+* `Create(mobj)` — draws vector mobject path
+* `FadeIn(mobj)`, `FadeOut(mobj)`
+* `Transform(m1, m2)`, `ReplacementTransform(m1, m2)`
+* `MoveToTarget(m)` — combined with `m.generate_target()`
+* `ApplyMethod(m.animate.<method>(), ...)` — animate arbitrary method calls
+* `Rotate(m, angle=PI/2)`, `Scale(m, scale_factor=...)`
+
+Example:
+
+```py
+sq = Square()
+circle = Circle()
+self.play(Create(sq))
+self.play(Transform(sq, circle))
+```
+
+You can combine animations or sequence them:
+
+```py
+self.play(FadeIn(a), FadeIn(b))  # concurrent
+self.play(FadeOut(a), run_time=1)
+self.wait(0.5)
+```
+
+Timing controls: `run_time=`, `rate_func=` (e.g., `there_and_back`, `smooth`), `lag_ratio` for `LaggedStart`.
+
+### Animation groups & composition
+
+* `AnimationGroup(...)`, `Succession(...)`, `LaggedStart(...)`, `LaggedStartMap(...)`.
+
+---
+
+## 6. Updaters & dynamic objects
+
+Updaters let you keep a mobject in motion or linked to another object.
+
+```py
+dot = Dot()
+path = Line(LEFT*3, RIGHT*3)
+
+# move dot along path using updater
+def follow_path(mob, dt):
+    # example: shift to the right over time
+    mob.shift(RIGHT * dt)
+
+dot.add_updater(lambda m, dt: m.shift(RIGHT * dt))
+
+self.add(path, dot)
+self.wait(3)
+# remove updater
+dot.remove_updater(lambda m, dt: m.shift(RIGHT * dt))
+```
+
+A more common pattern: parametric/alpha-driven updater:
+
+```py
+curve = ParametricFunction(lambda t: np.array([t, np.sin(t), 0]), t_range=[-PI, PI])
+tracer = Dot()
+tracer.add_updater(lambda d: d.move_to(curve.point_from_proportion((self.time % 1))))
+```
+
+Tip: Updaters receive `(mobject, dt)` in many versions — you may also use `UpdateFromAlphaFunc` and `UpdateFromFunc` helpers.
+
+---
+
+## 7. Camera, view, and 3D
+
+* `self.camera.frame` or `self.camera` controls the visible region.
+* Use `self.play(self.camera.frame.animate.scale(0.5).shift(RIGHT))` to zoom/pan with animation.
+* For 3D, inherit from `ThreeDScene`; use `ThreeDCamera` and rotation helpers like `self.set_camera_orientation(phi=..., theta=...)`.
+
+Example camera animation:
+
+```py
+self.play(self.camera.frame.animate.move_to(square).set(width=3))
+```
+
+### 3D basics
+
+```py
+class CubeScene(ThreeDScene):
+    def construct(self):
+        cube = Cube()
+        self.add(cube)
+        self.set_camera_orientation(phi=65 * DEGREES, theta=-45 * DEGREES)
+        self.play(Rotate(cube, PI/4, axis=UP))
+        self.wait()
+```
+
+---
+
+## 8. Graphing, axes & plots
+
+* `Axes`, `NumberPlane`, `FunctionGraph`, `ParametricFunction` are useful for plots.
+
+```py
+axes = Axes(x_range=[-PI, PI, PI/2], y_range=[-2,2,1], x_length=8)
+func = axes.plot(lambda x: np.sin(x))
+self.play(Create(axes), Create(func))
+```
+
+Labeling: `axes.get_x_axis_label("x")`, use `MathTex` for formula labels.
+
+---
+
+## 9. Rendering options & performance tips
+
+* Use `-pql` (preview, low quality) for fast iterations.
+* Use `-pqh` or set `--quality high` for final renders.
+* Cache assets (LaTeX caching) and reuse mobjects to reduce render time.
+* Avoid overly high `run_time` in tests; use `-s` to quickly inspect static frames.
+
+---
+
+## 10. Examples (ready-to-run)
+
+Each example is a minimal, runnable scene. Save into `examples.py` and run with `manim -pql examples.py SceneName`.
+
+### Example 1 — Hello World (Text)
+
+```py
+# examples.py
+from manim import *
+
+class HelloWorld(Scene):
+    def construct(self):
+        text = Text("Hello, Manim!")
+        self.play(Write(text))
+        self.wait(1)
+```
+
+### Example 2 — Square -> Circle transform
+
+```py
+from manim import *
+
+class SquareToCircle(Scene):
+    def construct(self):
+        sq = Square(side_length=2, color=BLUE)
+        circ = Circle(radius=1.2, color=GREEN)
+        circ.shift(RIGHT*2)
+        self.play(Create(sq))
+        self.play(Transform(sq, circ))
+        self.wait(1)
+```
+
+### Example 3 — Graphing sine wave with tracer
+
+```py
+from manim import *
+import numpy as np
+
+class SineGraph(Scene):
+    def construct(self):
+        axes = Axes(x_range=[-PI, PI, PI/2], y_range=[-1.5,1.5,1], x_length=9)
+        sin_graph = axes.plot(lambda x: np.sin(x), color=YELLOW)
+        dot = Dot(axes.c2p(-PI, 0))
+
+        def updater(d):
+            a = self.time  # uses scene time
+            x = -PI + (a % (2*PI)) - PI
+            d.move_to(axes.c2p(x, np.sin(x)))
+        dot.add_updater(lambda m, dt: m.move_to(axes.c2p(-PI + (self.time % (2*PI)) - PI, np.sin(-PI + (self.time % (2*PI)) - PI))))
+
+        self.add(axes, sin_graph, dot)
+        self.wait(6)
+```
+
+### Example 4 — 3D rotating cube
+
+```py
+from manim import *
+
+class RotatingCube(ThreeDScene):
+    def construct(self):
+        cube = Cube(side_length=2)
+        self.add(cube)
+        self.set_camera_orientation(phi=65 * DEGREES, theta=-30 * DEGREES)
+        self.play(Rotate(cube, angle=PI/4, axis=UP), run_time=2)
+        self.play(Rotate(cube, angle=PI/2, axis=RIGHT), run_time=2)
+        self.wait()
+```
+
+### Example 5 — LaTeX formula being written
+
+```py
+from manim import *
+
+class Formula(Scene):
+    def construct(self):
+        eq = MathTex(r"\int_0^\infty e^{-x} dx = 1")
+        self.play(Write(eq))
+        self.wait(1)
+```
+
+### Example 6 — Using SVG as Mobject
+
+```py
+from manim import *
+
+class SVGExample(Scene):
+    def construct(self):
+        svg = SVGMobject("assets/logo.svg")
+        svg.scale(2)
+        self.play(DrawBorderThenFill(svg))
+        self.wait()
+```
+
+---
+# Manim Documentation: Creating Animated Videos
+
+This Markdown document compiles key elements from the official Manim Community Edition documentation (v0.19.0). It focuses on syntax, tutorials, examples, and code for creating and rendering animated videos. Structured for easy reference and Retrieval-Augmented Generation (RAG) use, with clear headings, code blocks, and explanations. All code examples are executable Python snippets using `from manim import *`.
+
+Manim is a Python library for precise programmatic animations, especially mathematical visualizations. It uses vector graphics and supports renderers like Cairo (default for videos) and OpenGL.
+
+## Table of Contents
+- [Installation](#installation)
+- [Quickstart Tutorial](#quickstart-tutorial)
+- [Manim's Building Blocks](#manims-building-blocks)
+  - [Mobjects](#mobjects)
+  - [Animations](#animations)
+  - [Scenes](#scenes)
+- [Output Settings and Configuration](#output-settings-and-configuration)
+- [Rendering Text and Formulas](#rendering-text-and-formulas)
+- [Deep Dive into Internals](#deep-dive-into-internals)
+- [Reference: Key Syntax](#reference-key-syntax)
+  - [Mobject Class](#mobject-class)
+  - [Scene Class](#scene-class)
+  - [Animation Class](#animation-class)
+- [Example Gallery Highlights](#example-gallery-highlights)
+- [Additional Resources](#additional-resources)
+
+## Installation
+
+Manim requires Python 3.8+. The standard installation uses `pip`. For virtual environments, use `venv` or `uv`. LaTeX (e.g., TeX Live) is optional for text rendering.
+
+### General Pip Installation
+1. Install Python 3.8+ from [python.org](https://www.python.org).
+2. Create a virtual environment:
+   ```
+   python -m venv manim_env
+   # On Windows: manim_env\Scripts\activate
+   # On macOS/Linux: source manim_env/bin/activate
+   ```
+3. Install Manim:
+   ```
+   pip install manim
+   ```
+4. Install LaTeX (optional, for equations):
+   - **Windows**: Download MiKTeX from [miktex.org](https://miktex.org).
+   - **macOS**: `brew install --cask mactex` (via Homebrew).
+   - **Linux**: `sudo apt install texlive-full` (Ubuntu/Debian).
+5. Test: `manim --version`.
+
+### Using Conda/Mamba
+Conda handles dependencies automatically.
+```
+conda create -n manim-env python=3.12
+conda activate manim-env
+conda install -c conda-forge manim
+# For Mamba: replace 'conda' with 'mamba'
+```
+LaTeX is optional; install via OS package manager if needed.
+
+### Troubleshooting
+- **FFmpeg Error**: Install FFmpeg from [ffmpeg.org](https://ffmpeg.org) and add to PATH.
+- **LaTeX Not Found**: Ensure `pdflatex` is in PATH.
+- **Virtual Env**: Prefix commands with `uv run` if using `uv`.
+- For Docker/Notebooks: See official FAQ.
+
+## Quickstart Tutorial
+
+This guide creates a sample project: animate a circle, transform a square to a circle, position mobjects, and use `.animate` syntax.
+
+### Starting a New Project
+```
+manim init project my-project --default
+cd my-project
+```
+This creates `main.py` (or `scene.py`).
+
+### Animating a Circle
+Edit `scene.py`:
+```python
+from manim import *
+
+class CreateCircle(Scene):
+    def construct(self):
+        circle = Circle()  # create a circle
+        circle.set_fill(PINK, opacity=0.5)  # set the color and transparency
+        self.play(Create(circle))  # show the circle on screen
+```
+Render:
+```
+manim -pql scene.py CreateCircle
+```
+Output: Pink circle drawn on screen.
+
+**Explanation**:
+- `from manim import *`: Imports all classes.
+- `class CreateCircle(Scene)`: Subclass `Scene`; override `construct()`.
+- `Circle()`: Creates a mobject.
+- `set_fill(color, opacity)`: Styles the interior.
+- `self.play(Create(circle))`: Animates creation.
+
+### Transforming a Square into a Circle
+Add to `scene.py`:
+```python
+class SquareToCircle(Scene):
+    def construct(self):
+        circle = Circle()
+        circle.set_fill(PINK, opacity=0.5)
+
+        square = Square()
+        square.rotate(PI / 4)  # rotate a certain amount
+
+        self.play(Create(square))  # animate the creation of the square
+        self.play(Transform(square, circle))  # interpolate the square into the circle
+        self.play(FadeOut(square))  # fade out animation
+```
+Render: `manim -pql scene.py SquareToCircle`.
+
+**Notes**:
+- `Transform`: Morphs one shape to another.
+- `FadeOut`: Fades mobject out.
+
+### Positioning Mobjects
+Add:
+```python
+class SquareAndCircle(Scene):
+    def construct(self):
+        circle = Circle()
+        circle.set_fill(PINK, opacity=0.5)
+
+        square = Square()
+        square.set_fill(BLUE, opacity=0.5)
+
+        square.next_to(circle, RIGHT, buff=0.5)  # set the position
+        self.play(Create(circle), Create(square))  # show the shapes on screen
+```
+- `next_to(target, direction, buff)`: Positions relative to another mobject.
+
+### Using `.animate` Syntax
+Add:
+```python
+class AnimatedSquareToCircle(Scene):
+    def construct(self):
+        circle = Circle()
+        square = Square()
+
+        self.play(Create(square))  # show the square on screen
+        self.play(square.animate.rotate(PI / 4))  # rotate the square
+        self.play(Transform(square, circle))  # transform the square into a circle
+        self.play(square.animate.set_fill(PINK, opacity=0.5))  # color the circle on screen
+```
+- `.animate.method()`: Animates the method call.
+
+**Transform vs. ReplacementTransform**:
+- `Transform`: Interpolates points/attributes.
+- `ReplacementTransform`: Replaces the mobject literally.
+Example:
+```python
+class TwoTransforms(Scene):
+    def construct(self):
+        a = Circle()
+        b = Square()
+        c = Triangle()
+        self.play(Transform(a, b))
+        self.play(Transform(a, c))
+        self.play(FadeOut(a))
+```
+
+## Manim's Building Blocks
+
+Manim uses three core classes: `Mobject` (displayable objects), `Animation` (changes over time), `Scene` (canvas).
+
+### Mobjects
+Displayable objects (e.g., `Circle`, `Square`). Base: `Mobject`; vectorized: `VMobject`.
+
+**Creating and Displaying**:
+```python
+class CreatingMobjects(Scene):
+    def construct(self):
+        circle = Circle()
+        self.add(circle)  # display
+        self.wait(1)
+        self.remove(circle)  # hide
+        self.wait(1)
+```
+
+**Placing Mobjects**:
+- `shift(vector)`: Relative move.
+- `move_to(point)`: Absolute position.
+- `next_to(target, direction)`: Relative to target.
+- `align_to(target, edge)`: Align borders.
+Example:
+```python
+class MobjectPlacement(Scene):
+    def construct(self):
+        circle = Circle()
+        square = Square()
+        triangle = Triangle()
+
+        circle.move_to(LEFT * 2)
+        square.next_to(circle, LEFT)
+        triangle.align_to(circle, LEFT)
+
+        self.add(circle, square, triangle)
+        self.wait(1)
+```
+Directions: `LEFT`, `RIGHT`, `UP`, `DOWN`, `ORIGIN`.
+
+**Styling Mobjects**:
+- `set_stroke(color, width)`: Border.
+- `set_fill(color, opacity)`: Interior.
+Example:
+```python
+class MobjectStyling(Scene):
+    def construct(self):
+        circle = Circle().shift(LEFT)
+        square = Square().shift(UP)
+        triangle = Triangle().shift(RIGHT)
+
+        circle.set_stroke(color=GREEN, width=20)
+        square.set_fill(YELLOW, opacity=1.0)
+        triangle.set_fill(PINK, opacity=0.5)
+
+        self.add(circle, square, triangle)
+        self.wait(1)
+```
+
+**Z-Order**: Addition order in `add()` determines layering (last added = foreground).
+
+### Animations
+Change mobjects over time. Base: `Animation`. Use `self.play(animation)`.
+
+Common:
+- `Create(mob)`: Draw.
+- `Transform(from_mob, to_mob)`: Morph.
+- `FadeOut(mob)`: Fade out.
+- `Rotate(mob, angle)`: Rotate.
+
+Lag Ratio Example:
+```python
+class LagRatios(Scene):
+    def construct(self):
+        ratios = [0, 0.1, 0.5, 1, 2]
+        group = VGroup(*[Dot() for _ in range(4)]).arrange_submobjects()
+        groups = VGroup(*[group.copy() for _ in ratios]).arrange_submobjects(buff=1)
+        self.add(groups)
+        self.play(AnimationGroup(*[
+            group.animate(lag_ratio=ratio, run_time=1.5).shift(DOWN * 2)
+            for group, ratio in zip(groups, ratios)
+        ]))
+```
+
+### Scenes
+Canvas class. Override `construct()`. Key methods: `add()`, `remove()`, `play()`, `wait()`.
+
+## Output Settings and Configuration
+
+Render with CLI flags: `-ql` (low: 480p15), `-qh` (high: 1080p60), `-s` (static image), `-p` (preview), `-a` (all scenes).
+
+Output Structure:
+```
+my-project/
+├── scene.py
+└── media/
+    ├── videos/scene/480p15/SquareToCircle.mp4
+    └── images/scene/SquareToCircle.png  # with -s
+```
+
+Sections for segmented videos:
+```python
+def construct(self):
+    self.play(Create(square))
+    self.next_section("create square")
+    self.play(Transform(square, circle))
+    self.next_section("transform to circle")
+```
+Render: `manim --save_sections scene.py`.
+
+GIF Output: `manim --format gif scene.py SceneName`.
+
+## Rendering Text and Formulas
+
+### Text Without LaTeX (Pango)
+Use `Text` or `MarkupText`.
+```python
+class HelloWorld(Scene):
+    def construct(self):
+        text = Text("Hello world", font_size=144)
+        self.add(text)
+```
+- `font`: e.g., `"Noto Sans"`.
+- `slant`: `ITALIC`, `OBLIQUE`.
+- `weight`: e.g., `BOLD`.
+- `color`: `RED`.
+- `t2c={'[1:-1]': BLUE}`: Color slices/words.
+- `gradient=(RED, BLUE)`: Gradient.
+- `line_spacing=1`: Spacing.
+- `disable_ligatures=True`: For precise iteration.
+
+Iteration:
+```python
+class IterateColor(Scene):
+    def construct(self):
+        text = Text("Colors", font_size=96)
+        for letter in text:
+            letter.set_color(random_bright_color())
+        self.add(text)
+```
+
+Markup Example:
+```python
+class MarkupTest(Scene):
+    def construct(self):
+        text = MarkupText(
+            f'<span underline="double" underline_color="green">double green underline</span> in red text<span fgcolor="{YELLOW}"> except this</span>',
+            color=RED, font_size=34
+        )
+        self.add(text)
+```
+
+### Formulas (LaTeX)
+Use `Tex` or `MathTex`.
+```python
+class HelloLaTeX(Scene):
+    def construct(self):
+        tex = Tex(r"\LaTeX", font_size=144)
+        self.add(tex)
+```
+- Raw strings: `r"$e^x = \sum \frac{x^n}{n!}$"`.
+- `MathTex`: Auto math mode.
+- Packages: `TexTemplate().add_to_preamble(r"\usepackage{mathrsfs}")`.
+- Substrings: `substrings_to_isolate="x"`, `set_color_by_tex("x", YELLOW)`.
+- Double braces: `MathTex(r"{{a^2}} + {{b^2}} = {{c^2}}")`.
+
+## Deep Dive into Internals
+
+Manim flow: Import → Scene Instantiation → `construct()` → Render Loop → Output.
+
+- **Mobject Init**: `VMobject` uses Bézier curves (4 points per curve).
+- **Add to Scene**: Appends to `mobjects`; flattens groups.
+- **Play Animation**: Compiles args, partitions moving/static mobjects, loops over frames (e.g., 30 FPS), interpolates `alpha = t / run_time`, captures via camera (Cairo draws Bézier).
+- **Renderer**: Cairo for vectors; combines partial MP4s via FFmpeg.
+
+Toy Example Breakdown:
+```python
+class ToyExample(Scene):
+    def construct(self):
+        orange_square = Square(color=ORANGE, fill_opacity=0.5)
+        blue_circle = Circle(color=BLUE, fill_opacity=0.5)
+        self.add(orange_square)
+        self.play(ReplacementTransform(orange_square, blue_circle, run_time=3))
+        small_dot = Dot()
+        small_dot.add_updater(lambda mob: mob.next_to(blue_circle, DOWN))
+        self.play(Create(small_dot))
+        self.play(blue_circle.animate.shift(RIGHT))
+        self.wait()
+        self.play(FadeOut(blue_circle, small_dot))
+```
+
+## Reference: Key Syntax
+
+### Mobject Class
+Base for displayables. Key methods return `self` for chaining.
+
+**Constructor**: `Mobject(color='#FFFFFF', name=None, dim=3)`
+
+**Positioning**:
+- `shift(*vectors)`: e.g., `square.shift(UP)`.
+- `move_to(point)`: e.g., `circle.move_to(LEFT * 2)`.
+- `next_to(target, direction=RIGHT, buff=0.25)`: Relative position.
+- `align_to(target, LEFT)`: Align edges.
+- `arrange(DOWN, buff=0.25)`: Arrange submobjects.
+- `scale(1.5)`: Scale.
+- `rotate(PI / 4)`: Rotate.
+
+**Styling**:
+- `set_color(RED)`: Color.
+- `set_stroke(GREEN, width=20)`: Border (VMobject).
+- `set_fill(YELLOW, opacity=0.5)`: Fill (VMobject).
+- `set_color_by_gradient(RED, BLUE)`: Gradient.
+
+Getters: `get_center()`, `get_width()`, `height`.
+
+### Scene Class
+Canvas. Override `construct()`.
+
+Key Methods:
+- `add(*mobjects)`: Display.
+- `remove(*mobjects)`: Hide.
+- `play(*animations, run_time=2, lag_ratio=0.5)`: Animate.
+- `wait(duration=1)`: Pause.
+- `next_section("name")`: Segment video.
+
+### Animation Class
+Base for changes. `self.play(Animation(mobject, run_time=2, rate_func=linear))`.
+
+- `lag_ratio=0.1`: Stagger submobjects.
+- `run_time=3`: Duration.
+- `rate_func=there_and_back`: Easing.
+Common: `Create(mob)`, `Transform(from, to)`, `FadeOut(mob)`.
+
+## Example Gallery Highlights
+
+(From docs; full gallery at docs.manim.community/examples.html. Examples include geometry, graphs, text animations.)
+
+- **Basic Shapes**: See Quickstart.
+- **Graphing**: `Axes`, `FunctionGraph`.
+- **Text Transform**: `TransformMatchingTex`.
+- **3D**: `ThreeDScene`, `Sphere`.
+
+Example: Bézier Curve:
+```python
+class VMobjectDemo(Scene):
+    def construct(self):
+        plane = NumberPlane()
+        my_vmobject = VMobject(color=GREEN)
+        my_vmobject.points = [
+            np.array([-2, -1, 0]), np.array([-3, 1, 0]), np.array([0, 3, 0]), np.array([1, 3, 0]),
+            np.array([1, 3, 0]), np.array([0, 1, 0]), np.array([4, 3, 0]), np.array([4, -2, 0])
+        ]
+        self.add(plane, my_vmobject)
+```
+
+## Additional Resources
+- Official Docs: [docs.manim.community](https://docs.manim.community)
+- Community: Discord, Reddit r/manim.
+- Examples: GitHub ManimCommunity/manim/examples.
+- CLI Help: `manim --help`.
+
+This document is self-contained for RAG; query sections for specific syntax/examples.
+
+---
+
+## CRITICAL: Scene Management & Preventing Overlaps
+
+This section covers essential techniques to manage scene objects and prevent visual overlaps.
+
+### Removing Objects from Scene
+
+**`self.remove(*mobjects)`** - Instantly removes objects without animation:
+```python
+class RemoveExample(Scene):
+    def construct(self):
+        circle = Circle()
+        self.add(circle)
+        self.wait(1)
+        self.remove(circle)  # Instantly removes, no animation
+        self.wait(1)
+```
+
+**`self.clear()`** - Removes ALL mobjects from scene:
+```python
+class ClearExample(Scene):
+    def construct(self):
+        circle = Circle()
+        square = Square()
+        self.add(circle, square)
+        self.wait(1)
+        self.clear()  # Removes everything
+        self.wait(1)
+```
+
+**`FadeOut` with multiple objects** - Animated removal:
+```python
+class FadeOutMultiple(Scene):
+    def construct(self):
+        c1 = Circle().shift(LEFT)
+        c2 = Circle().shift(RIGHT)
+        self.add(c1, c2)
+        self.wait(1)
+        # Fade out all mobjects in scene
+        self.play(*[FadeOut(mob) for mob in self.mobjects])
+        self.wait(1)
+```
+
+### Z-Index and Layering
+
+Control which objects appear in front:
+
+**`set_z_index(value)`** - Higher values appear in front:
+```python
+class ZIndexExample(Scene):
+    def construct(self):
+        circle = Circle(color=RED, fill_opacity=1).set_z_index(2)
+        square = Square(color=BLUE, fill_opacity=1).set_z_index(1)
+        # Circle will appear in front of square
+        self.add(square, circle)
+        self.wait(1)
+```
+
+**`bring_to_front(*mobjects)`** and **`bring_to_back(*mobjects)`**:
+```python
+class BringToFrontExample(Scene):
+    def construct(self):
+        circle = Circle(color=RED, fill_opacity=1)
+        square = Square(color=BLUE, fill_opacity=1)
+        self.add(circle, square)  # square is in front
+        self.wait(1)
+        self.bring_to_front(circle)  # now circle is in front
+        self.wait(1)
+```
+
+### VGroup - Grouping Objects Together
+
+VGroup is essential for managing multiple related objects:
+
+**Creating and using VGroup**:
+```python
+class VGroupBasics(Scene):
+    def construct(self):
+        # Create a group of shapes
+        group = VGroup(
+            Circle(color=RED),
+            Square(color=BLUE),
+            Triangle(color=GREEN)
+        )
+        
+        # Arrange horizontally with spacing
+        group.arrange(RIGHT, buff=0.5)
+        
+        self.play(Create(group))
+        self.wait(1)
+        
+        # Move entire group
+        self.play(group.animate.shift(UP * 2))
+        
+        # Fade out entire group at once
+        self.play(FadeOut(group))
+```
+
+**`arrange()` - Auto-position elements**:
+```python
+# Horizontal arrangement
+group.arrange(RIGHT, buff=0.5)  # buff = spacing between elements
+
+# Vertical arrangement  
+group.arrange(DOWN, buff=0.3)
+
+# Centered arrangement
+group.arrange(DOWN, center=True)
+```
+
+**`arrange_in_grid()` - Grid layout**:
+```python
+class GridExample(Scene):
+    def construct(self):
+        group = VGroup(*[Square() for _ in range(12)])
+        group.arrange_in_grid(rows=3, cols=4, buff=0.3)
+        self.add(group)
+```
+
+**Accessing submobjects**:
+```python
+group = VGroup(Circle(), Square(), Triangle())
+first_item = group[0]  # Circle
+last_item = group[-1]  # Triangle
+group[1].set_color(RED)  # Color the Square red
+```
+
+### Complete Positioning Reference
+
+**Edge positioning with `to_edge()`**:
+```python
+obj.to_edge(UP)      # Top of screen
+obj.to_edge(DOWN)    # Bottom of screen
+obj.to_edge(LEFT)    # Left side
+obj.to_edge(RIGHT)   # Right side
+obj.to_edge(UP, buff=0.5)  # Top with 0.5 unit margin
+```
+
+**Corner positioning with `to_corner()`**:
+```python
+obj.to_corner(UL)  # Upper-left corner
+obj.to_corner(UR)  # Upper-right corner
+obj.to_corner(DL)  # Down-left corner
+obj.to_corner(DR)  # Down-right corner
+```
+
+**Relative positioning with `next_to()`**:
+```python
+square.next_to(circle, RIGHT)           # To the right of circle
+square.next_to(circle, UP, buff=0.5)    # Above circle with 0.5 spacing
+square.next_to(circle, DOWN + LEFT)     # Diagonally down-left
+```
+
+**Absolute positioning with `move_to()`**:
+```python
+obj.move_to(ORIGIN)              # Center of screen
+obj.move_to(LEFT * 3 + UP * 2)   # 3 units left, 2 units up
+obj.move_to([2, -1, 0])          # Explicit coordinates
+obj.move_to(other_obj)           # Same position as other object
+obj.move_to(other_obj.get_center())  # Same as above
+```
+
+**Relative movement with `shift()`**:
+```python
+obj.shift(UP)           # Move up 1 unit
+obj.shift(RIGHT * 2)    # Move right 2 units
+obj.shift(UP + LEFT)    # Move diagonally
+obj.shift(UP * 2 + RIGHT * 3)  # Combined movement
+```
+
+**Alignment with `align_to()`**:
+```python
+obj.align_to(other, LEFT)   # Align left edges
+obj.align_to(other, RIGHT)  # Align right edges
+obj.align_to(other, UP)     # Align top edges
+obj.align_to(other, DOWN)   # Align bottom edges
+```
+
+**Getting positions**:
+```python
+obj.get_center()      # Returns center point [x, y, z]
+obj.get_top()         # Top edge center
+obj.get_bottom()      # Bottom edge center
+obj.get_left()        # Left edge center
+obj.get_right()       # Right edge center
+obj.get_corner(UR)    # Upper-right corner
+obj.get_edge_center(UP)  # Same as get_top()
+obj.get_width()       # Width of object
+obj.get_height()      # Height of object
+```
+
+---
+
+## Complete Animation Reference
+
+### Creation Animations
+```python
+Create(mobject)           # Draw the path/outline
+Write(text_mobject)       # Write text stroke by stroke
+FadeIn(mobject)           # Fade from transparent
+FadeIn(mobject, shift=UP) # Fade in while moving up
+GrowFromCenter(mobject)   # Grow from center point
+GrowFromPoint(mobject, point)  # Grow from specific point
+GrowFromEdge(mobject, edge)    # Grow from edge (UP, DOWN, etc.)
+DrawBorderThenFill(mobject)    # Draw border, then fill
+ShowCreation(mobject)     # Alias for Create (deprecated name)
+```
+
+### Removal Animations
+```python
+FadeOut(mobject)              # Fade to transparent
+FadeOut(mobject, shift=DOWN)  # Fade out while moving down
+Uncreate(mobject)             # Reverse of Create
+ShrinkToCenter(mobject)       # Shrink to center point
+```
+
+### Transform Animations
+```python
+Transform(mobject1, mobject2)           # Morph m1 into m2 (m1 remains, looks like m2)
+ReplacementTransform(mobject1, mobject2) # Replace m1 with m2 (m1 removed, m2 added)
+TransformFromCopy(mobject1, mobject2)   # Create copy of m1, transform to m2
+MoveToTarget(mobject)                   # Transform to mobject.target
+```
+
+**Transform vs ReplacementTransform**:
+```python
+class TransformComparison(Scene):
+    def construct(self):
+        # Using Transform - original mobject persists (just looks different)
+        a = Circle()
+        b = Square()
+        self.play(Transform(a, b))
+        # 'a' still exists but looks like 'b'
+        # 'b' was never added to scene
+        self.play(a.animate.shift(UP))  # Use 'a' to animate
+        
+        self.clear()
+        
+        # Using ReplacementTransform - original removed, target added
+        c = Circle()
+        d = Square()
+        self.play(ReplacementTransform(c, d))
+        # 'c' is removed, 'd' is now in scene
+        self.play(d.animate.shift(UP))  # Use 'd' to animate
+```
+
+### Movement Animations
+```python
+obj.animate.shift(UP * 2)        # Animate shift
+obj.animate.move_to(ORIGIN)      # Animate move_to
+obj.animate.next_to(other, RIGHT) # Animate next_to
+MoveAlongPath(mobject, path)     # Move along a curve/line
+Rotate(mobject, angle=PI)        # Rotate by angle
+Rotate(mobject, angle=PI, axis=UP)  # 3D rotation
+```
+
+### Indication Animations (Highlight without changing)
+```python
+Indicate(mobject)                    # Brief scale up and color flash
+Circumscribe(mobject)                # Draw circle around object
+Flash(point)                         # Flash at a point
+ShowPassingFlash(mobject)            # Light passes along path
+Wiggle(mobject)                      # Wiggle effect
+ApplyWave(mobject)                   # Wave effect
+FocusOn(mobject)                     # Camera focus effect
+```
+
+### Animation Composition
+```python
+# Play multiple animations simultaneously
+self.play(Create(circle), Write(text))
+
+# Play animations in sequence
+self.play(Succession(Create(circle), FadeOut(circle)))
+
+# Staggered start for group
+self.play(LaggedStart(*[Create(m) for m in group], lag_ratio=0.2))
+
+# Animation group with different timings
+self.play(AnimationGroup(
+    Create(circle),
+    Write(text),
+    lag_ratio=0.5
+))
+```
+
+### Animation Parameters
+```python
+self.play(
+    Create(circle),
+    run_time=2,                    # Duration in seconds
+    rate_func=smooth,              # Easing function
+)
+
+# Rate functions (easing):
+# linear - constant speed
+# smooth - default, slow start/end
+# rush_into - slow start, fast end
+# rush_from - fast start, slow end
+# there_and_back - go and return
+# wiggle - oscillating
+```
+
+---
+
+## Complete Color Reference
+
+### Manim Color Constants
+```python
+# Primary colors
+RED, GREEN, BLUE, YELLOW, WHITE, BLACK
+
+# Extended colors
+ORANGE, PINK, PURPLE, TEAL, GOLD, MAROON
+
+# Color variations (add _A, _B, _C, _D, _E for shades)
+RED_A, RED_B, RED_C, RED_D, RED_E  # Light to dark
+BLUE_A, BLUE_B, BLUE_C, BLUE_D, BLUE_E
+GREEN_A, GREEN_B, GREEN_C, GREEN_D, GREEN_E
+
+# Grays
+GREY, GRAY, GREY_A, GREY_B, GREY_C, GREY_D, GREY_E
+LIGHT_GREY, DARK_GREY
+
+# Special
+PURE_RED, PURE_GREEN, PURE_BLUE  # RGB primaries
+```
+
+### Using Colors
+```python
+circle = Circle(color=RED)
+circle.set_color(BLUE)
+circle.set_fill(GREEN, opacity=0.5)
+circle.set_stroke(YELLOW, width=4)
+
+# Hex colors
+circle.set_color("#FF5733")
+
+# Gradient
+circle.set_color_by_gradient(RED, YELLOW, GREEN)
+```
+
+---
+
+## Arrows, Lines, and Annotations
+
+### Line Types
+```python
+Line(start=LEFT, end=RIGHT)           # Basic line
+DashedLine(start=LEFT, end=RIGHT)     # Dashed line
+Arrow(start=LEFT, end=RIGHT)          # Arrow with tip
+DoubleArrow(start=LEFT, end=RIGHT)    # Arrow on both ends
+Vector(direction=RIGHT)               # Vector from origin
+```
+
+### Curved Lines
+```python
+Arc(radius=1, start_angle=0, angle=PI)  # Arc
+CurvedArrow(start, end)                  # Curved arrow
+ArcBetweenPoints(start, end, angle=PI/2) # Arc through points
+```
+
+### Braces and Annotations
+```python
+Brace(mobject, direction=DOWN)           # Brace under object
+BraceBetweenPoints(point1, point2)       # Brace between points
+brace = Brace(square, UP)
+brace_text = brace.get_text("Width")     # Text on brace
+
+# Annotate
+SurroundingRectangle(mobject, color=YELLOW)  # Box around object
+BackgroundRectangle(mobject, color=BLACK)    # Background behind object
+Cross(mobject)                               # X mark over object
+```
+
+---
+
+## Text and Labels
+
+### Text Mobject
+```python
+Text("Hello World")
+Text("Hello", font="Arial", font_size=48)
+Text("Bold", weight=BOLD)
+Text("Italic", slant=ITALIC)
+Text("Colored", color=RED)
+
+# Coloring parts of text
+text = Text("Hello World")
+text[0:5].set_color(RED)  # "Hello" in red
+```
+
+### MathTex (LaTeX Math)
+```python
+MathTex(r"x^2 + y^2 = z^2")
+MathTex(r"\frac{a}{b}")
+MathTex(r"\int_0^1 x \, dx")
+MathTex(r"\sum_{i=1}^{n} i")
+
+# Coloring parts
+eq = MathTex(r"a^2", r"+", r"b^2", r"=", r"c^2")
+eq[0].set_color(RED)   # a^2 in red
+eq[2].set_color(BLUE)  # b^2 in blue
+```
+
+### Tex (LaTeX Text)
+```python
+Tex(r"This is \textbf{bold} and \textit{italic}")
+Tex(r"$E = mc^2$")  # Inline math in text
+```
+
+---
+
+## Graphs and Axes
+
+### Basic Axes
+```python
+axes = Axes(
+    x_range=[-3, 3, 1],      # [min, max, step]
+    y_range=[-2, 2, 0.5],
+    x_length=6,
+    y_length=4,
+    axis_config={"include_tip": True}
+)
+```
+
+### Plotting Functions
+```python
+# Plot a function
+graph = axes.plot(lambda x: x**2, color=BLUE)
+
+# Plot with label
+graph = axes.plot(lambda x: np.sin(x), color=RED)
+label = axes.get_graph_label(graph, label="\\sin(x)")
+
+# Area under curve
+area = axes.get_area(graph, x_range=[0, 2], color=GREEN, opacity=0.5)
+```
+
+### Number Line
+```python
+number_line = NumberLine(
+    x_range=[-5, 5, 1],
+    length=10,
+    include_numbers=True
+)
+```
+
+### Coordinate Labels
+```python
+# Add axis labels
+x_label = axes.get_x_axis_label("x")
+y_label = axes.get_y_axis_label("y")
+
+# Add coordinate labels
+point = axes.coords_to_point(2, 3)  # Convert coords to screen position
+dot = Dot(point)
+```
+
+---
+
+## Best Practices for Clean Animations
+
+### Pattern 1: Phase-Based Animation (Prevents Overlaps)
+```python
+class CleanAnimation(Scene):
+    def construct(self):
+        # PHASE 1: Title
+        title = Text("My Animation").to_edge(UP)
+        self.play(Write(title))
+        self.wait(0.5)
+        self.play(FadeOut(title))  # CLEANUP
+        
+        # PHASE 2: Main content
+        shapes = VGroup(Circle(), Square()).arrange(RIGHT, buff=1)
+        self.play(Create(shapes))
+        self.wait(1)
+        self.play(FadeOut(shapes))  # CLEANUP
+        
+        # PHASE 3: Conclusion
+        conclusion = MathTex(r"E = mc^2")
+        self.play(Write(conclusion))
+        self.wait(2)
+```
+
+### Pattern 2: Using VGroup for Related Objects
+```python
+class GroupedObjects(Scene):
+    def construct(self):
+        # Group related objects
+        diagram = VGroup()
+        circle = Circle()
+        label = Text("Circle").next_to(circle, DOWN)
+        diagram.add(circle, label)
+        
+        # Now can animate as unit
+        self.play(Create(diagram))
+        self.play(diagram.animate.shift(LEFT * 2))
+        self.play(FadeOut(diagram))  # Removes both at once
+```
+
+### Pattern 3: Transform Chain
+```python
+class TransformChain(Scene):
+    def construct(self):
+        # Use Transform for shape morphing chain
+        shape = Circle()
+        self.play(Create(shape))
+        
+        targets = [Square(), Triangle(), Circle()]
+        for target in targets:
+            self.play(Transform(shape, target))
+            self.wait(0.5)
+        
+        self.play(FadeOut(shape))
+```
+
+### Pattern 4: Clear Between Sections
+```python
+class SectionedAnimation(Scene):
+    def construct(self):
+        # Section 1
+        self.section_one()
+        self.clear()  # Remove everything
+        
+        # Section 2
+        self.section_two()
+    
+    def section_one(self):
+        circle = Circle()
+        self.play(Create(circle))
+        self.wait(1)
+    
+    def section_two(self):
+        square = Square()
+        self.play(Create(square))
+        self.wait(1)
+```
+
+---
+
+## Common Errors and Fixes
+
+### Error: Objects Overlapping at Center
+**Problem**: Multiple objects created at ORIGIN without positioning.
+**Fix**: Use `.shift()`, `.to_edge()`, `.next_to()`, or `VGroup.arrange()`:
+```python
+# BAD
+circle = Circle()
+square = Square()  # Both at center!
+
+# GOOD
+circle = Circle().shift(LEFT * 2)
+square = Square().shift(RIGHT * 2)
+# OR
+group = VGroup(Circle(), Square()).arrange(RIGHT, buff=1)
+```
+
+### Error: Transform Not Working as Expected
+**Problem**: Using `Transform` but expecting old object to disappear.
+**Fix**: Use `ReplacementTransform` when you want the old object removed:
+```python
+# Transform keeps 'a', changes its appearance
+self.play(Transform(a, b))  # 'a' looks like 'b', 'b' not in scene
+
+# ReplacementTransform removes 'a', adds 'b'
+self.play(ReplacementTransform(a, b))  # 'a' gone, 'b' in scene
+```
+
+### Error: Objects Not Disappearing
+**Problem**: Creating many objects but never removing them.
+**Fix**: Use `FadeOut`, `self.remove()`, or `self.clear()`:
+```python
+# Remove specific objects
+self.play(FadeOut(circle), FadeOut(square))
+
+# Remove all objects
+self.play(*[FadeOut(m) for m in self.mobjects])
+
+# Instant clear (no animation)
+self.clear()
+```
+
+### Error: Animation Playing on Wrong Object After Transform
+**Problem**: After `Transform(a, b)`, trying to animate `b`.
+**Fix**: After `Transform(a, b)`, always animate `a` (it now looks like `b`):
+```python
+self.play(Transform(a, b))
+self.play(a.animate.shift(UP))  # Correct! Use 'a', not 'b'
+```
+
+### Error: Text/Title Overlapping Content
+**Problem**: Title at center, content also at center.
+**Fix**: Position title at edge, fade out before content:
+```python
+title = Text("Title").to_edge(UP)  # At top
+self.play(Write(title))
+self.play(FadeOut(title))  # Remove before content
+content = Circle()  # Now center is free
+self.play(Create(content))
+```

@@ -1,62 +1,50 @@
 ---
-title: Cursor 2d Animation
-emoji: 📚
+title: Manim Video Generator
+emoji: 🎬
 colorFrom: purple
 colorTo: indigo
 sdk: docker
 pinned: false
 license: mit
-short_description: Backend server for generating animation code
+short_description: AI-powered Manim animation generator API
 ---
-# Cursor 2D Animation Pipeline
+# Manim Video Generator API
 
-An intelligent educational animation generation system that converts topics into high-quality Manim animations using AI-powered LangGraph pipelines, web search, and RAG (Retrieval Augmented Generation).
+An intelligent educational animation generation system that converts text queries into high-quality Manim animations using AI-powered LangGraph pipelines and RAG (Retrieval Augmented Generation).
 
 ## 🎯 Overview
 
 This project creates educational animations automatically by:
-1. **Topic Analysis**: Breaking down educational topics into digestible scenes
-2. **AI-Powered Code Generation**: Using Google Gemini LLM with web search and Manim documentation RAG
-3. **Automated Animation**: Generating complete Manim Python scripts for each scene
-4. **Modular Architecture**: Clean, maintainable code structure with separated concerns
+1. **Story Generation**: Converting user queries into visual narratives
+2. **Syntax Analysis**: Generating specific Manim syntax questions for RAG lookup
+3. **RAG-Powered Documentation**: Using ChromaDB vector store with Manim documentation
+4. **AI-Powered Code Generation**: Using Google Gemini LLM to generate Manim code
+5. **Automated Execution**: Running Manim and returning video files
+6. **Error Correction**: Automatically fixing code errors with LLM assistance
 
 ## 🚀 Features
 
-- **🧠 Intelligent Scene Generation**: Automatically breaks down complex topics into animated scenes
-- **🔍 Web-Enhanced Research**: Uses Tavily search for current information and context
-- **📚 RAG-Powered Documentation**: Leverages Supabase vector store with Manim documentation
-- **⚡ Parallel Processing**: Concurrent scene generation for improved performance
-- **🎬 Manim Integration**: Generates production-ready Manim animation scripts
-- **🔄 LangGraph Pipeline**: Robust workflow orchestration with state management
-- **📊 Progress Tracking**: Real-time pipeline execution monitoring
+- **🧠 Intelligent Story Generation**: Automatically creates visual narratives from topics
+- **📚 RAG-Powered Documentation**: ChromaDB vector store with Manim documentation
+- **⚡ LangGraph Pipeline**: Robust workflow orchestration with state management
+- **🎬 Manim Integration**: Generates and executes production-ready Manim scripts
+- **🔄 Auto-Error Correction**: Attempts to fix code errors automatically
+- **🌐 FastAPI Backend**: RESTful API for video generation
 
 ## 📁 Project Structure
 
 ```
 Cursor_2D_Animation/
-├── src/                           # Core source code
-│   ├── editor/                    # Animation editing components
-│   ├── langraph_pipeline/         # Main AI pipeline modules
-│   │   ├── config.py             # Environment and LLM configuration
-│   │   ├── main_modular.py       # Clean main entry point
-│   │   ├── manim_generator.py    # Manim code generation with RAG
-│   │   ├── pipeline.py           # LangGraph workflow orchestration
-│   │   ├── scene_generator.py    # Scene description generation
-│   │   └── state.py              # Pipeline state management
-│   ├── renderer/                  # Animation rendering components
-│   ├── storage/                   # Data storage utilities
-│   └── utils/                     # Common utility functions
-├── scripts/                       # Utility scripts
-│   └── RAG/                      # RAG system components
-│       ├── chunk_docs.py         # Document chunking utilities
-│       ├── crawl_recursive.py    # Web crawling for documentation
-│       ├── create_table.sql      # Database schema
-│       ├── insert_docs.py        # Document insertion pipeline
-│       └── utils.py              # RAG utility functions
-├── assets/                        # Static assets and resources
-├── docs/                          # Project documentation
-├── tests/                         # Unit and integration tests
-├── out/                           # Generated animations output
+├── app.py                         # Main FastAPI application
+├── prompts.py                     # LLM prompts for all generation stages
+├── chroma_db_manim/              # ChromaDB vector store for RAG
+│   ├── chroma.sqlite3            # Vector database
+│   └── {collection}/             # Embedding collections
+├── docs/                          # Documentation and RAG setup
+│   ├── convert_manim_docs_to_vector.py  # Script to create vector store
+│   └── manim_docs.txt            # Manim documentation for RAG
+├── generated_videos/              # Output directory for videos (created at runtime)
+├── Dockerfile                     # Docker configuration
 ├── requirements.txt               # Python dependencies
 └── README.md                      # This file
 ```
@@ -66,7 +54,7 @@ Cursor_2D_Animation/
 ### Prerequisites
 - Python 3.10+
 - FFmpeg (for video rendering)
-- Git
+- LaTeX (optional, for math formulas)
 
 ### Setup
 1. **Clone the repository**
@@ -84,97 +72,96 @@ Cursor_2D_Animation/
    Create a `.env` file with your API keys:
    ```env
    GOOGLE_API_KEY=your_gemini_api_key
-   TAVILY_API_KEY=your_tavily_api_key
-   SUPABASE_URL=your_supabase_url
-   SUPABASE_SERVICE_KEY=your_supabase_key
-   LANGSMITH_API_KEY=your_langsmith_key  # Optional for debugging
+   ```
+
+4. **(Optional) Regenerate RAG Vector Store**
+   If you need to update the Manim documentation:
+   ```bash
+   cd docs
+   python convert_manim_docs_to_vector.py
    ```
 
 ## 🎮 Usage
 
-### Basic Usage
+### Running the Server
 ```bash
-cd src/langraph_pipeline
-python main_modular.py
+python app.py
+```
+The server will start on `http://localhost:8000`
+
+### API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/generate` | Generate a video from text query |
+| GET | `/get_code/{filename}` | Retrieve generated Manim code |
+| GET | `/` | Health check and API info |
+
+### Example Request
+```bash
+curl -X POST "http://localhost:8000/generate" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "Explain the Pythagorean theorem"}'
 ```
 
-### Advanced Options
+### Using with Docker
 ```bash
-# Test mode with predefined topic
-python main_modular.py --test
-
-# Debug mode with detailed logging
-python main_modular.py --debug
+docker build -t manim-generator .
+docker run -p 8000:8000 -e GOOGLE_API_KEY=your_key manim-generator
 ```
-
-### Example Workflow
-1. Run the pipeline: `python main_modular.py`
-2. Enter your educational topic (e.g., "Pythagorean Theorem")
-3. Watch as the AI generates scene descriptions
-4. Generated Manim scripts appear in `generated_scenes/`
-5. Rendered videos will be saved to `out/`
 
 ## 🔧 Key Technologies
 
 - **🤖 AI/ML**: Google Gemini 2.5 Flash, LangChain, LangGraph
 - **🎬 Animation**: Manim Community Edition
-- **🔍 Search**: Tavily Web Search API
-- **📚 RAG**: Supabase Vector Database, Google Embeddings
-- **🕸️ Web Crawling**: Crawl4AI for documentation scraping
-- **🎥 Video Processing**: MoviePy, FFmpeg
-- **📊 Monitoring**: LangSmith (optional)
+- **📚 RAG**: ChromaDB Vector Database, HuggingFace Embeddings
+- **🌐 API**: FastAPI, Uvicorn
+- **🐳 Deployment**: Docker
 
-## 🧩 Core Components
+## 🧩 LangGraph Pipeline
 
-### LangGraph Pipeline (`src/langraph_pipeline/`)
-- **State Management**: Typed state flow through the pipeline
-- **Scene Generation**: AI-powered topic breakdown into scenes
-- **Code Generation**: RAG-enhanced Manim script creation
-- **Parallel Processing**: Concurrent scene processing for efficiency
+The application uses a sophisticated LangGraph workflow:
 
-### RAG System (`scripts/RAG/`)
-- **Web Crawling**: Recursive documentation crawling
-- **Document Processing**: Intelligent chunking and embedding
-- **Vector Storage**: Supabase-based retrieval system
-- **Query Enhancement**: Context-aware documentation search
+```
+START → Generate Story → Generate Syntax Questions → RAG Search → Generate Code → Execute Manim
+                                                                                       ↓
+                                                                      [Error?] → Review & Fix Code → END
+                                                                      [Success?] → END
+```
+
+### Pipeline Nodes:
+1. **Generate Story**: Creates a visual narrative from the query
+2. **Generate Syntax Questions**: Identifies Manim syntax needs
+3. **RAG Search**: Retrieves relevant documentation
+4. **Generate Code**: Creates executable Manim Python code
+5. **Execute Manim**: Runs the code and generates video
+6. **Review & Fix**: Attempts to fix errors (if any)
 
 ## 📊 Output
 
-The pipeline generates:
-- **Manim Scripts**: Complete Python files ready for rendering
-- **Scene Descriptions**: Human-readable animation breakdowns
-- **Execution Logs**: Detailed pipeline performance metrics
-- **Rendered Videos**: Final MP4 animations (when rendering is enabled)
-
-## 🔮 Future Enhancements
-
-- [ ] **Video Editor Integration**: Automated scene assembly
-- [ ] **Advanced Rendering**: GPU acceleration and optimization
-- [ ] **Interactive UI**: Web-based interface for topic input
-- [ ] **Template System**: Reusable animation patterns
-- [ ] **Batch Processing**: Multiple topic processing
-- [ ] **Quality Assessment**: Automated animation quality metrics
+The API returns:
+- **Video File**: MP4 animation file (on success)
+- **Custom Headers**: Include query info and code file path
+- **Generated Code**: Saved to `generated_videos/` directory
 
 ## 🤝 Contributing
 
 Contributions are welcome! Please:
 1. Fork the repository
 2. Create a feature branch
-3. Make your changes with tests
+3. Make your changes
 4. Submit a pull request
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License.
 
 ## 🙏 Acknowledgments
 
 - **Manim Community** for the excellent animation framework
 - **LangChain Team** for the AI orchestration tools
 - **Google** for the Gemini LLM API
-- **Supabase** for the vector database platform
 
 ---
 
-**Built with ❤️ for educational content creators and AI enthusiasts**
----
+**Built with ❤️ for educational content creators**
