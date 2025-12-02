@@ -145,9 +145,30 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
             echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+            echo "IS_MANUAL=true" >> $GITHUB_OUTPUT
           else
             echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+            echo "IS_MANUAL=false" >> $GITHUB_OUTPUT
           fi
+
+      - name: Create tag for manual release
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git tag -f v${{ steps.get_version.outputs.VERSION }}
+          git push origin v${{ steps.get_version.outputs.VERSION }} --force
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: List release files
+        run: |
+          echo "=== Windows ==="
+          ls -la release/windows/ || echo "No Windows files"
+          echo "=== macOS ==="
+          ls -la release/macos/ || echo "No macOS files"
+          echo "=== Linux ==="
+          ls -la release/linux/ || echo "No Linux files"
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
@@ -156,6 +177,7 @@ jobs:
           name: Cursor 2D Video Editor v${{ steps.get_version.outputs.VERSION }}
           draft: false
           prerelease: false
+          generate_release_notes: true
           files: |
             release/windows/*
             release/macos/*
