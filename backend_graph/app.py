@@ -66,8 +66,11 @@ llm_code = ChatGoogleGenerativeAI(
 )
 
 
+# Get the directory where this script is located
+SCRIPT_DIR = Path(__file__).parent.resolve()
+
 # Initialize ChromaDB vector store for RAG
-CHROMA_DB_PATH = "./chroma_db_manim"
+CHROMA_DB_PATH = str(SCRIPT_DIR / "chroma_db_manim")
 embeddings = HuggingFaceEmbeddings(
     model_name="sentence-transformers/all-MiniLM-L6-v2",
     model_kwargs={'device': 'cpu'},
