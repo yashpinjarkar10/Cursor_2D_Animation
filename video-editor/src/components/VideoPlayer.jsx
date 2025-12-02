@@ -23,11 +23,17 @@ const VideoPlayer = ({
     onToggleCodeEditor,
     showRightPanel = true,
     onToggleRightPanel,
-    autoPlayOnMount = false
+    autoPlayOnMount = false,
+    onUpdateTextOverlay,
+    selectedTextId,
+    showVideoBorder = true
 }) => {
     const videoRef = useRef(null);
     const audioRefs = useRef({});
     const containerRef = useRef(null);
+    const videoContainerRef = useRef(null);
+    const [draggingTextId, setDraggingTextId] = useState(null);
+    const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
@@ -60,31 +66,42 @@ const VideoPlayer = ({
         return `file:///${normalizedPath}`;
     };
 
-    // Get visible text overlays at current time (relative to trimmed clip)
+    // Get visible text overlays at current GLOBAL time
     const getVisibleTextOverlays = useCallback(() => {
-        const relativeTime = Math.max(0, currentTime - trimStart);
+        // Use externalCurrentTime (global timeline time) for text overlays
+        const globalTime = externalCurrentTime;
         return textOverlays.filter(overlay => {
             const endTime = overlay.startTime + overlay.duration;
-            return relativeTime >= overlay.startTime && relativeTime <= endTime;
+            return globalTime >= overlay.startTime && globalTime < endTime;
         });
-    }, [textOverlays, currentTime, trimStart]);
+    }, [textOverlays, externalCurrentTime]);
 
-    // Sync audio clips with video playback (relative to trimmed region)
+    // Sync audio clips with video playback using GLOBAL timeline time
+    // currentTime from props is already the global timeline time, so use it directly
+    // Use externalIsPlaying to avoid pausing during video transitions
     useEffect(() => {
-        const relativeTime = Math.max(0, currentTime - trimStart);
+        // Use externalCurrentTime (global timeline time) for audio sync
+        const globalTime = externalCurrentTime;
+        // Use externalIsPlaying (from App.jsx) so audio doesn't pause during clip transitions
+        const shouldBePlaying = externalIsPlaying;
+        
         audioClips.forEach(audio => {
             const audioEl = audioRefs.current[audio.timelineId || audio.id];
             if (!audioEl) return;
 
             const audioStart = audio.trimStart || 0;
-            const audioEnd = audio.trimEnd || audio.duration || 0;
-            const audioStartTime = audio.startTime || 0;
-            const audioEndTime = audioStartTime + (audioEnd - audioStart);
+            const audioDuration = (audio.trimEnd || audio.duration || 0) - audioStart;
+            const audioStartTime = audio.startTime || 0; // Global timeline position
+            const audioEndTime = audioStartTime + audioDuration;
             
-            if (isPlaying && relativeTime >= audioStartTime && relativeTime <= audioEndTime) {
-                const audioTime = audioStart + (relativeTime - audioStartTime);
-                if (Math.abs(audioEl.currentTime - audioTime) > 0.3) {
-                    audioEl.currentTime = audioTime;
+            // Check if audio should be playing at this global time
+            if (shouldBePlaying && globalTime >= audioStartTime && globalTime < audioEndTime) {
+                // Calculate the position within the audio file
+                const audioPosition = audioStart + (globalTime - audioStartTime);
+                
+                // Only seek if significantly out of sync
+                if (Math.abs(audioEl.currentTime - audioPosition) > 0.3) {
+                    audioEl.currentTime = audioPosition;
                 }
                 if (audioEl.paused) {
                     audioEl.play().catch(console.warn);
@@ -95,18 +112,26 @@ const VideoPlayer = ({
                 }
             }
         });
-    }, [isPlaying, currentTime, audioClips, trimStart]);
+    }, [externalIsPlaying, externalCurrentTime, audioClips]);
 
     // Handle seekToTime from timeline click (seeks to local time within clip)
     useEffect(() => {
         if (typeof seekToTime === 'number' && videoRef.current && selectedClip) {
             videoRef.current.currentTime = seekToTime;
             setCurrentTime(seekToTime);
+            
+            // Always auto-play when seeking via timeline (user expects playback to continue/start)
+            if (videoRef.current.paused) {
+                videoRef.current.play().catch(console.warn);
+                setIsPlaying(true);
+                if (onPlayStateChange) onPlayStateChange(true);
+            }
+            
             if (onSeekComplete) {
                 onSeekComplete();
             }
         }
-    }, [seekToTime, selectedClip, onSeekComplete]);
+    }, [seekToTime, selectedClip, onSeekComplete, onPlayStateChange]);
 
     // Load video when URL changes
     useEffect(() => {
@@ -127,10 +152,14 @@ const VideoPlayer = ({
                 if (videoRef.current.src !== videoSrc) {
                     videoRef.current.src = videoSrc;
                     videoRef.current.load();
+                } else if (externalIsPlaying && videoRef.current.paused) {
+                    // Same video but should be playing - resume playback
+                    videoRef.current.play().catch(console.warn);
+                    setIsPlaying(true);
                 }
             }
         }
-    }, [selectedClip?.id, selectedClip?.videoUrl, selectedClip?.videoPath]);
+    }, [selectedClip?.id, selectedClip?.videoUrl, selectedClip?.videoPath, externalIsPlaying]);
 
     // Seek to trim start when trim values change
     useEffect(() => {
@@ -220,16 +249,20 @@ const VideoPlayer = ({
             setDuration(videoDuration);
             setIsLoading(false);
             
+            // Set volume on the video element
+            videoRef.current.volume = volume;
+            videoRef.current.muted = isMuted;
+            
             // Seek to trim start or seekToTime immediately after loading
             if (selectedClip) {
                 const clipTrimStart = selectedClip.trimStart || 0;
-                // Use seekToTime if provided (for fullscreen sync), otherwise use trimStart
+                // Use seekToTime if provided (for fullscreen sync or timeline seek), otherwise use trimStart
                 const targetTime = (typeof seekToTime === 'number') ? seekToTime : clipTrimStart;
                 videoRef.current.currentTime = targetTime;
                 setCurrentTime(targetTime);
                 
-                // If we were playing (auto-transition) or autoPlayOnMount is true, continue playing
-                if (isPlaying || autoPlayOnMount) {
+                // Auto-play if externalIsPlaying is true, autoPlayOnMount, or if we have a seekToTime (user clicked timeline)
+                if (externalIsPlaying || autoPlayOnMount || typeof seekToTime === 'number') {
                     videoRef.current.play().catch(console.warn);
                     setIsPlaying(true);
                     if (onPlayStateChange) onPlayStateChange(true);
@@ -324,9 +357,22 @@ const VideoPlayer = ({
     const handleVolumeChange = (e) => {
         const newVolume = parseFloat(e.target.value);
         setVolume(newVolume);
+        // Unmute when adjusting volume
+        if (isMuted && newVolume > 0) {
+            setIsMuted(false);
+            if (videoRef.current) {
+                videoRef.current.muted = false;
+            }
+        }
         if (videoRef.current) {
             videoRef.current.volume = newVolume;
         }
+        // Also update audio clips volume
+        Object.values(audioRefs.current).forEach(audioEl => {
+            if (audioEl) {
+                audioEl.volume = newVolume;
+            }
+        });
     };
 
     const formatTime = (seconds) => {
@@ -401,7 +447,7 @@ const VideoPlayer = ({
             ))}
 
             {/* Video Container - can shrink to allow controls to stay visible */}
-            <div className="flex-1 min-h-0 flex items-center justify-center bg-black relative overflow-hidden">
+            <div className="flex-1 min-h-0 flex items-center justify-center bg-black relative overflow-hidden p-2">
                 {isLoading && (
                     <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 z-10">
                         <div className="animate-spin w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full"></div>
@@ -413,10 +459,30 @@ const VideoPlayer = ({
                         <p>{error}</p>
                     </div>
                 ) : videoUrl || selectedClip ? (
-                    <div className="relative">
+                    <div 
+                        ref={videoContainerRef}
+                        className={`relative h-full w-full flex items-center justify-center ${showVideoBorder ? 'border-2 border-gray-600 rounded' : ''}`}
+                        onMouseMove={(e) => {
+                            if (draggingTextId && videoContainerRef.current && onUpdateTextOverlay) {
+                                const rect = videoContainerRef.current.getBoundingClientRect();
+                                const x = ((e.clientX - rect.left) / rect.width) * 100;
+                                const y = ((e.clientY - rect.top) / rect.height) * 100;
+                                // Clamp between 0 and 100
+                                const clampedX = Math.max(0, Math.min(100, x));
+                                const clampedY = Math.max(0, Math.min(100, y));
+                                onUpdateTextOverlay(draggingTextId, { 
+                                    x: Math.round(clampedX), 
+                                    y: Math.round(clampedY),
+                                    position: 'custom'
+                                });
+                            }
+                        }}
+                        onMouseUp={() => setDraggingTextId(null)}
+                        onMouseLeave={() => setDraggingTextId(null)}
+                    >
                         <video
                             ref={videoRef}
-                            className="max-w-full max-h-full"
+                            className="max-w-full max-h-full object-contain"
                             onTimeUpdate={handleTimeUpdate}
                             onLoadStart={handleLoadStart}
                             onLoadedMetadata={handleLoadedMetadata}
@@ -430,23 +496,60 @@ const VideoPlayer = ({
                             preload="auto"
                         />
                         {/* Text Overlays */}
-                        {getVisibleTextOverlays().map(overlay => (
-                            <div
-                                key={overlay.id}
-                                className="absolute left-0 right-0 text-center pointer-events-none"
-                                style={{
-                                    top: overlay.position === 'top' ? '10%' : 
-                                         overlay.position === 'center' ? '50%' : '80%',
-                                    transform: 'translateY(-50%)',
-                                    fontSize: `${overlay.fontSize}px`,
-                                    color: overlay.color,
-                                    textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
-                                    fontWeight: 'bold',
-                                }}
-                            >
-                                {overlay.text}
-                            </div>
-                        ))}
+                        {getVisibleTextOverlays().map(overlay => {
+                            // Use x/y if available, otherwise fall back to position preset
+                            const hasCustomPosition = overlay.x !== undefined && overlay.y !== undefined;
+                            let posX = 50, posY = 50;
+                            
+                            if (hasCustomPosition) {
+                                posX = overlay.x;
+                                posY = overlay.y;
+                            } else {
+                                // Legacy position support
+                                switch (overlay.position) {
+                                    case 'top': posX = 50; posY = 10; break;
+                                    case 'center': posX = 50; posY = 50; break;
+                                    case 'bottom': posX = 50; posY = 90; break;
+                                    case 'top-left': posX = 10; posY = 10; break;
+                                    case 'top-right': posX = 90; posY = 10; break;
+                                    case 'bottom-left': posX = 10; posY = 90; break;
+                                    case 'bottom-right': posX = 90; posY = 90; break;
+                                    default: posX = 50; posY = 50;
+                                }
+                            }
+                            
+                            const isSelected = selectedTextId === overlay.id;
+                            const isDragging = draggingTextId === overlay.id;
+                            
+                            return (
+                                <div
+                                    key={overlay.id}
+                                    className={`absolute cursor-move select-none ${isSelected ? 'ring-2 ring-primary-500 ring-offset-2 ring-offset-transparent' : ''}`}
+                                    style={{
+                                        left: `${posX}%`,
+                                        top: `${posY}%`,
+                                        transform: 'translate(-50%, -50%)',
+                                        fontSize: `${overlay.fontSize}px`,
+                                        color: overlay.color,
+                                        textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
+                                        fontWeight: 'bold',
+                                        zIndex: isDragging ? 100 : (isSelected ? 50 : 10),
+                                        padding: '4px 8px',
+                                        borderRadius: '4px',
+                                        backgroundColor: isDragging ? 'rgba(59, 130, 246, 0.2)' : 'transparent',
+                                    }}
+                                    onMouseDown={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        if (onUpdateTextOverlay) {
+                                            setDraggingTextId(overlay.id);
+                                        }
+                                    }}
+                                >
+                                    {overlay.text}
+                                </div>
+                            );
+                        })}
                     </div>
                 ) : (
                     <div className="text-gray-500 text-center">
@@ -531,9 +634,12 @@ const VideoPlayer = ({
                             min="0"
                             max="1"
                             step="0.01"
-                            value={volume}
+                            value={isMuted ? 0 : volume}
                             onChange={handleVolumeChange}
-                            className="w-24"
+                            className="w-20 h-1.5 bg-dark-600 rounded-full appearance-none cursor-pointer accent-primary-500"
+                            style={{
+                                background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(isMuted ? 0 : volume) * 100}%, #4b5563 ${(isMuted ? 0 : volume) * 100}%, #4b5563 100%)`
+                            }}
                         />
                     </div>
 

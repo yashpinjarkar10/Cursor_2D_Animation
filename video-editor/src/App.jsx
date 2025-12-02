@@ -61,6 +61,7 @@ function App() {
   const [rightPanelWidth, setRightPanelWidth] = useState(288);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isCodeEditorFullscreen, setIsCodeEditorFullscreen] = useState(false);
+  const [showVideoBorder, setShowVideoBorder] = useState(false);
   
   // Check if selected clip is trimmed (code shouldn't be shown for trimmed clips)
   const isSelectedClipTrimmed = useMemo(() => {
@@ -84,17 +85,41 @@ function App() {
     setToast(null);
   }, []);
 
-  // Handle Escape key to exit fullscreen
+  // Handle Escape key to exit fullscreen and Delete key to remove selected clip
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
         if (isFullscreen) setIsFullscreen(false);
         if (isCodeEditorFullscreen) setIsCodeEditorFullscreen(false);
       }
+      
+      // Delete key to remove selected clip/audio (but not when focused on input fields)
+      if (e.key === 'Delete' && !['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) {
+        if (selectedClip) {
+          if (selectedClip.type === 'audio') {
+            // Remove audio clip
+            const audioToRemove = selectedClip;
+            setAudioClips(prev => prev.filter(a => {
+              const clipId = a.timelineId || a.id;
+              const selectedId = audioToRemove.timelineId || audioToRemove.id;
+              return clipId !== selectedId;
+            }));
+            setSelectedClip(null);
+            showToast(`Removed audio: ${audioToRemove.name}`, 'info');
+          } else if (selectedClip.type === 'video') {
+            // Remove video clip
+            const clipToRemove = selectedClip;
+            setClips(prev => prev.filter(c => c.id !== clipToRemove.id));
+            setSelectedClip(null);
+            setCurrentVideo(null);
+            showToast(`Removed clip: ${clipToRemove.name}`, 'info');
+          }
+        }
+      }
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isFullscreen, isCodeEditorFullscreen]);
+  }, [isFullscreen, isCodeEditorFullscreen, selectedClip, showToast]);
 
   useEffect(() => {
     // Initialize session and load existing files
@@ -431,6 +456,32 @@ function App() {
     }
   };
 
+  // Remove asset from the asset panel (works for both video and audio)
+  const handleRemoveAsset = useCallback((assetId, assetType) => {
+    if (assetType === 'audio') {
+      const audioToRemove = clips.find(c => c.id === assetId && c.type === 'audio');
+      setClips(prev => prev.filter(c => c.id !== assetId));
+      // Also remove from timeline if it's there
+      setAudioClips(prev => prev.filter(a => a.id !== assetId && a.timelineId !== assetId));
+      if (selectedClip?.id === assetId) {
+        setSelectedClip(null);
+      }
+      if (audioToRemove) {
+        showToast(`Removed audio: ${audioToRemove.name}`, 'info');
+      }
+    } else {
+      const clipToRemove = clips.find(c => c.id === assetId);
+      setClips(prev => prev.filter(c => c.id !== assetId));
+      if (selectedClip?.id === assetId) {
+        setSelectedClip(null);
+        setCurrentVideo(null);
+      }
+      if (clipToRemove) {
+        showToast(`Removed clip: ${clipToRemove.name}`, 'info');
+      }
+    }
+  }, [clips, selectedClip, showToast]);
+
   const handleExport = async (options) => {
     if (clips.length === 0) {
       showToast('No clips to export', 'error');
@@ -450,32 +501,52 @@ function App() {
       }
 
       const outputPath = result.filePath;
-      let inputPath;
 
-      // If multiple clips, join them first (this part is still blocking for now)
-      if (clips.length > 1) {
-        const videoPaths = clips.map(c => c.videoPath || c.videoUrl).filter(Boolean);
-        if (videoPaths.length === 0) {
-          showToast('No valid video paths found', 'error');
-          return;
-        }
+      // Prepare clip data with video paths
+      const clipsData = clips.map(c => ({
+        id: c.id,
+        videoPath: c.videoPath || c.videoUrl,
+        trimStart: c.trimStart || 0,
+        trimEnd: c.trimEnd || c.duration || 0,
+        duration: c.duration
+      })).filter(c => c.videoPath);
 
-        // Create temp joined file path in session folder
-        const joinedPath = `temp_folder/${sessionId}/exports/${sessionId}_joined_${Date.now()}.mp4`;
-        
-        showToast('Joining clips...', 'info');
-        await window.electronAPI.joinVideos(videoPaths, joinedPath);
-        inputPath = joinedPath;
-      } else {
-        inputPath = clips[0].videoPath || clips[0].videoUrl;
-        if (!inputPath) {
-          showToast('No valid video path for export', 'error');
-          return;
-        }
+      if (clipsData.length === 0) {
+        showToast('No valid video paths found', 'error');
+        return;
       }
 
-      // Start non-blocking export
-      const exportResult = await window.electronAPI.exportVideo(inputPath, outputPath, options, sessionId);
+      // Prepare audio clips data
+      const audioData = audioClips.map(a => ({
+        id: a.id,
+        audioPath: a.audioPath || a.path,
+        startTime: a.startTime || 0,
+        trimStart: a.trimStart || 0,
+        trimEnd: a.trimEnd || a.duration || 10,
+        duration: a.duration
+      })).filter(a => a.audioPath);
+
+      // Prepare text overlays data
+      const textData = textOverlays.map(t => ({
+        id: t.id,
+        text: t.text,
+        startTime: t.startTime || 0,
+        duration: t.duration || 3,
+        x: t.x ?? 50,
+        y: t.y ?? 50,
+        fontSize: t.fontSize || 32,
+        color: t.color || '#ffffff'
+      }));
+
+      // Use the comprehensive export function
+      const exportResult = await window.electronAPI.exportWithOverlays({
+        clips: clipsData,
+        textOverlays: textData,
+        audioClips: audioData,
+        outputPath,
+        options,
+        sessionId
+      });
       
       if (exportResult.status === 'started') {
         // Add to generating tasks - progress updates will come via events
@@ -487,7 +558,7 @@ function App() {
           progress: 0,
           isExport: true
         }]);
-        showToast('Export started', 'info');
+        showToast('Export started with text overlays and audio', 'info');
       } else {
         showToast(`Failed to start export: ${exportResult.error}`, 'error');
       }
@@ -571,6 +642,17 @@ function App() {
     }
     showToast('Removed text overlay', 'info');
   }, [selectedTextOverlay, showToast]);
+
+  // Update text overlay (for drag positioning from VideoPlayer)
+  const handleUpdateTextOverlay = useCallback((textId, updates) => {
+    setTextOverlays(prev => prev.map(t => 
+      t.id === textId ? { ...t, ...updates } : t
+    ));
+    // Also update selectedTextOverlay if it's the one being updated
+    setSelectedTextOverlay(prev => 
+      prev?.id === textId ? { ...prev, ...updates } : prev
+    );
+  }, []);
 
   // Select text overlay
   const handleSelectText = useCallback((textId) => {
@@ -692,6 +774,26 @@ function App() {
         return { ...a, trimStart, trimEnd };
       }
       return a;
+    }));
+  }, []);
+
+  // Handle moving audio clip to a new start time
+  const handleMoveAudio = useCallback((audioId, newStartTime) => {
+    setAudioClips(prev => prev.map(a => {
+      if ((a.timelineId || a.id) === audioId) {
+        return { ...a, startTime: newStartTime };
+      }
+      return a;
+    }));
+  }, []);
+
+  // Handle moving text overlay to a new start time
+  const handleMoveText = useCallback((textId, newStartTime) => {
+    setTextOverlays(prev => prev.map(t => {
+      if (t.id === textId) {
+        return { ...t, startTime: newStartTime };
+      }
+      return t;
     }));
   }, []);
 
@@ -846,6 +948,9 @@ function App() {
             showRightPanel={false}
             onToggleRightPanel={() => {}}
             autoPlayOnMount={isPlaying}
+            onUpdateTextOverlay={handleUpdateTextOverlay}
+            selectedTextId={selectedTextOverlay?.id}
+            showVideoBorder={showVideoBorder}
           />
         </div>
       )}
@@ -880,6 +985,7 @@ function App() {
           clips={clips}
           onAddClip={handleAddClip}
           onSelectClip={setSelectedClip}
+          onRemoveAsset={handleRemoveAsset}
           generatingTasks={generatingTasks}
           onCancelGeneration={handleCancelGeneration}
         />
@@ -913,6 +1019,9 @@ function App() {
               onToggleCodeEditor={toggleCodeEditor}
               showRightPanel={showRightPanel}
               onToggleRightPanel={toggleRightPanel}
+              onUpdateTextOverlay={handleUpdateTextOverlay}
+              selectedTextId={selectedTextOverlay?.id}
+              showVideoBorder={showVideoBorder}
             />
           </div>
 
@@ -949,7 +1058,12 @@ function App() {
               onUpdateText={(updatedText) => {
                 setTextOverlays(prev => prev.map(t => t.id === updatedText.id ? updatedText : t));
               }}
+              onSelectText={handleSelectText}
+              onRemoveText={handleRemoveText}
+              textOverlays={textOverlays}
               compact={rightPanelWidth < 250}
+              showVideoBorder={showVideoBorder}
+              onToggleVideoBorder={() => setShowVideoBorder(prev => !prev)}
             />
           </div>
         )}
@@ -966,6 +1080,9 @@ function App() {
         textOverlays={textOverlays}
         onTrimClip={handleTrimClip}
         onTrimAudio={handleTrimAudio}
+        onMoveAudio={handleMoveAudio}
+        onMoveText={handleMoveText}
+        onUpdateText={handleUpdateTextOverlay}
         onSplitClip={handleSplitClip}
         onSplitAudio={handleSplitAudio}
         onRemoveAudio={handleRemoveAudio}

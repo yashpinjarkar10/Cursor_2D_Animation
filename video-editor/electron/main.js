@@ -670,6 +670,10 @@ ipcMain.handle('trim-video', async (event, inputPath, outputPath, startTime, dur
         ffmpeg(inputPath)
             .setStartTime(startTime)
             .setDuration(duration)
+            .outputOptions('-c:v libx264')
+            .outputOptions('-preset fast')
+            .outputOptions('-crf 23')
+            .outputOptions('-c:a aac')
             .output(outputPath)
             .on('end', () => {
                 resolve({ success: true, outputPath });
@@ -681,28 +685,80 @@ ipcMain.handle('trim-video', async (event, inputPath, outputPath, startTime, dur
     });
 });
 
-// Join videos
+// Join videos - using concat demuxer for reliable joining
 ipcMain.handle('join-videos', async (event, videoPaths, outputPath) => {
     // Ensure output directory exists
     const outputDir = path.dirname(outputPath);
     await fs.mkdir(outputDir, { recursive: true });
     
-    return new Promise((resolve, reject) => {
-        const command = ffmpeg();
-
-        videoPaths.forEach(videoPath => {
-            command.input(videoPath);
+    // First, normalize all videos to the same format
+    const normalizedPaths = [];
+    const tempDir = path.join(outputDir, 'temp_concat');
+    await fs.mkdir(tempDir, { recursive: true });
+    
+    try {
+        // Step 1: Re-encode each video to ensure compatibility
+        for (let i = 0; i < videoPaths.length; i++) {
+            const inputPath = videoPaths[i];
+            const normalizedPath = path.join(tempDir, `normalized_${i}.mp4`);
+            
+            await new Promise((resolve, reject) => {
+                ffmpeg(inputPath)
+                    .outputOptions('-c:v libx264')
+                    .outputOptions('-preset fast')
+                    .outputOptions('-crf 23')
+                    .outputOptions('-c:a aac')
+                    .outputOptions('-ar 44100')
+                    .outputOptions('-ac 2')
+                    .outputOptions('-r 30') // Normalize frame rate
+                    .outputOptions('-vf', 'scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2')
+                    .output(normalizedPath)
+                    .on('end', () => {
+                        normalizedPaths.push(normalizedPath);
+                        resolve();
+                    })
+                    .on('error', (err) => {
+                        reject(new Error(`Failed to normalize video ${i}: ${err.message}`));
+                    })
+                    .run();
+            });
+        }
+        
+        // Step 2: Create concat list file
+        const concatListPath = path.join(tempDir, 'concat_list.txt');
+        const concatContent = normalizedPaths.map(p => `file '${p.replace(/\\/g, '/')}'`).join('\n');
+        await fs.writeFile(concatListPath, concatContent);
+        
+        // Step 3: Concatenate using concat demuxer
+        return new Promise((resolve, reject) => {
+            ffmpeg()
+                .input(concatListPath)
+                .inputOptions('-f', 'concat')
+                .inputOptions('-safe', '0')
+                .outputOptions('-c', 'copy')
+                .output(outputPath)
+                .on('end', async () => {
+                    // Cleanup temp files
+                    try {
+                        await fs.rm(tempDir, { recursive: true, force: true });
+                    } catch (e) {}
+                    resolve({ success: true, outputPath });
+                })
+                .on('error', async (err) => {
+                    try {
+                        await fs.rm(tempDir, { recursive: true, force: true });
+                    } catch (e) {}
+                    reject(new Error(err.message || 'Failed to join videos'));
+                })
+                .run();
         });
-
-        command
-            .on('end', () => {
-                resolve({ success: true, outputPath });
-            })
-            .on('error', (err) => {
-                reject(new Error(err.message || 'Failed to join videos'));
-            })
-            .mergeToFile(outputPath);
-    });
+    } catch (error) {
+        // Cleanup on error
+        try {
+            await fs.rm(tempDir, { recursive: true, force: true });
+        } catch (e) {}
+        throw error;
+    }
 });
 
 // Add audio to video
@@ -718,28 +774,6 @@ ipcMain.handle('add-audio', async (event, videoPath, audioPath, outputPath) => {
             })
             .on('error', (err) => {
                 reject(new Error(err.message || 'Failed to add audio'));
-            })
-            .run();
-    });
-});
-
-// Crop video - crops video to specified region
-ipcMain.handle('crop-video', async (event, inputPath, outputPath, cropParams) => {
-    const { x, y, width, height } = cropParams;
-    
-    // Ensure output directory exists
-    const outputDir = path.dirname(outputPath);
-    await fs.mkdir(outputDir, { recursive: true });
-    
-    return new Promise((resolve, reject) => {
-        ffmpeg(inputPath)
-            .videoFilter(`crop=${width}:${height}:${x}:${y}`)
-            .output(outputPath)
-            .on('end', () => {
-                resolve({ success: true, outputPath });
-            })
-            .on('error', (err) => {
-                reject(new Error(err.message || 'Failed to crop video'));
             })
             .run();
     });
@@ -877,4 +911,374 @@ ipcMain.handle('select-file', async (event, options) => {
 ipcMain.handle('save-file', async (event, options) => {
     const result = await dialog.showSaveDialog(mainWindow, options);
     return result;
+});
+
+// Advanced export with text overlays and audio - comprehensive export function
+ipcMain.handle('export-with-overlays', async (event, exportData) => {
+    const taskId = `export_${Date.now()}`;
+    const {
+        clips = [],
+        textOverlays = [],
+        audioClips = [],
+        outputPath,
+        options = {},
+        sessionId
+    } = exportData;
+    
+    const { quality = 'high' } = options;
+    
+    // Mark as in progress
+    activeGenerations.set(taskId, { status: 'exporting', sessionId });
+    
+    // Send initial progress
+    mainWindow.webContents.send('export-progress', {
+        taskId,
+        status: 'exporting',
+        message: 'Starting export...',
+        progress: 0
+    });
+    
+    // Run export in background
+    (async () => {
+        const tempDir = path.join(path.dirname(outputPath), `temp_export_${taskId}`);
+        
+        try {
+            await fs.mkdir(tempDir, { recursive: true });
+            
+            if (!activeGenerations.has(taskId)) {
+                console.log('Export cancelled before start:', taskId);
+                return;
+            }
+            
+            // Calculate total duration based on clips
+            let totalDuration = 0;
+            const clipTimings = [];
+            for (const clip of clips) {
+                const trimStart = clip.trimStart || 0;
+                const trimEnd = clip.trimEnd || clip.duration || 0;
+                const clipDuration = trimEnd - trimStart;
+                clipTimings.push({
+                    ...clip,
+                    startOnTimeline: totalDuration,
+                    trimStart,
+                    trimEnd,
+                    clipDuration
+                });
+                totalDuration += clipDuration;
+            }
+            
+            mainWindow.webContents.send('export-progress', {
+                taskId,
+                status: 'exporting',
+                message: 'Processing video clips...',
+                progress: 10
+            });
+            
+            // Step 1: Trim and normalize each clip
+            const normalizedClips = [];
+            for (let i = 0; i < clipTimings.length; i++) {
+                const clip = clipTimings[i];
+                const videoPath = clip.videoPath || clip.videoUrl;
+                if (!videoPath) continue;
+                
+                const normalizedPath = path.join(tempDir, `clip_${i}.mp4`);
+                
+                await new Promise((resolve, reject) => {
+                    let command = ffmpeg(videoPath);
+                    
+                    // Apply trim if needed
+                    if (clip.trimStart > 0) {
+                        command = command.setStartTime(clip.trimStart);
+                    }
+                    if (clip.clipDuration > 0) {
+                        command = command.setDuration(clip.clipDuration);
+                    }
+                    
+                    command
+                        .outputOptions('-c:v libx264')
+                        .outputOptions('-preset fast')
+                        .outputOptions('-crf', quality === 'high' ? '18' : quality === 'medium' ? '23' : '28')
+                        .outputOptions('-c:a aac')
+                        .outputOptions('-ar 44100')
+                        .outputOptions('-ac 2')
+                        .outputOptions('-r 30')
+                        .outputOptions('-vf', 'scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2')
+                        .output(normalizedPath)
+                        .on('end', () => {
+                            normalizedClips.push(normalizedPath);
+                            resolve();
+                        })
+                        .on('error', (err) => {
+                            reject(new Error(`Failed to process clip ${i}: ${err.message}`));
+                        })
+                        .run();
+                });
+                
+                mainWindow.webContents.send('export-progress', {
+                    taskId,
+                    status: 'exporting',
+                    message: `Processing clip ${i + 1}/${clipTimings.length}...`,
+                    progress: 10 + (30 * (i + 1) / clipTimings.length)
+                });
+            }
+            
+            if (!activeGenerations.has(taskId)) {
+                await fs.rm(tempDir, { recursive: true, force: true });
+                return;
+            }
+            
+            // Step 2: Concatenate clips
+            let concatenatedPath = path.join(tempDir, 'concatenated.mp4');
+            
+            if (normalizedClips.length > 1) {
+                mainWindow.webContents.send('export-progress', {
+                    taskId,
+                    status: 'exporting',
+                    message: 'Joining video clips...',
+                    progress: 45
+                });
+                
+                const concatListPath = path.join(tempDir, 'concat_list.txt');
+                const concatContent = normalizedClips.map(p => `file '${p.replace(/\\/g, '/')}'`).join('\n');
+                await fs.writeFile(concatListPath, concatContent);
+                
+                await new Promise((resolve, reject) => {
+                    ffmpeg()
+                        .input(concatListPath)
+                        .inputOptions('-f', 'concat')
+                        .inputOptions('-safe', '0')
+                        .outputOptions('-c', 'copy')
+                        .output(concatenatedPath)
+                        .on('end', resolve)
+                        .on('error', (err) => reject(new Error(`Failed to concatenate: ${err.message}`)))
+                        .run();
+                });
+            } else if (normalizedClips.length === 1) {
+                concatenatedPath = normalizedClips[0];
+            } else {
+                throw new Error('No valid video clips to export');
+            }
+            
+            if (!activeGenerations.has(taskId)) {
+                await fs.rm(tempDir, { recursive: true, force: true });
+                return;
+            }
+            
+            // Step 3: Add text overlays if any
+            let videoWithText = concatenatedPath;
+            if (textOverlays.length > 0) {
+                mainWindow.webContents.send('export-progress', {
+                    taskId,
+                    status: 'exporting',
+                    message: 'Adding text overlays...',
+                    progress: 55
+                });
+                
+                videoWithText = path.join(tempDir, 'with_text.mp4');
+                
+                // Build drawtext filter for each text overlay
+                const drawtextFilters = textOverlays.map((text, index) => {
+                    const startTime = text.startTime || 0;
+                    const endTime = startTime + (text.duration || 3);
+                    const x = text.x || 50;
+                    const y = text.y || 50;
+                    const fontSize = text.fontSize || 32;
+                    const color = (text.color || '#ffffff').replace('#', '');
+                    const textContent = (text.text || '').replace(/'/g, "\\'").replace(/:/g, "\\:");
+                    
+                    // Convert percentage to pixel position (for 1920x1080)
+                    const xPos = `(w*${x/100})-(tw/2)`;
+                    const yPos = `(h*${y/100})-(th/2)`;
+                    
+                    return `drawtext=text='${textContent}':fontsize=${fontSize}:fontcolor=0x${color}:x=${xPos}:y=${yPos}:enable='between(t,${startTime},${endTime})'`;
+                }).join(',');
+                
+                await new Promise((resolve, reject) => {
+                    ffmpeg(concatenatedPath)
+                        .outputOptions('-vf', drawtextFilters)
+                        .outputOptions('-c:v libx264')
+                        .outputOptions('-preset fast')
+                        .outputOptions('-crf', quality === 'high' ? '18' : quality === 'medium' ? '23' : '28')
+                        .outputOptions('-c:a copy')
+                        .output(videoWithText)
+                        .on('end', resolve)
+                        .on('error', (err) => reject(new Error(`Failed to add text: ${err.message}`)))
+                        .run();
+                });
+            }
+            
+            if (!activeGenerations.has(taskId)) {
+                await fs.rm(tempDir, { recursive: true, force: true });
+                return;
+            }
+            
+            // Step 4: Mix audio if any audio clips exist
+            let finalOutput = videoWithText;
+            if (audioClips.length > 0) {
+                mainWindow.webContents.send('export-progress', {
+                    taskId,
+                    status: 'exporting',
+                    message: 'Mixing audio...',
+                    progress: 70
+                });
+                
+                finalOutput = path.join(tempDir, 'with_audio.mp4');
+                
+                // First, check if video has audio track using ffprobe
+                const hasVideoAudio = await new Promise((resolve) => {
+                    ffmpeg.ffprobe(videoWithText, (err, metadata) => {
+                        if (err) {
+                            resolve(false);
+                            return;
+                        }
+                        const audioStreams = metadata.streams.filter(s => s.codec_type === 'audio');
+                        resolve(audioStreams.length > 0);
+                    });
+                });
+                
+                // Build complex audio filter for mixing multiple audio tracks
+                let command = ffmpeg(videoWithText);
+                
+                // Add all audio inputs, trimming to video duration
+                const audioInputs = [];
+                for (let i = 0; i < audioClips.length; i++) {
+                    const audio = audioClips[i];
+                    const audioPath = audio.audioPath || audio.path;
+                    if (audioPath) {
+                        command = command.input(audioPath);
+                        
+                        const audioStartTime = audio.startTime || 0;
+                        const trimStart = audio.trimStart || 0;
+                        let trimEnd = audio.trimEnd || audio.duration || 10;
+                        
+                        // Calculate effective audio end time on timeline
+                        const audioEndOnTimeline = audioStartTime + (trimEnd - trimStart);
+                        
+                        // Trim audio if it extends beyond video duration
+                        if (audioEndOnTimeline > totalDuration) {
+                            const excessTime = audioEndOnTimeline - totalDuration;
+                            trimEnd = trimEnd - excessTime;
+                        }
+                        
+                        // Only add audio if it has valid duration after trimming
+                        if (trimEnd > trimStart && audioStartTime < totalDuration) {
+                            audioInputs.push({
+                                index: i + 1, // 0 is the video
+                                audio,
+                                startTime: audioStartTime,
+                                trimStart: trimStart,
+                                trimEnd: trimEnd
+                            });
+                        }
+                    }
+                }
+                
+                if (audioInputs.length > 0) {
+                    // Build filter complex for audio mixing with delays and trimming
+                    const filterParts = [];
+                    const mixInputs = [];
+                    
+                    // If video has audio, include it in the mix
+                    if (hasVideoAudio) {
+                        mixInputs.push('[0:a]');
+                    }
+                    
+                    audioInputs.forEach((audioInput, idx) => {
+                        const inputLabel = `[${audioInput.index}:a]`;
+                        const outputLabel = `[a${idx}]`;
+                        const delayMs = Math.round(audioInput.startTime * 1000);
+                        const trimStart = audioInput.trimStart;
+                        const trimEnd = audioInput.trimEnd;
+                        
+                        // Trim and delay the audio
+                        filterParts.push(`${inputLabel}atrim=${trimStart}:${trimEnd},adelay=${delayMs}|${delayMs},asetpts=PTS-STARTPTS${outputLabel}`);
+                        mixInputs.push(outputLabel);
+                    });
+                    
+                    // Build the final filter based on number of audio sources
+                    if (mixInputs.length === 1) {
+                        // Only one audio source, no mixing needed
+                        const singleInput = mixInputs[0];
+                        if (singleInput === '[0:a]') {
+                            // Just video audio, copy it
+                            filterParts.push(`[0:a]acopy[aout]`);
+                        } else {
+                            // Just the added audio clip
+                            filterParts.push(`${singleInput}acopy[aout]`);
+                        }
+                    } else {
+                        // Mix all audio tracks
+                        const amixInput = mixInputs.join('');
+                        filterParts.push(`${amixInput}amix=inputs=${mixInputs.length}:duration=longest[aout]`);
+                    }
+                    
+                    await new Promise((resolve, reject) => {
+                        command
+                            .complexFilter(filterParts)
+                            .outputOptions('-map', '0:v')
+                            .outputOptions('-map', '[aout]')
+                            .outputOptions('-c:v copy')
+                            .outputOptions('-c:a aac')
+                            .output(finalOutput)
+                            .on('end', resolve)
+                            .on('error', (err) => reject(new Error(`Failed to mix audio: ${err.message}`)))
+                            .run();
+                    });
+                } else {
+                    finalOutput = videoWithText;
+                }
+            }
+            
+            if (!activeGenerations.has(taskId)) {
+                await fs.rm(tempDir, { recursive: true, force: true });
+                return;
+            }
+            
+            // Step 5: Copy to final output
+            mainWindow.webContents.send('export-progress', {
+                taskId,
+                status: 'exporting',
+                message: 'Finalizing export...',
+                progress: 90
+            });
+            
+            await fs.copyFile(finalOutput, outputPath);
+            
+            // Cleanup temp directory
+            try {
+                await fs.rm(tempDir, { recursive: true, force: true });
+            } catch (e) {}
+            
+            // Mark as complete
+            activeGenerations.delete(taskId);
+            
+            mainWindow.webContents.send('export-complete', {
+                taskId,
+                success: true,
+                outputPath: outputPath
+            });
+            
+        } catch (error) {
+            // Cleanup on error
+            try {
+                await fs.rm(tempDir, { recursive: true, force: true });
+            } catch (e) {}
+            
+            if (!activeGenerations.has(taskId)) {
+                console.log('Export cancelled during error handling:', taskId);
+                return;
+            }
+            
+            console.error('Export error:', error.message);
+            activeGenerations.delete(taskId);
+            
+            mainWindow.webContents.send('export-complete', {
+                taskId,
+                success: false,
+                error: error.message
+            });
+        }
+    })();
+    
+    return { taskId, status: 'started' };
 });

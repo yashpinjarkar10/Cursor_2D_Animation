@@ -51,10 +51,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
         ipcRenderer.invoke('join-videos', videoPaths, outputPath),
     addAudio: (videoPath, audioPath, outputPath) =>
         ipcRenderer.invoke('add-audio', videoPath, audioPath, outputPath),
-    cropVideo: (inputPath, outputPath, cropParams) =>
-        ipcRenderer.invoke('crop-video', inputPath, outputPath, cropParams),
     exportVideo: (inputPath, outputPath, options, sessionId) =>
         ipcRenderer.invoke('export-video', inputPath, outputPath, options, sessionId),
+    exportWithOverlays: (exportData) =>
+        ipcRenderer.invoke('export-with-overlays', exportData),
 
     // File dialogs
     selectFile: (options) => ipcRenderer.invoke('select-file', options),

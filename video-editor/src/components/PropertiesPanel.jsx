@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Settings, Scissors, Type, Plus, Music, Edit3 } from 'lucide-react';
+import { Settings, Scissors, Type, Plus, Music, Edit3, Move, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 
 const PropertiesPanel = ({ 
     selectedClip, 
@@ -9,17 +9,25 @@ const PropertiesPanel = ({
     onAddAudioToTimeline,
     currentTime = 0,
     selectedTextOverlay,
-    onUpdateText
+    onUpdateText,
+    onSelectText,
+    onRemoveText,
+    textOverlays = [],
+    showVideoBorder = true,
+    onToggleVideoBorder
 }) => {
     const [trimStart, setTrimStart] = useState(0);
     const [trimEnd, setTrimEnd] = useState(0);
     const [isTrimming, setIsTrimming] = useState(false);
+    const [showTextList, setShowTextList] = useState(true);
     
     // Text overlay state - for adding new text
     const [newText, setNewText] = useState('');
     const [textStartTime, setTextStartTime] = useState(0);
     const [textDuration, setTextDuration] = useState(3);
-    const [textPosition, setTextPosition] = useState('center');
+    const [textPosition, setTextPosition] = useState('custom');
+    const [textX, setTextX] = useState(50); // percentage
+    const [textY, setTextY] = useState(50); // percentage
     const [textSize, setTextSize] = useState(32);
     const [textColor, setTextColor] = useState('#ffffff');
     
@@ -27,7 +35,9 @@ const PropertiesPanel = ({
     const [editText, setEditText] = useState('');
     const [editStartTime, setEditStartTime] = useState(0);
     const [editDuration, setEditDuration] = useState(3);
-    const [editPosition, setEditPosition] = useState('center');
+    const [editPosition, setEditPosition] = useState('custom');
+    const [editX, setEditX] = useState(50);
+    const [editY, setEditY] = useState(50);
     const [editSize, setEditSize] = useState(32);
     const [editColor, setEditColor] = useState('#ffffff');
 
@@ -50,11 +60,54 @@ const PropertiesPanel = ({
             setEditText(selectedTextOverlay.text || '');
             setEditStartTime(selectedTextOverlay.startTime || 0);
             setEditDuration(selectedTextOverlay.duration || 3);
-            setEditPosition(selectedTextOverlay.position || 'center');
+            setEditPosition(selectedTextOverlay.position || 'custom');
+            setEditX(selectedTextOverlay.x ?? 50);
+            setEditY(selectedTextOverlay.y ?? 50);
             setEditSize(selectedTextOverlay.fontSize || 32);
             setEditColor(selectedTextOverlay.color || '#ffffff');
         }
     }, [selectedTextOverlay]);
+
+    // Helper to adjust position preset to X/Y
+    const applyPositionPreset = (preset, isEdit = false) => {
+        let x = 50, y = 50;
+        switch (preset) {
+            case 'top': y = 10; break;
+            case 'center': y = 50; break;
+            case 'bottom': y = 80; break;
+            case 'top-left': x = 10; y = 10; break;
+            case 'top-right': x = 90; y = 10; break;
+            case 'bottom-left': x = 10; y = 90; break;
+            case 'bottom-right': x = 90; y = 90; break;
+            default: return; // custom - don't change
+        }
+        if (isEdit) {
+            setEditX(x);
+            setEditY(y);
+            setEditPosition(preset);
+        } else {
+            setTextX(x);
+            setTextY(y);
+            setTextPosition(preset);
+        }
+    };
+
+    // Arrow key movement for edit mode
+    const moveText = (dx, dy) => {
+        if (selectedTextOverlay && onUpdateText) {
+            const newX = Math.max(0, Math.min(100, editX + dx));
+            const newY = Math.max(0, Math.min(100, editY + dy));
+            setEditX(newX);
+            setEditY(newY);
+            setEditPosition('custom');
+            onUpdateText({
+                ...selectedTextOverlay,
+                x: newX,
+                y: newY,
+                position: 'custom'
+            });
+        }
+    };
 
     if (!selectedClip) {
         return (
@@ -65,6 +118,25 @@ const PropertiesPanel = ({
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-dark-600 scrollbar-track-dark-800" style={{ scrollBehavior: 'smooth' }}>
+                    {/* Video Display Options */}
+                    <div>
+                        <h4 className="text-sm font-semibold mb-2 text-gray-400 flex items-center gap-2">
+                            <Settings className="w-4 h-4" />
+                            Display Options
+                        </h4>
+                        <div className="panel p-3 space-y-2">
+                            <label className="flex items-center justify-between cursor-pointer">
+                                <span className="text-sm text-gray-300">Show Video Border</span>
+                                <input
+                                    type="checkbox"
+                                    checked={showVideoBorder}
+                                    onChange={() => onToggleVideoBorder && onToggleVideoBorder()}
+                                    className="w-4 h-4 accent-primary-500 cursor-pointer"
+                                />
+                            </label>
+                        </div>
+                    </div>
+
                     {/* Add Text Section - always visible */}
                     <div>
                         <h4 className="text-sm font-semibold mb-2 text-gray-400 flex items-center gap-2">
@@ -107,16 +179,47 @@ const PropertiesPanel = ({
                                 </div>
                             </div>
                             <div>
-                                <label className="text-xs text-gray-500 block mb-1">Position</label>
+                                <label className="text-xs text-gray-500 block mb-1">Position Preset</label>
                                 <select
                                     className="input w-full text-sm"
                                     value={textPosition}
-                                    onChange={(e) => setTextPosition(e.target.value)}
+                                    onChange={(e) => applyPositionPreset(e.target.value, false)}
                                 >
-                                    <option value="top">Top</option>
+                                    <option value="custom">Custom</option>
+                                    <option value="top">Top Center</option>
                                     <option value="center">Center</option>
-                                    <option value="bottom">Bottom</option>
+                                    <option value="bottom">Bottom Center</option>
+                                    <option value="top-left">Top Left</option>
+                                    <option value="top-right">Top Right</option>
+                                    <option value="bottom-left">Bottom Left</option>
+                                    <option value="bottom-right">Bottom Right</option>
                                 </select>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label className="text-xs text-gray-500 block mb-1">X Position (%)</label>
+                                    <input
+                                        type="number"
+                                        className="input w-full text-sm"
+                                        value={textX}
+                                        onChange={(e) => { setTextX(parseFloat(e.target.value) || 0); setTextPosition('custom'); }}
+                                        min="0"
+                                        max="100"
+                                        step="1"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-xs text-gray-500 block mb-1">Y Position (%)</label>
+                                    <input
+                                        type="number"
+                                        className="input w-full text-sm"
+                                        value={textY}
+                                        onChange={(e) => { setTextY(parseFloat(e.target.value) || 0); setTextPosition('custom'); }}
+                                        min="0"
+                                        max="100"
+                                        step="1"
+                                    />
+                                </div>
                             </div>
                             <div className="grid grid-cols-2 gap-2">
                                 <div>
@@ -149,6 +252,8 @@ const PropertiesPanel = ({
                                             startTime: textStartTime,
                                             duration: textDuration,
                                             position: textPosition,
+                                            x: textX,
+                                            y: textY,
                                             fontSize: textSize,
                                             color: textColor,
                                         });
@@ -162,6 +267,56 @@ const PropertiesPanel = ({
                             </button>
                         </div>
                     </div>
+
+                    {/* Text Overlays List */}
+                    {textOverlays.length > 0 && (
+                        <div>
+                            <h4 
+                                className="text-sm font-semibold mb-2 text-gray-400 flex items-center gap-2 cursor-pointer hover:text-gray-300"
+                                onClick={() => setShowTextList(!showTextList)}
+                            >
+                                <Type className="w-4 h-4" />
+                                Text Overlays ({textOverlays.length})
+                                {showTextList ? <ChevronUp className="w-4 h-4 ml-auto" /> : <ChevronDown className="w-4 h-4 ml-auto" />}
+                            </h4>
+                            {showTextList && (
+                                <div className="space-y-2">
+                                    {textOverlays.map((text) => (
+                                        <div 
+                                            key={text.id}
+                                            onClick={() => onSelectText && onSelectText(text.id)}
+                                            className={`panel p-2 cursor-pointer transition-colors ${
+                                                selectedTextOverlay?.id === text.id 
+                                                    ? 'border-purple-500 bg-purple-900/20' 
+                                                    : 'hover:border-gray-600'
+                                            }`}
+                                        >
+                                            <div className="flex items-center justify-between gap-2">
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="text-sm font-medium truncate" style={{ color: text.color || '#ffffff' }}>
+                                                        {text.text || 'Empty text'}
+                                                    </div>
+                                                    <div className="text-xs text-gray-500">
+                                                        {(text.startTime || 0).toFixed(1)}s - {((text.startTime || 0) + (text.duration || 3)).toFixed(1)}s
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        onRemoveText && onRemoveText(text.id);
+                                                    }}
+                                                    className="text-gray-500 hover:text-red-400 p-1"
+                                                    title="Delete text"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
                     
                     {/* Edit Text Overlay Section - shown when text is selected (no clip view) */}
                     {selectedTextOverlay && (
@@ -205,16 +360,91 @@ const PropertiesPanel = ({
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="text-xs text-gray-500 block mb-1">Position</label>
+                                    <label className="text-xs text-gray-500 block mb-1">Position Preset</label>
                                     <select
                                         className="input w-full text-sm"
                                         value={editPosition}
-                                        onChange={(e) => setEditPosition(e.target.value)}
+                                        onChange={(e) => applyPositionPreset(e.target.value, true)}
                                     >
-                                        <option value="top">Top</option>
+                                        <option value="custom">Custom</option>
+                                        <option value="top">Top Center</option>
                                         <option value="center">Center</option>
-                                        <option value="bottom">Bottom</option>
+                                        <option value="bottom">Bottom Center</option>
+                                        <option value="top-left">Top Left</option>
+                                        <option value="top-right">Top Right</option>
+                                        <option value="bottom-left">Bottom Left</option>
+                                        <option value="bottom-right">Bottom Right</option>
                                     </select>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label className="text-xs text-gray-500 block mb-1">X Position (%)</label>
+                                        <input
+                                            type="number"
+                                            className="input w-full text-sm"
+                                            value={editX}
+                                            onChange={(e) => { setEditX(parseFloat(e.target.value) || 0); setEditPosition('custom'); }}
+                                            min="0"
+                                            max="100"
+                                            step="1"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs text-gray-500 block mb-1">Y Position (%)</label>
+                                        <input
+                                            type="number"
+                                            className="input w-full text-sm"
+                                            value={editY}
+                                            onChange={(e) => { setEditY(parseFloat(e.target.value) || 0); setEditPosition('custom'); }}
+                                            min="0"
+                                            max="100"
+                                            step="1"
+                                        />
+                                    </div>
+                                </div>
+                                {/* Arrow controls for fine-tuning */}
+                                <div>
+                                    <label className="text-xs text-gray-500 block mb-1">Fine-tune Position</label>
+                                    <div className="flex items-center justify-center gap-1">
+                                        <div className="grid grid-cols-3 gap-1">
+                                            <div></div>
+                                            <button
+                                                className="btn btn-secondary p-1"
+                                                onClick={() => moveText(0, -2)}
+                                                title="Move Up"
+                                            >
+                                                <ArrowUp className="w-4 h-4" />
+                                            </button>
+                                            <div></div>
+                                            <button
+                                                className="btn btn-secondary p-1"
+                                                onClick={() => moveText(-2, 0)}
+                                                title="Move Left"
+                                            >
+                                                <ArrowLeft className="w-4 h-4" />
+                                            </button>
+                                            <div className="flex items-center justify-center">
+                                                <Move className="w-4 h-4 text-gray-500" />
+                                            </div>
+                                            <button
+                                                className="btn btn-secondary p-1"
+                                                onClick={() => moveText(2, 0)}
+                                                title="Move Right"
+                                            >
+                                                <ArrowRight className="w-4 h-4" />
+                                            </button>
+                                            <div></div>
+                                            <button
+                                                className="btn btn-secondary p-1"
+                                                onClick={() => moveText(0, 2)}
+                                                title="Move Down"
+                                            >
+                                                <ArrowDown className="w-4 h-4" />
+                                            </button>
+                                            <div></div>
+                                        </div>
+                                    </div>
+                                    <p className="text-xs text-gray-500 text-center mt-1">Or drag text on video</p>
                                 </div>
                                 <div className="grid grid-cols-2 gap-2">
                                     <div>
@@ -248,6 +478,8 @@ const PropertiesPanel = ({
                                                 startTime: editStartTime,
                                                 duration: editDuration,
                                                 position: editPosition,
+                                                x: editX,
+                                                y: editY,
                                                 fontSize: editSize,
                                                 color: editColor,
                                             });
@@ -327,6 +559,25 @@ const PropertiesPanel = ({
 
             {/* Content - scrollable */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-dark-600 scrollbar-track-dark-800" style={{ scrollBehavior: 'smooth' }}>
+                {/* Video Display Options */}
+                <div>
+                    <h4 className="text-sm font-semibold mb-2 text-gray-400 flex items-center gap-2">
+                        <Settings className="w-4 h-4" />
+                        Display Options
+                    </h4>
+                    <div className="panel p-3 space-y-2">
+                        <label className="flex items-center justify-between cursor-pointer">
+                            <span className="text-sm text-gray-300">Show Video Border</span>
+                            <input
+                                type="checkbox"
+                                checked={showVideoBorder}
+                                onChange={() => onToggleVideoBorder && onToggleVideoBorder()}
+                                className="w-4 h-4 accent-primary-500 cursor-pointer"
+                            />
+                        </label>
+                    </div>
+                </div>
+
                 {/* Clip Info */}
                 <div>
                     <h4 className="text-sm font-semibold mb-2 text-gray-400">Clip Info</h4>
@@ -476,16 +727,91 @@ const PropertiesPanel = ({
                                 </div>
                             </div>
                             <div>
-                                <label className="text-xs text-gray-500 block mb-1">Position</label>
+                                <label className="text-xs text-gray-500 block mb-1">Position Preset</label>
                                 <select
                                     className="input w-full text-sm"
                                     value={editPosition}
-                                    onChange={(e) => setEditPosition(e.target.value)}
+                                    onChange={(e) => applyPositionPreset(e.target.value, true)}
                                 >
-                                    <option value="top">Top</option>
+                                    <option value="custom">Custom</option>
+                                    <option value="top">Top Center</option>
                                     <option value="center">Center</option>
-                                    <option value="bottom">Bottom</option>
+                                    <option value="bottom">Bottom Center</option>
+                                    <option value="top-left">Top Left</option>
+                                    <option value="top-right">Top Right</option>
+                                    <option value="bottom-left">Bottom Left</option>
+                                    <option value="bottom-right">Bottom Right</option>
                                 </select>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label className="text-xs text-gray-500 block mb-1">X Position (%)</label>
+                                    <input
+                                        type="number"
+                                        className="input w-full text-sm"
+                                        value={editX}
+                                        onChange={(e) => { setEditX(parseFloat(e.target.value) || 0); setEditPosition('custom'); }}
+                                        min="0"
+                                        max="100"
+                                        step="1"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-xs text-gray-500 block mb-1">Y Position (%)</label>
+                                    <input
+                                        type="number"
+                                        className="input w-full text-sm"
+                                        value={editY}
+                                        onChange={(e) => { setEditY(parseFloat(e.target.value) || 0); setEditPosition('custom'); }}
+                                        min="0"
+                                        max="100"
+                                        step="1"
+                                    />
+                                </div>
+                            </div>
+                            {/* Arrow controls for fine-tuning */}
+                            <div>
+                                <label className="text-xs text-gray-500 block mb-1">Fine-tune Position</label>
+                                <div className="flex items-center justify-center gap-1">
+                                    <div className="grid grid-cols-3 gap-1">
+                                        <div></div>
+                                        <button
+                                            className="btn btn-secondary p-1"
+                                            onClick={() => moveText(0, -2)}
+                                            title="Move Up"
+                                        >
+                                            <ArrowUp className="w-4 h-4" />
+                                        </button>
+                                        <div></div>
+                                        <button
+                                            className="btn btn-secondary p-1"
+                                            onClick={() => moveText(-2, 0)}
+                                            title="Move Left"
+                                        >
+                                            <ArrowLeft className="w-4 h-4" />
+                                        </button>
+                                        <div className="flex items-center justify-center">
+                                            <Move className="w-4 h-4 text-gray-500" />
+                                        </div>
+                                        <button
+                                            className="btn btn-secondary p-1"
+                                            onClick={() => moveText(2, 0)}
+                                            title="Move Right"
+                                        >
+                                            <ArrowRight className="w-4 h-4" />
+                                        </button>
+                                        <div></div>
+                                        <button
+                                            className="btn btn-secondary p-1"
+                                            onClick={() => moveText(0, 2)}
+                                            title="Move Down"
+                                        >
+                                            <ArrowDown className="w-4 h-4" />
+                                        </button>
+                                        <div></div>
+                                    </div>
+                                </div>
+                                <p className="text-xs text-gray-500 text-center mt-1">Or drag text on video</p>
                             </div>
                             <div className="grid grid-cols-2 gap-2">
                                 <div>
@@ -519,6 +845,8 @@ const PropertiesPanel = ({
                                             startTime: editStartTime,
                                             duration: editDuration,
                                             position: editPosition,
+                                            x: editX,
+                                            y: editY,
                                             fontSize: editSize,
                                             color: editColor,
                                         });
@@ -575,16 +903,47 @@ const PropertiesPanel = ({
                             </div>
                         </div>
                         <div>
-                            <label className="text-xs text-gray-500 block mb-1">Position</label>
+                            <label className="text-xs text-gray-500 block mb-1">Position Preset</label>
                             <select
                                 className="input w-full text-sm"
                                 value={textPosition}
-                                onChange={(e) => setTextPosition(e.target.value)}
+                                onChange={(e) => applyPositionPreset(e.target.value, false)}
                             >
-                                <option value="top">Top</option>
+                                <option value="custom">Custom</option>
+                                <option value="top">Top Center</option>
                                 <option value="center">Center</option>
-                                <option value="bottom">Bottom</option>
+                                <option value="bottom">Bottom Center</option>
+                                <option value="top-left">Top Left</option>
+                                <option value="top-right">Top Right</option>
+                                <option value="bottom-left">Bottom Left</option>
+                                <option value="bottom-right">Bottom Right</option>
                             </select>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                            <div>
+                                <label className="text-xs text-gray-500 block mb-1">X Position (%)</label>
+                                <input
+                                    type="number"
+                                    className="input w-full text-sm"
+                                    value={textX}
+                                    onChange={(e) => { setTextX(parseFloat(e.target.value) || 0); setTextPosition('custom'); }}
+                                    min="0"
+                                    max="100"
+                                    step="1"
+                                />
+                            </div>
+                            <div>
+                                <label className="text-xs text-gray-500 block mb-1">Y Position (%)</label>
+                                <input
+                                    type="number"
+                                    className="input w-full text-sm"
+                                    value={textY}
+                                    onChange={(e) => { setTextY(parseFloat(e.target.value) || 0); setTextPosition('custom'); }}
+                                    min="0"
+                                    max="100"
+                                    step="1"
+                                />
+                            </div>
                         </div>
                         <div className="grid grid-cols-2 gap-2">
                             <div>
@@ -617,6 +976,8 @@ const PropertiesPanel = ({
                                         startTime: textStartTime,
                                         duration: textDuration,
                                         position: textPosition,
+                                        x: textX,
+                                        y: textY,
                                         fontSize: textSize,
                                         color: textColor,
                                     });

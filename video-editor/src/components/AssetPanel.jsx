@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
-import { FolderOpen, Video, Music, Plus, Loader2, X } from 'lucide-react';
+import { FolderOpen, Video, Music, Plus, Loader2, X, Trash2 } from 'lucide-react';
 
-const AssetPanel = ({ clips, onAddClip, onSelectClip, generatingTasks = [], onCancelGeneration }) => {
+const AssetPanel = ({ clips, onAddClip, onSelectClip, onRemoveAsset, generatingTasks = [], onCancelGeneration }) => {
     const audioPreviewRef = useRef(null);
 
     const handleAddVideo = async () => {
@@ -163,7 +163,7 @@ const AssetPanel = ({ clips, onAddClip, onSelectClip, generatingTasks = [], onCa
                             <div
                                 key={clip.id}
                                 onClick={() => onSelectClip(clip)}
-                                className="panel p-3 cursor-pointer hover:border-primary-500 transition-colors"
+                                className="panel p-3 cursor-pointer hover:border-primary-500 transition-colors group"
                             >
                                 <div className="flex items-start gap-2">
                                     {clip.type === 'video' ? (
@@ -180,6 +180,19 @@ const AssetPanel = ({ clips, onAddClip, onSelectClip, generatingTasks = [], onCa
                                             {clip.source}
                                         </div>
                                     </div>
+
+                                    {onRemoveAsset && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                onRemoveAsset(clip.id, clip.type);
+                                            }}
+                                            className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-400 transition-all p-1 rounded hover:bg-dark-700"
+                                            title="Delete asset"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         ))}

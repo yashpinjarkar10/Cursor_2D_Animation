@@ -32,3 +32,7 @@ temp_folder/
 #AI instruction files
 task.md
 walkthrough.md.resolved
+
+# TESTING
+test_output/
+test*
