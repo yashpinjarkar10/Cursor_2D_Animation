@@ -1,9 +1,9 @@
 {
-  "name": "video-editor",
+  "name": "cursor-2d-video-editor",
   "private": true,
   "version": "1.0.0",
   "description": "A powerful video editor for creating cursor animations and video overlays with Manim support",
-  "author": "Your Name <your-email@example.com>",
+  "author": "Yash Pinjarkar",
   "main": "dist-electron/main.cjs",
   "scripts": {
     "dev": "vite",
@@ -11,11 +11,14 @@
     "electron:start": "electron .",
     "build": "vite build && electron-builder",
     "build:win": "vite build && electron-builder --win",
+    "build:mac": "vite build && electron-builder --mac",
+    "build:linux": "vite build && electron-builder --linux",
+    "build:all": "vite build && electron-builder --win --mac --linux",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "build": {
-    "appId": "com.videoeditior.app",
+    "appId": "com.cursor2d.videoeditor",
     "productName": "Cursor 2D Video Editor",
     "directories": {
       "output": "release"
@@ -48,7 +51,40 @@
           "target": "portable",
           "arch": ["x64"]
         }
-      ]
+      ],
+      "icon": "public/icon.ico"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        },
+        {
+          "target": "zip",
+          "arch": ["x64", "arm64"]
+        }
+      ],
+      "icon": "public/icon.icns",
+      "category": "public.app-category.video"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": ["x64"]
+        },
+        {
+          "target": "deb",
+          "arch": ["x64"]
+        },
+        {
+          "target": "rpm",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "public/icon.png",
+      "category": "Video"
     },
     "nsis": {
       "oneClick": false,
@@ -56,6 +92,21 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Cursor 2D Video Editor"
+    },
+    "dmg": {
+      "title": "Cursor 2D Video Editor",
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
     }
   },
   "dependencies": {

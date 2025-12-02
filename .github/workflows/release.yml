@@ -1,0 +1,187 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 1.0.0)'
+        required: true
+        default: '1.0.0'
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: video-editor/package-lock.json
+
+      - name: Install dependencies
+        working-directory: video-editor
+        run: npm ci
+
+      - name: Build Windows
+        working-directory: video-editor
+        run: npm run build:win
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: |
+            video-editor/release/*.exe
+            video-editor/release/*.exe.blockmap
+          retention-days: 5
+
+  build-macos:
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: video-editor/package-lock.json
+
+      - name: Install dependencies
+        working-directory: video-editor
+        run: npm ci
+
+      - name: Build macOS
+        working-directory: video-editor
+        run: npm run build:mac
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-build
+          path: |
+            video-editor/release/*.dmg
+            video-editor/release/*.zip
+          retention-days: 5
+
+  build-linux:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: video-editor/package-lock.json
+
+      - name: Install dependencies
+        working-directory: video-editor
+        run: npm ci
+
+      - name: Build Linux
+        working-directory: video-editor
+        run: npm run build:linux
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-build
+          path: |
+            video-editor/release/*.AppImage
+            video-editor/release/*.deb
+            video-editor/release/*.rpm
+          retention-days: 5
+
+  create-release:
+    needs: [build-windows, build-macos, build-linux]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-build
+          path: release/windows
+
+      - name: Download macOS artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-build
+          path: release/macos
+
+      - name: Download Linux artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-build
+          path: release/linux
+
+      - name: Get version
+        id: get_version
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.get_version.outputs.VERSION }}
+          name: Cursor 2D Video Editor v${{ steps.get_version.outputs.VERSION }}
+          draft: false
+          prerelease: false
+          files: |
+            release/windows/*
+            release/macos/*
+            release/linux/*
+          body: |
+            ## Cursor 2D Video Editor v${{ steps.get_version.outputs.VERSION }}
+            
+            ### Downloads
+            
+            **Windows:**
+            - `Cursor 2D Video Editor Setup *.exe` - Installer (recommended)
+            - `Cursor 2D Video Editor *.exe` - Portable version
+            
+            **macOS:**
+            - `*.dmg` - macOS installer
+            
+            **Linux:**
+            - `*.AppImage` - Universal Linux package (recommended)
+            - `*.deb` - Debian/Ubuntu package
+            - `*.rpm` - Fedora/RHEL package
+            
+            ### Requirements
+            - For video generation: Running Manim backend server
+            - See [Installation Guide](video-editor/INSTALLATION.md) for detailed setup instructions
+            
+            ### What's New
+            - See commit history for changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
