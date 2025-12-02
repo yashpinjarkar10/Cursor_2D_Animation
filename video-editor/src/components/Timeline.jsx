@@ -43,8 +43,18 @@ const Timeline = ({
         let currentPosition = 0;
         videoClips.forEach(clip => {
             const trimStart = trimPreview?.clipId === clip.id ? trimPreview.trimStart : (clip.trimStart || 0);
-            const trimEnd = trimPreview?.clipId === clip.id ? trimPreview.trimEnd : (clip.trimEnd || clip.duration || 5);
-            const clipDuration = trimEnd - trimStart;
+            // Use trimEnd if > 0, otherwise use duration if > 0, otherwise 2 (loading state)
+            let trimEnd;
+            if (trimPreview?.clipId === clip.id) {
+                trimEnd = trimPreview.trimEnd;
+            } else if (clip.trimEnd && clip.trimEnd > 0) {
+                trimEnd = clip.trimEnd;
+            } else if (clip.duration && clip.duration > 0) {
+                trimEnd = clip.duration;
+            } else {
+                trimEnd = 2; // Loading state - show 2 second placeholder
+            }
+            const clipDuration = Math.max(trimEnd - trimStart, 0.5);
             positions[clip.id] = { left: currentPosition, width: clipDuration };
             currentPosition += clipDuration;
         });
@@ -355,7 +365,7 @@ const Timeline = ({
         }
     };
 
-    // Render time markers (offset by track label width)
+    // Render time markers (no offset needed - container already has ml-16)
     const renderTimeMarkers = () => {
         const markers = [];
         // Adjust interval based on zoom level
@@ -367,7 +377,7 @@ const Timeline = ({
                 <div
                     key={i}
                     className="absolute top-0 text-xs text-gray-500"
-                    style={{ left: `${64 + i * pixelsPerSecond}px` }}
+                    style={{ left: `${i * pixelsPerSecond}px` }}
                 >
                     <div className="h-2 w-px bg-gray-600"></div>
                     <span className="ml-1">{formatDuration(i)}</span>
@@ -478,16 +488,19 @@ const Timeline = ({
                 </span>
             </div>
 
-            {/* Timeline Content */}
-            <div className="flex-1 overflow-auto" ref={timelineRef}>
+            {/* Timeline Content - using flex layout for sticky track labels */}
+            <div className="flex-1 overflow-x-auto overflow-y-hidden" ref={timelineRef}>
                 <div 
                     className="relative min-h-full"
-                    style={{ width: `${Math.max(calculatedDuration * pixelsPerSecond + 100, 800)}px` }}
+                    style={{ width: `${Math.max(calculatedDuration * pixelsPerSecond + 100 + 64, 800)}px` }}
                     onClick={handleTimelineClick}
                 >
-                    {/* Time markers */}
-                    <div className="h-6 relative border-b border-dark-600">
-                        {renderTimeMarkers()}
+                    {/* Time markers row */}
+                    <div className="h-6 relative border-b border-dark-600 flex">
+                        <div className="sticky left-0 w-16 h-full bg-dark-800 border-r border-dark-600 z-30 flex-shrink-0"></div>
+                        <div className="flex-1 h-full relative">
+                            {renderTimeMarkers()}
+                        </div>
                     </div>
 
                     {/* Playhead */}
@@ -499,12 +512,12 @@ const Timeline = ({
                     </div>
 
                     {/* Video Track */}
-                    <div className="h-20 relative border-b border-dark-600 bg-dark-900/50">
-                        <div className="absolute left-0 top-0 bottom-0 w-16 bg-dark-800 flex items-center justify-center border-r border-dark-600 z-10">
+                    <div className="h-20 relative border-b border-dark-600 bg-dark-900/50 flex">
+                        <div className="sticky left-0 w-16 h-full bg-dark-800 flex items-center justify-center border-r border-dark-600 z-30 flex-shrink-0">
                             <Video className="w-4 h-4 text-blue-400" />
                             <span className="text-xs ml-1 text-gray-400">Video</span>
                         </div>
-                        <div className="ml-16 h-full relative">
+                        <div className="flex-1 h-full relative">
                             {videoClips.length === 0 ? (
                                 <div className="h-full flex items-center justify-center text-gray-600 text-sm">
                                     No video clips
@@ -566,17 +579,19 @@ const Timeline = ({
                                                 onMouseDown={(e) => handleTrimStart(e, clip, 'start')}
                                             />
                                             
-                                            {/* Clip content */}
-                                            <div className="px-2 py-1 h-full flex flex-col justify-between overflow-hidden">
-                                                <div className="flex items-center gap-1">
+                            {/* Clip content */}
+                                            <div className="px-3 py-1 h-full flex flex-col justify-between overflow-hidden">
+                                                <div className="flex items-center gap-1 min-w-0">
                                                     <GripVertical className="w-3 h-3 text-white/50 flex-shrink-0 cursor-grab" />
-                                                    <span className="text-xs font-medium text-white truncate">
+                                                    <span className="text-xs font-medium text-white truncate flex-1" title={clip.name}>
                                                         {clip.name}
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center justify-between gap-1">
                                                     <span className="text-xs text-white/70">
-                                                        {formatDuration((clip.trimEnd || clip.duration) - (clip.trimStart || 0))}
+                                                        {(clip.trimEnd > 0 || clip.duration > 0) 
+                                                            ? formatDuration((clip.trimEnd || clip.duration) - (clip.trimStart || 0))
+                                                            : 'Loading...'}
                                                     </span>
                                                     <div className="flex items-center gap-2">
                                                         {isInSplitMode ? (
@@ -623,12 +638,12 @@ const Timeline = ({
                     </div>
 
                     {/* Audio Track */}
-                    <div className="h-16 relative border-b border-dark-600 bg-dark-900/30">
-                        <div className="absolute left-0 top-0 bottom-0 w-16 bg-dark-800 flex items-center justify-center border-r border-dark-600 z-10">
+                    <div className="h-16 relative border-b border-dark-600 bg-dark-900/30 flex">
+                        <div className="sticky left-0 w-16 h-full bg-dark-800 flex items-center justify-center border-r border-dark-600 z-30 flex-shrink-0">
                             <Music className="w-4 h-4 text-green-400" />
                             <span className="text-xs ml-1 text-gray-400">Audio</span>
                         </div>
-                        <div className="ml-16 h-full relative">
+                        <div className="flex-1 h-full relative">
                             {audioClips.length === 0 ? (
                                 <div className="h-full flex items-center justify-center text-gray-600 text-sm">
                                     No audio clips - Add audio from Assets panel
@@ -739,12 +754,12 @@ const Timeline = ({
                     </div>
 
                     {/* Text Track */}
-                    <div className="h-14 relative bg-dark-900/20">
-                        <div className="absolute left-0 top-0 bottom-0 w-16 bg-dark-800 flex items-center justify-center border-r border-dark-600 z-10">
+                    <div className="h-14 relative bg-dark-900/20 flex">
+                        <div className="sticky left-0 w-16 h-full bg-dark-800 flex items-center justify-center border-r border-dark-600 z-30 flex-shrink-0">
                             <Type className="w-4 h-4 text-purple-400" />
                             <span className="text-xs ml-1 text-gray-400">Text</span>
                         </div>
-                        <div className="ml-16 h-full relative">
+                        <div className="flex-1 h-full relative">
                             {textOverlays.length === 0 ? (
                                 <div className="h-full flex items-center justify-center text-gray-600 text-sm">
                                     No text overlays - Add from Properties panel

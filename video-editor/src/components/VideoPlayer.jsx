@@ -45,11 +45,16 @@ const VideoPlayer = ({
     // Helper function to convert local path to file:// URL
     const getVideoSrc = (src) => {
         if (!src) return null;
+        // Already a URL
         if (src.startsWith('http://') || src.startsWith('https://') || src.startsWith('file://')) {
             return src;
         }
+        // Convert Windows path to file:// URL
+        // Replace backslashes with forward slashes
         let normalizedPath = src.replace(/\\/g, '/');
-        if (!normalizedPath.includes('%')) {
+        // Don't double-encode if already encoded
+        if (!normalizedPath.includes('%20') && normalizedPath.includes(' ')) {
+            // Only encode spaces and special characters, not the path separators
             normalizedPath = normalizedPath.split('/').map(part => encodeURIComponent(part)).join('/');
         }
         return `file:///${normalizedPath}`;
@@ -106,7 +111,6 @@ const VideoPlayer = ({
     // Load video when URL changes
     useEffect(() => {
         if (videoUrl && videoRef.current) {
-            setIsLoading(true);
             setError(null);
             videoRef.current.src = getVideoSrc(videoUrl);
             videoRef.current.load();
@@ -118,7 +122,6 @@ const VideoPlayer = ({
         if (selectedClip && videoRef.current) {
             const src = selectedClip.videoUrl || selectedClip.videoPath;
             if (src) {
-                setIsLoading(true);
                 setError(null);
                 const videoSrc = getVideoSrc(src);
                 if (videoRef.current.src !== videoSrc) {
@@ -271,6 +274,11 @@ const VideoPlayer = ({
         setIsLoading(false);
     };
 
+    const handleLoadStart = () => {
+        setIsLoading(true);
+        setError(null);
+    };
+
     // Seek within trimmed region only
     const handleSeek = (e) => {
         if (!videoRef.current || !selectedClip) return;
@@ -410,13 +418,16 @@ const VideoPlayer = ({
                             ref={videoRef}
                             className="max-w-full max-h-full"
                             onTimeUpdate={handleTimeUpdate}
+                            onLoadStart={handleLoadStart}
                             onLoadedMetadata={handleLoadedMetadata}
+                            onLoadedData={() => setIsLoading(false)}
                             onEnded={() => {
                                 setIsPlaying(false);
                                 if (onPlayStateChange) onPlayStateChange(false);
                             }}
                             onError={handleError}
                             onCanPlay={handleCanPlay}
+                            preload="auto"
                         />
                         {/* Text Overlays */}
                         {getVisibleTextOverlays().map(overlay => (

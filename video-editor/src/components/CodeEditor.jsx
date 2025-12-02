@@ -48,7 +48,7 @@ class SquareToCircle(Scene):
 `,
 };
 
-const CodeEditor = ({ code, onChange, onRender, isRendering, isFullscreen = false, onToggleFullscreen }) => {
+const CodeEditor = ({ code, onChange, onRender, isRendering, isFullscreen = false, onToggleFullscreen, readOnly = false, placeholder }) => {
     const [sceneName, setSceneName] = useState('CreateCircle');
     const [copied, setCopied] = useState(false);
     const [showTemplates, setShowTemplates] = useState(false);
@@ -152,7 +152,7 @@ const CodeEditor = ({ code, onChange, onRender, isRendering, isFullscreen = fals
                 <button
                     className="btn btn-primary text-sm py-1 px-3 flex items-center gap-1"
                     onClick={handleRender}
-                    disabled={isRendering || !code}
+                    disabled={isRendering || !code || readOnly}
                 >
                     <Play className="w-3 h-3" />
                     {isRendering ? 'Rendering...' : 'Render'}
@@ -168,22 +168,32 @@ const CodeEditor = ({ code, onChange, onRender, isRendering, isFullscreen = fals
                 </button>
             </div>
 
-            {/* Editor */}
+            {/* Editor or Placeholder */}
             <div className="flex-1 min-h-0">
-                <Editor
-                    height="100%"
-                    defaultLanguage="python"
-                    theme="vs-dark"
-                    value={code}
-                    onChange={onChange}
-                    options={{
-                        minimap: { enabled: isFullscreen },
-                        fontSize: isFullscreen ? 16 : 14,
-                        lineNumbers: 'on',
-                        scrollBeyondLastLine: false,
-                        automaticLayout: true,
-                    }}
-                />
+                {readOnly && !code ? (
+                    <div className="h-full flex items-center justify-center text-gray-500 bg-dark-900">
+                        <div className="text-center">
+                            <FileCode className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                            <p>{placeholder || "No code available"}</p>
+                        </div>
+                    </div>
+                ) : (
+                    <Editor
+                        height="100%"
+                        defaultLanguage="python"
+                        theme="vs-dark"
+                        value={code}
+                        onChange={readOnly ? undefined : onChange}
+                        options={{
+                            minimap: { enabled: isFullscreen },
+                            fontSize: isFullscreen ? 16 : 14,
+                            lineNumbers: 'on',
+                            scrollBeyondLastLine: false,
+                            automaticLayout: true,
+                            readOnly: readOnly,
+                        }}
+                    />
+                )}
             </div>
         </div>
     );

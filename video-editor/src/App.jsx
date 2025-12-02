@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import './index.css';
 import VideoPlayer from './components/VideoPlayer';
 import CodeEditor from './components/CodeEditor';
@@ -26,7 +26,16 @@ const Toast = ({ message, type, onClose }) => {
 };
 
 function App() {
-  const [sessionId] = useState(() => uuidv4());
+  // Restore session ID from sessionStorage if available (for soft refresh)
+  const [sessionId, setSessionId] = useState(() => {
+    const savedSessionId = sessionStorage.getItem('video-editor-session-id');
+    if (savedSessionId) {
+      // Clear it after reading so it doesn't persist across browser restarts
+      sessionStorage.removeItem('video-editor-session-id');
+      return savedSessionId;
+    }
+    return uuidv4();
+  });
   const [currentVideo, setCurrentVideo] = useState(null);
   const [currentCode, setCurrentCode] = useState('');
   const [clips, setClips] = useState([]);
@@ -42,6 +51,9 @@ function App() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [seekToTime, setSeekToTime] = useState(null);
   
+  // Non-blocking generation tracking
+  const [generatingTasks, setGeneratingTasks] = useState([]);
+  
   // Layout state for resizable video player (pixel-based for smooth resizing)
   const [playerHeight, setPlayerHeight] = useState(350); // pixels
   const [showCodeEditor, setShowCodeEditor] = useState(true);
@@ -49,6 +61,20 @@ function App() {
   const [rightPanelWidth, setRightPanelWidth] = useState(288);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isCodeEditorFullscreen, setIsCodeEditorFullscreen] = useState(false);
+  
+  // Check if selected clip is trimmed (code shouldn't be shown for trimmed clips)
+  const isSelectedClipTrimmed = useMemo(() => {
+    if (!selectedClip || selectedClip.type !== 'video') return false;
+    const hasTrimStart = selectedClip.trimStart && selectedClip.trimStart > 0;
+    const hasTrimEnd = selectedClip.trimEnd && selectedClip.duration && selectedClip.trimEnd < selectedClip.duration;
+    return hasTrimStart || hasTrimEnd;
+  }, [selectedClip]);
+  
+  // Code to display - empty if selected clip is trimmed
+  const displayCode = useMemo(() => {
+    if (isSelectedClipTrimmed) return '';
+    return currentCode;
+  }, [currentCode, isSelectedClipTrimmed]);
   
   const showToast = useCallback((message, type = 'info') => {
     setToast({ message, type });
@@ -71,41 +97,110 @@ function App() {
   }, [isFullscreen, isCodeEditorFullscreen]);
 
   useEffect(() => {
-    // Initialize session
+    // Initialize session and load existing files
     const initSession = async () => {
       try {
         const cfg = await window.electronAPI.getConfig();
         setConfig(cfg);
         await window.electronAPI.createSession(sessionId);
-        showToast('Session initialized successfully', 'success');
+        
+        // Load existing files from session directory
+        const sessionFiles = await window.electronAPI.loadSessionFiles(sessionId);
+        if (sessionFiles.success) {
+          // Load videos as clips
+          const videoClips = sessionFiles.videos.map(video => ({
+            id: uuidv4(),
+            type: 'video',
+            source: 'backend',
+            videoPath: video.path,
+            name: video.name,
+            duration: 0,
+            trimStart: 0,
+            trimEnd: 0, // Will be set when video loads
+          }));
+          
+          // Load rendered videos as clips
+          const renderClips = sessionFiles.renders.map(render => ({
+            id: uuidv4(),
+            type: 'video',
+            source: 'local',
+            videoPath: render.path,
+            name: render.name,
+            duration: 0,
+            trimStart: 0,
+            trimEnd: 0, // Will be set when video loads
+          }));
+          
+          if (videoClips.length > 0 || renderClips.length > 0) {
+            const allClips = [...videoClips, ...renderClips];
+            setClips(allClips);
+            // Set the first video as current and auto-select it
+            if (videoClips.length > 0) {
+              setCurrentVideo(videoClips[0].videoPath);
+              setSelectedClip(videoClips[0]);
+            } else if (renderClips.length > 0) {
+              setCurrentVideo(renderClips[0].videoPath);
+              setSelectedClip(renderClips[0]);
+            }
+          }
+          
+          // Load the most recent code file
+          if (sessionFiles.code.length > 0) {
+            const latestCode = sessionFiles.code[sessionFiles.code.length - 1];
+            setCurrentCode(latestCode.content);
+          }
+          
+          const totalFiles = videoClips.length + renderClips.length + sessionFiles.code.length;
+          if (totalFiles > 0) {
+            showToast(`Session restored: ${totalFiles} file(s) loaded`, 'success');
+          } else {
+            showToast('Session initialized successfully', 'success');
+          }
+        } else {
+          showToast('Session initialized successfully', 'success');
+        }
       } catch (error) {
         showToast(`Failed to initialize session: ${error.message}`, 'error');
       }
     };
 
-    // Listen for progress updates
+    // Listen for manim render progress updates
     const handleProgress = (event, progress) => {
       setRenderProgress(progress);
     };
 
-    window.electronAPI.onManimProgress(handleProgress);
-    initSession();
-
-    return () => {
-      // Cleanup listeners if needed
+    // Listen for generation progress updates (non-blocking)
+    const handleGenerationProgress = (event, data) => {
+      setGeneratingTasks(prev => 
+        prev.map(task => 
+          task.taskId === data.taskId 
+            ? { ...task, ...data }
+            : task
+        )
+      );
     };
-  }, [sessionId, showToast]);
 
-  const handleGenerateVideo = async (prompt) => {
-    setIsRendering(true);
-    setRenderProgress('Generating video...');
-    try {
-      const result = await window.electronAPI.generateVideo(prompt);
-      if (result.success) {
-        // Get the code file if available
-        if (result.codeFilename) {
+    // Listen for generation completion
+    const handleGenerationComplete = async (event, data) => {
+      // Remove from generating tasks
+      setGeneratingTasks(prev => prev.filter(task => task.taskId !== data.taskId));
+      
+      if (data.success) {
+        // Load code from local file if available, otherwise fetch from backend
+        if (data.localCodePath) {
+          // Code was already saved locally by main process
           try {
-            const codeResult = await window.electronAPI.getCodeFile(result.codeFilename);
+            const codeResult = await window.electronAPI.readLocalFile(data.localCodePath);
+            if (codeResult.success) {
+              setCurrentCode(codeResult.content);
+            }
+          } catch (codeError) {
+            console.warn('Could not read local code file:', codeError);
+          }
+        } else if (data.codeFilename) {
+          // Fallback: fetch from backend
+          try {
+            const codeResult = await window.electronAPI.getCodeFile(data.codeFilename);
             if (codeResult.success) {
               setCurrentCode(codeResult.code);
             }
@@ -119,53 +214,174 @@ function App() {
           id: uuidv4(),
           type: 'video',
           source: 'backend',
-          videoPath: result.videoPath,
-          name: `Generated: ${prompt.substring(0, 30)}...`,
+          videoPath: data.videoPath,
+          name: `Generated: ${data.prompt?.substring(0, 30)}...`,
           duration: 0, // Will be set when video loads
+          trimStart: 0,
+          trimEnd: 0, // Will be set when video loads
         };
 
         setClips(prev => [...prev, newClip]);
-        setCurrentVideo(result.videoPath);
+        setSelectedClip(newClip); // Auto-select the new clip
+        setCurrentVideo(data.videoPath);
         showToast('Video generated successfully!', 'success');
       } else {
-        showToast(`Failed to generate video: ${result.error}`, 'error');
+        showToast(`Failed to generate video: ${data.error}`, 'error');
       }
-    } catch (error) {
-      console.error('Error generating video:', error);
-      showToast(`Error generating video: ${error.message}`, 'error');
-    } finally {
-      setIsRendering(false);
-      setRenderProgress('');
-    }
-  };
+    };
 
-  const handleRenderCode = async (code, sceneName = 'CreateCircle') => {
-    setIsRendering(true);
-    setRenderProgress('Preparing to render...');
-    try {
-      const result = await window.electronAPI.renderManim(sessionId, code, sceneName);
-      if (result.success) {
+    // Listen for session refresh from menu
+    const handleSessionRefresh = async (event, { keepSession }) => {
+      if (keepSession) {
+        // Soft refresh - reload session files without clearing
+        // Store sessionId in sessionStorage before reload so it persists
+        sessionStorage.setItem('video-editor-session-id', sessionId);
+        window.location.reload();
+      } else {
+        // Hard refresh - clear current session and create new one
+        try {
+          await window.electronAPI.clearSession(sessionId);
+        } catch (e) {
+          console.warn('Could not clear old session:', e);
+        }
+        const newId = uuidv4();
+        setSessionId(newId);
+        setClips([]);
+        setAudioClips([]);
+        setTextOverlays([]);
+        setCurrentVideo(null);
+        setCurrentCode('');
+        setSelectedClip(null);
+        setGeneratingTasks([]);
+        // Initialize new session
+        await window.electronAPI.createSession(newId);
+        showToast('New session started', 'success');
+      }
+    };
+
+    // Listen for clear generated videos from menu
+    const handleClearGeneratedVideos = async () => {
+      try {
+        await window.electronAPI.clearGeneratedVideos();
+        showToast('Generated videos cleared', 'success');
+      } catch (error) {
+        showToast(`Failed to clear videos: ${error.message}`, 'error');
+      }
+    };
+
+    // Handle render progress updates
+    const handleRenderProgress = (event, data) => {
+      setGeneratingTasks(prev => {
+        const existing = prev.find(t => t.taskId === data.taskId);
+        if (existing) {
+          return prev.map(t => t.taskId === data.taskId 
+            ? { ...t, status: data.status, message: data.message, progress: data.progress }
+            : t
+          );
+        }
+        return prev;
+      });
+    };
+
+    // Handle render completion
+    const handleRenderComplete = (event, data) => {
+      // Remove from generating tasks first
+      setGeneratingTasks(prev => prev.filter(task => task.taskId !== data.taskId));
+      
+      if (data.success) {
         const newClip = {
           id: uuidv4(),
           type: 'video',
           source: 'local',
-          videoPath: result.videoPath,
-          name: `Rendered: ${sceneName}`,
+          videoPath: data.videoPath,
+          name: `Rendered: ${data.sceneName}`,
           duration: 0,
+          trimStart: 0,
+          trimEnd: 0,
         };
 
         setClips(prev => [...prev, newClip]);
-        setCurrentVideo(result.videoPath);
-        showToast(`Successfully rendered scene: ${sceneName}`, 'success');
+        setSelectedClip(newClip);
+        setCurrentVideo(data.videoPath);
+        showToast(`Successfully rendered scene: ${data.sceneName}`, 'success');
       } else {
-        showToast(`Render failed: ${result.error}`, 'error');
+        showToast(`Render failed: ${data.error}`, 'error');
+      }
+    };
+
+    window.electronAPI.onManimProgress(handleProgress);
+    window.electronAPI.onGenerationProgress(handleGenerationProgress);
+    window.electronAPI.onGenerationComplete(handleGenerationComplete);
+    window.electronAPI.onRenderProgress(handleRenderProgress);
+    window.electronAPI.onRenderComplete(handleRenderComplete);
+    window.electronAPI.onSessionRefresh(handleSessionRefresh);
+    window.electronAPI.onClearGeneratedVideos(handleClearGeneratedVideos);
+    initSession();
+
+    return () => {
+      // Cleanup listeners
+      window.electronAPI.removeGenerationListeners?.();
+      window.electronAPI.removeRenderListeners?.();
+    };
+  }, [sessionId, showToast]);
+
+  // Non-blocking video generation - starts generation and returns immediately
+  const handleGenerateVideo = async (prompt) => {
+    try {
+      const generationId = uuidv4();
+      const result = await window.electronAPI.generateVideo(prompt, generationId, sessionId);
+      
+      if (result.status === 'started') {
+        // Add to generating tasks - progress updates will come via events
+        setGeneratingTasks(prev => [...prev, {
+          taskId: result.taskId,
+          prompt: prompt,
+          status: 'generating',
+          message: 'Starting generation...',
+          progress: 0
+        }]);
+        showToast('Video generation started', 'info');
+      } else {
+        showToast(`Failed to start generation: ${result.error}`, 'error');
       }
     } catch (error) {
-      console.error('Error rendering video:', error);
-      showToast(`Error rendering video: ${error.message || error.error || 'Unknown error'}`, 'error');
-    } finally {
-      setIsRendering(false);
-      setRenderProgress('');
+      console.error('Error starting video generation:', error);
+      showToast(`Error starting video generation: ${error.message}`, 'error');
+    }
+  };
+
+  // Cancel a generation task
+  const handleCancelGeneration = async (taskId) => {
+    try {
+      await window.electronAPI.cancelGeneration(taskId);
+      setGeneratingTasks(prev => prev.filter(task => task.taskId !== taskId));
+      showToast('Generation cancelled', 'info');
+    } catch (error) {
+      showToast(`Failed to cancel: ${error.message}`, 'error');
+    }
+  };
+
+  const handleRenderCode = async (code, sceneName = 'CreateCircle') => {
+    try {
+      const result = await window.electronAPI.renderManim(sessionId, code, sceneName);
+      
+      if (result.status === 'started') {
+        // Add to generating tasks - progress updates will come via events
+        setGeneratingTasks(prev => [...prev, {
+          taskId: result.taskId,
+          prompt: `Render: ${sceneName}`,
+          status: 'rendering',
+          message: 'Starting render...',
+          progress: 0,
+          isRender: true
+        }]);
+        showToast('Render started', 'info');
+      } else {
+        showToast(`Failed to start render: ${result.error}`, 'error');
+      }
+    } catch (error) {
+      console.error('Error starting render:', error);
+      showToast(`Error starting render: ${error.message || error.error || 'Unknown error'}`, 'error');
     }
   };
 
@@ -250,7 +466,22 @@ function App() {
   };
 
   const handleDurationChange = useCallback((clipId, duration) => {
-    setClips(prev => prev.map(c => c.id === clipId ? { ...c, duration } : c));
+    setClips(prev => prev.map(c => {
+      if (c.id === clipId) {
+        // Update duration and set trimEnd to full duration if not already trimmed
+        const newClip = { ...c, duration };
+        // Only set trimEnd if it hasn't been manually trimmed yet (trimEnd is 0 or undefined)
+        if (!c.trimEnd || c.trimEnd === 0) {
+          newClip.trimEnd = duration;
+        }
+        // Ensure trimStart is set
+        if (c.trimStart === undefined) {
+          newClip.trimStart = 0;
+        }
+        return newClip;
+      }
+      return c;
+    }));
   }, []);
 
   // Handle adding a new clip (from trimmed videos, etc.)
@@ -591,12 +822,14 @@ function App() {
       {isCodeEditorFullscreen && (
         <div className="fixed inset-0 bg-dark-900 z-50 flex flex-col">
           <CodeEditor
-            code={currentCode}
-            onChange={setCurrentCode}
+            code={displayCode}
+            onChange={isSelectedClipTrimmed ? undefined : setCurrentCode}
             onRender={handleRenderCode}
             isRendering={isRendering}
             isFullscreen={true}
             onToggleFullscreen={() => setIsCodeEditorFullscreen(false)}
+            readOnly={isSelectedClipTrimmed}
+            placeholder={isSelectedClipTrimmed ? "Code not available for trimmed clips" : undefined}
           />
         </div>
       )}
@@ -615,6 +848,8 @@ function App() {
           clips={clips}
           onAddClip={handleAddClip}
           onSelectClip={setSelectedClip}
+          generatingTasks={generatingTasks}
+          onCancelGeneration={handleCancelGeneration}
         />
 
         {/* Center Panel - Video Player & Code Editor (vertical stack) */}
@@ -653,12 +888,14 @@ function App() {
           {showCodeEditor && (
             <div className="flex-1 min-h-[120px] overflow-hidden border-t border-dark-700">
               <CodeEditor
-                code={currentCode}
-                onChange={setCurrentCode}
+                code={displayCode}
+                onChange={isSelectedClipTrimmed ? undefined : setCurrentCode}
                 onRender={handleRenderCode}
                 isRendering={isRendering}
                 isFullscreen={false}
                 onToggleFullscreen={() => setIsCodeEditorFullscreen(true)}
+                readOnly={isSelectedClipTrimmed}
+                placeholder={isSelectedClipTrimmed ? "Code not available for trimmed clips" : undefined}
               />
             </div>
           )}

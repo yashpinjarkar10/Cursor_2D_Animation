@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
-import { FolderOpen, Video, Music, Plus } from 'lucide-react';
+import { FolderOpen, Video, Music, Plus, Loader2, X } from 'lucide-react';
 
-const AssetPanel = ({ clips, onAddClip, onSelectClip }) => {
+const AssetPanel = ({ clips, onAddClip, onSelectClip, generatingTasks = [], onCancelGeneration }) => {
     const audioPreviewRef = useRef(null);
 
     const handleAddVideo = async () => {
@@ -98,7 +98,50 @@ const AssetPanel = ({ clips, onAddClip, onSelectClip }) => {
 
             {/* Asset List - scrollable with mouse/touchpad */}
             <div className="flex-1 overflow-y-auto p-3 scrollbar-thin scrollbar-thumb-dark-600 scrollbar-track-dark-800" style={{ scrollBehavior: 'smooth' }}>
-                {clips.length === 0 ? (
+                {/* Generating Tasks Progress */}
+                {generatingTasks.length > 0 && (
+                    <div className="space-y-2 mb-3">
+                        {generatingTasks.map((task) => (
+                            <div
+                                key={task.taskId}
+                                className={`panel p-3 ${task.isRender ? 'border-purple-500/50 bg-purple-500/10' : 'border-yellow-500/50 bg-yellow-500/10'}`}
+                            >
+                                <div className="flex items-start gap-2">
+                                    <Loader2 className={`w-4 h-4 flex-shrink-0 animate-spin ${task.isRender ? 'text-purple-400' : 'text-yellow-400'}`} />
+                                    <div className="flex-1 overflow-hidden">
+                                        <div className={`text-sm font-medium truncate ${task.isRender ? 'text-purple-400' : 'text-yellow-400'}`}>
+                                            {task.isRender ? 'Rendering...' : 'Generating...'}
+                                        </div>
+                                        <div className="text-xs text-gray-400 mt-1 truncate">
+                                            {task.prompt?.substring(0, 40)}{task.prompt?.length > 40 ? '...' : ''}
+                                        </div>
+                                        <div className="text-xs text-gray-500 mt-1">
+                                            {task.message}
+                                        </div>
+                                        {/* Progress bar */}
+                                        <div className="mt-2 h-1 bg-dark-700 rounded-full overflow-hidden">
+                                            <div 
+                                                className={`h-full transition-all duration-300 ${task.isRender ? 'bg-purple-500' : 'bg-yellow-500'}`}
+                                                style={{ width: `${task.progress || 0}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                    {onCancelGeneration && (
+                                        <button
+                                            onClick={() => onCancelGeneration(task.taskId)}
+                                            className="text-gray-400 hover:text-red-400 transition-colors"
+                                            title={task.isRender ? 'Cancel render' : 'Cancel generation'}
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+                
+                {clips.length === 0 && generatingTasks.length === 0 ? (
                     <div className="text-center text-gray-500 mt-8">
                         <Plus className="w-8 h-8 mx-auto mb-2 opacity-50" />
                         <p className="text-sm">No assets yet</p>

@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, Menu } = require('electron');
 const path = require('path');
 const fs = require('fs').promises;
 const { spawn } = require('child_process');
@@ -10,6 +10,9 @@ ffmpeg.setFfmpegPath(ffmpegPath);
 
 let mainWindow;
 let config;
+
+// Track active generation tasks
+const activeGenerations = new Map();
 
 // Load configuration
 async function loadConfig() {
@@ -36,6 +39,66 @@ function createWindow() {
         backgroundColor: '#1a1a1a',
         show: false,
     });
+
+    // Create application menu
+    const menuTemplate = [
+        {
+            label: 'File',
+            submenu: [
+                { role: 'quit' }
+            ]
+        },
+        {
+            label: 'Edit',
+            submenu: [
+                { role: 'undo' },
+                { role: 'redo' },
+                { type: 'separator' },
+                { role: 'cut' },
+                { role: 'copy' },
+                { role: 'paste' },
+                { role: 'delete' },
+                { role: 'selectAll' }
+            ]
+        },
+        {
+            label: 'Session',
+            submenu: [
+                {
+                    label: 'Refresh (Keep Session)',
+                    accelerator: 'CmdOrCtrl+R',
+                    click: () => {
+                        mainWindow.webContents.send('session-refresh', { keepSession: true });
+                    }
+                },
+                {
+                    label: 'Hard Refresh (New Session)',
+                    accelerator: 'CmdOrCtrl+Shift+R',
+                    click: () => {
+                        mainWindow.webContents.send('session-refresh', { keepSession: false });
+                    }
+                }
+            ]
+        },
+        {
+            label: 'View',
+            submenu: [
+                { role: 'toggleDevTools' },
+                { type: 'separator' },
+                { role: 'togglefullscreen' }
+            ]
+        },
+        {
+            label: 'Window',
+            submenu: [
+                { role: 'minimize' },
+                { role: 'close' }
+            ]
+        }
+    ];
+
+    const menu = Menu.buildFromTemplate(menuTemplate);
+    Menu.setApplicationMenu(menu);
 
     // Load the app
     if (process.env.VITE_DEV_SERVER_URL) {
@@ -74,62 +137,284 @@ ipcMain.handle('get-config', async () => {
     return config;
 });
 
-// Generate video from backend
+// Generate video from backend - Non-blocking with progress updates
 // Backend returns FileResponse (binary video file), not JSON
-ipcMain.handle('generate-video', async (event, prompt) => {
-    try {
-        // Create a directory to save downloaded videos
-        const videosDir = path.join(app.getPath('userData'), 'backend_videos');
-        await fs.mkdir(videosDir, { recursive: true });
-        
-        // Generate unique filename
-        const timestamp = Date.now();
-        const safePrompt = prompt.substring(0, 30).replace(/[^a-zA-Z0-9]/g, '_');
-        const videoFilename = `video_${safePrompt}_${timestamp}.mp4`;
-        const videoPath = path.join(videosDir, videoFilename);
-        
-        // Make request with responseType: 'arraybuffer' to get binary data
-        const response = await axios.post(
-            `${config.VIDEO_GENERATION_URL}/generate`,
-            { query: prompt },
-            { 
-                responseType: 'arraybuffer',
-                timeout: 300000, // 5 minutes timeout for video generation
+ipcMain.handle('generate-video', async (event, prompt, generationId, sessionId) => {
+    // Start generation in background and return immediately
+    const taskId = generationId || `gen_${Date.now()}`;
+    
+    // Mark as in progress
+    activeGenerations.set(taskId, { status: 'generating', prompt, sessionId, cancelled: false });
+    
+    // Send initial progress
+    mainWindow.webContents.send('generation-progress', {
+        taskId,
+        status: 'generating',
+        message: 'Connecting to backend...',
+        progress: 0
+    });
+    
+    // Run generation in background
+    (async () => {
+        try {
+            // Check if cancelled
+            if (!activeGenerations.has(taskId)) {
+                console.log('Generation cancelled before start:', taskId);
+                return;
             }
-        );
-        
-        // Save the video file
-        await fs.writeFile(videoPath, Buffer.from(response.data));
-        
-        // Extract code file path from headers
-        const codeFilePath = response.headers['x-code-file-path'] || '';
-        // Extract just the filename from the path
-        const codeFilename = codeFilePath ? path.basename(codeFilePath) : null;
-        
-        console.log('Video saved to:', videoPath);
-        console.log('Code file path from headers:', codeFilePath);
-        
-        return {
-            success: true,
-            videoPath: videoPath,
-            codeFilename: codeFilename,
-        };
-    } catch (error) {
-        console.error('Generate video error:', error.message);
-        // Try to extract error message from response if available
-        let errorMessage = error.message;
-        if (error.response && error.response.data) {
-            try {
-                const errorData = JSON.parse(Buffer.from(error.response.data).toString());
-                errorMessage = errorData.detail || errorMessage;
-            } catch (e) {
-                // Response wasn't JSON, use original error
+            
+            // Send progress update
+            mainWindow.webContents.send('generation-progress', {
+                taskId,
+                status: 'generating',
+                message: 'Generating video from AI...',
+                progress: 20
+            });
+            
+            // Create directories in session folder (inside video-editor/temp_folder)
+            const tempFolder = path.join(__dirname, '..', 'temp_folder');
+            const sessionPath = path.join(tempFolder, sessionId || 'default');
+            const videosDir = path.join(sessionPath, 'videos');
+            const codeDir = path.join(sessionPath, 'code');
+            await fs.mkdir(videosDir, { recursive: true });
+            await fs.mkdir(codeDir, { recursive: true });
+            
+            // Generate unique filename
+            const timestamp = Date.now();
+            const safePrompt = prompt.substring(0, 30).replace(/[^a-zA-Z0-9]/g, '_');
+            const videoFilename = `video_${safePrompt}_${timestamp}.mp4`;
+            const videoPath = path.join(videosDir, videoFilename);
+            
+            // Check if cancelled before making request
+            if (!activeGenerations.has(taskId)) {
+                console.log('Generation cancelled before backend request:', taskId);
+                return;
             }
+            
+            mainWindow.webContents.send('generation-progress', {
+                taskId,
+                status: 'generating',
+                message: 'Waiting for backend response...',
+                progress: 40
+            });
+            
+            // Make request with responseType: 'arraybuffer' to get binary data
+            const response = await axios.post(
+                `${config.VIDEO_GENERATION_URL}/generate`,
+                { query: prompt },
+                { 
+                    responseType: 'arraybuffer',
+                    timeout: 300000, // 5 minutes timeout for video generation
+                }
+            );
+            
+            // Check if cancelled after backend response - DO NOT save if cancelled
+            if (!activeGenerations.has(taskId)) {
+                console.log('Generation cancelled after backend response, not saving:', taskId);
+                return;
+            }
+            
+            mainWindow.webContents.send('generation-progress', {
+                taskId,
+                status: 'generating',
+                message: 'Saving video file...',
+                progress: 80
+            });
+            
+            // Save the video file
+            await fs.writeFile(videoPath, Buffer.from(response.data));
+            
+            // Extract code file path from headers
+            const codeFilePath = response.headers['x-code-file-path'] || '';
+            // Extract just the filename from the path
+            const codeFilename = codeFilePath ? path.basename(codeFilePath) : null;
+            
+            console.log('Video saved to:', videoPath);
+            console.log('Code file path from headers:', codeFilePath);
+            
+            // Check if cancelled before fetching code
+            if (!activeGenerations.has(taskId)) {
+                console.log('Generation cancelled after video save, cleaning up:', taskId);
+                // Clean up the saved video file
+                try {
+                    await fs.unlink(videoPath);
+                } catch (e) {}
+                return;
+            }
+            
+            // Fetch and save the code file to session directory
+            let localCodePath = null;
+            if (codeFilename) {
+                try {
+                    const codeResponse = await axios.get(
+                        `${config.VIDEO_GENERATION_URL}/get_code/${encodeURIComponent(codeFilename)}`
+                    );
+                    if (codeResponse.data && codeResponse.data.code) {
+                        const codeFilenameLocal = `code_${safePrompt}_${timestamp}.py`;
+                        localCodePath = path.join(codeDir, codeFilenameLocal);
+                        await fs.writeFile(localCodePath, codeResponse.data.code);
+                        console.log('Code saved to:', localCodePath);
+                    }
+                } catch (codeError) {
+                    console.warn('Could not fetch/save code file:', codeError.message);
+                }
+            }
+            
+            // Final check if cancelled before sending completion
+            if (!activeGenerations.has(taskId)) {
+                console.log('Generation cancelled before completion, cleaning up:', taskId);
+                // Clean up saved files
+                try {
+                    await fs.unlink(videoPath);
+                    if (localCodePath) await fs.unlink(localCodePath);
+                } catch (e) {}
+                return;
+            }
+            
+            // Mark as complete
+            activeGenerations.delete(taskId);
+            
+            // Send completion event
+            mainWindow.webContents.send('generation-complete', {
+                taskId,
+                success: true,
+                videoPath: videoPath,
+                codeFilename: codeFilename,
+                localCodePath: localCodePath,
+                prompt: prompt
+            });
+            
+        } catch (error) {
+            // Check if cancelled - don't send error if cancelled
+            if (!activeGenerations.has(taskId)) {
+                console.log('Generation cancelled during error handling:', taskId);
+                return;
+            }
+            
+            console.error('Generate video error:', error.message);
+            
+            // Try to extract error message from response if available
+            let errorMessage = error.message;
+            if (error.response && error.response.data) {
+                try {
+                    const errorData = JSON.parse(Buffer.from(error.response.data).toString());
+                    errorMessage = errorData.detail || errorMessage;
+                } catch (e) {
+                    // Response wasn't JSON, use original error
+                }
+            }
+            
+            // Mark as failed
+            activeGenerations.delete(taskId);
+            
+            // Send error event
+            mainWindow.webContents.send('generation-complete', {
+                taskId,
+                success: false,
+                error: errorMessage,
+                prompt: prompt
+            });
         }
-        return {
-            success: false,
-            error: errorMessage,
+    })();
+    
+    // Return immediately with task ID
+    return {
+        taskId,
+        status: 'started',
+        message: 'Video generation started'
+    };
+});
+
+// Cancel a generation task
+ipcMain.handle('cancel-generation', async (event, taskId) => {
+    if (activeGenerations.has(taskId)) {
+        activeGenerations.delete(taskId);
+        console.log('Generation task cancelled:', taskId);
+        return { success: true };
+    }
+    return { success: false, error: 'Task not found' };
+});
+
+// Read a local file
+ipcMain.handle('read-local-file', async (event, filePath) => {
+    try {
+        const content = await fs.readFile(filePath, 'utf-8');
+        return { success: true, content };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+});
+
+// Load session files (videos and code) from session directory
+ipcMain.handle('load-session-files', async (event, sessionId) => {
+    try {
+        const tempFolder = path.join(__dirname, '..', 'temp_folder');
+        const sessionPath = path.join(tempFolder, sessionId);
+        const videosDir = path.join(sessionPath, 'videos');
+        const codeDir = path.join(sessionPath, 'code');
+        const rendersDir = path.join(sessionPath, 'renders');
+        
+        const result = {
+            videos: [],
+            code: [],
+            renders: []
         };
+        
+        // Load videos
+        try {
+            const videoFiles = await fs.readdir(videosDir);
+            for (const file of videoFiles) {
+                if (file.endsWith('.mp4')) {
+                    const videoPath = path.join(videosDir, file);
+                    result.videos.push({
+                        name: file,
+                        path: videoPath,
+                        type: 'video'
+                    });
+                }
+            }
+        } catch (e) {
+            // Videos directory doesn't exist or is empty
+        }
+        
+        // Load code files
+        try {
+            const codeFiles = await fs.readdir(codeDir);
+            for (const file of codeFiles) {
+                if (file.endsWith('.py')) {
+                    const codePath = path.join(codeDir, file);
+                    const content = await fs.readFile(codePath, 'utf-8');
+                    result.code.push({
+                        name: file,
+                        path: codePath,
+                        content: content
+                    });
+                }
+            }
+        } catch (e) {
+            // Code directory doesn't exist or is empty
+        }
+        
+        // Load rendered videos
+        try {
+            const renderFiles = await fs.readdir(rendersDir);
+            for (const file of renderFiles) {
+                if (file.endsWith('.mp4')) {
+                    const renderPath = path.join(rendersDir, file);
+                    result.renders.push({
+                        name: file,
+                        path: renderPath,
+                        type: 'video'
+                    });
+                }
+            }
+        } catch (e) {
+            // Renders directory doesn't exist or is empty
+        }
+        
+        return { success: true, ...result };
+    } catch (error) {
+        return { success: false, error: error.message };
     }
 });
 
@@ -153,13 +438,33 @@ ipcMain.handle('get-code-file', async (event, filename) => {
     }
 });
 
-// Create session directory
+// Create session directory in temp_folder (inside video-editor)
 ipcMain.handle('create-session', async (event, sessionId) => {
     try {
-        const sessionPath = path.join(app.getPath('userData'), 'sessions', sessionId);
+        const tempFolder = path.join(__dirname, '..', 'temp_folder');
+        
+        // Clean up old sessions before creating new one
+        try {
+            const exists = await fs.access(tempFolder).then(() => true).catch(() => false);
+            if (exists) {
+                const entries = await fs.readdir(tempFolder, { withFileTypes: true });
+                for (const entry of entries) {
+                    if (entry.isDirectory() && entry.name !== sessionId) {
+                        const oldSessionPath = path.join(tempFolder, entry.name);
+                        console.log('Cleaning up old session:', oldSessionPath);
+                        await fs.rm(oldSessionPath, { recursive: true, force: true });
+                    }
+                }
+            }
+        } catch (cleanupError) {
+            console.warn('Error cleaning up old sessions:', cleanupError.message);
+        }
+        
+        const sessionPath = path.join(tempFolder, sessionId);
         await fs.mkdir(sessionPath, { recursive: true });
         await fs.mkdir(path.join(sessionPath, 'videos'), { recursive: true });
         await fs.mkdir(path.join(sessionPath, 'renders'), { recursive: true });
+        await fs.mkdir(path.join(sessionPath, 'code'), { recursive: true });
 
         return {
             success: true,
@@ -173,10 +478,39 @@ ipcMain.handle('create-session', async (event, sessionId) => {
     }
 });
 
+// Clear all session data
+ipcMain.handle('clear-session', async (event, sessionId) => {
+    try {
+        const tempFolder = path.join(__dirname, '..', 'temp_folder');
+        const sessionPath = path.join(tempFolder, sessionId);
+        await fs.rm(sessionPath, { recursive: true, force: true });
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+});
+
+// Clear all generated videos
+ipcMain.handle('clear-generated-videos', async () => {
+    try {
+        const tempFolder = path.join(__dirname, '..', 'temp_folder');
+        // Clear all session folders
+        const exists = await fs.access(tempFolder).then(() => true).catch(() => false);
+        if (exists) {
+            await fs.rm(tempFolder, { recursive: true, force: true });
+        }
+        await fs.mkdir(tempFolder, { recursive: true });
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+});
+
 // Save file to session
 ipcMain.handle('save-to-session', async (event, sessionId, filename, content) => {
     try {
-        const sessionPath = path.join(app.getPath('userData'), 'sessions', sessionId);
+        const tempFolder = path.join(__dirname, '..', 'temp_folder');
+        const sessionPath = path.join(tempFolder, sessionId);
         const filePath = path.join(sessionPath, filename);
         await fs.writeFile(filePath, content);
 
@@ -192,126 +526,142 @@ ipcMain.handle('save-to-session', async (event, sessionId, filename, content) =>
     }
 });
 
-// Render Manim code locally
-ipcMain.handle('render-manim', async (event, sessionId, code, sceneName = 'CreateCircle') => {
-    try {
-        const sessionPath = path.join(app.getPath('userData'), 'sessions', sessionId);
-        const venvPath = path.join(sessionPath, 'venv');
-        const codePath = path.join(sessionPath, 'manim_code.py');
+// Render Manim code via backend API - Non-blocking with progress updates
+ipcMain.handle('render-manim', async (event, sessionId, code, sceneName = 'Scene1') => {
+    // Start render in background and return immediately
+    const taskId = `render_${Date.now()}`;
+    
+    // Mark as in progress
+    activeGenerations.set(taskId, { status: 'rendering', code, sceneName, sessionId, cancelled: false });
+    
+    // Send initial progress
+    mainWindow.webContents.send('render-progress', {
+        taskId,
+        status: 'rendering',
+        message: 'Preparing to render...',
+        progress: 0,
+        sceneName
+    });
+    
+    // Return taskId immediately so UI can track progress
+    // Run rendering in background
+    (async () => {
+        try {
+            const tempFolder = path.join(__dirname, '..', 'temp_folder');
+            const sessionPath = path.join(tempFolder, sessionId);
+            const rendersPath = path.join(sessionPath, 'renders');
+            const codePath = path.join(sessionPath, 'code');
 
-        // Save the code to a file
-        await fs.writeFile(codePath, code);
+            // Ensure directories exist
+            await fs.mkdir(rendersPath, { recursive: true });
+            await fs.mkdir(codePath, { recursive: true });
 
-        // Check if venv exists, if not create one
-        const venvExists = await fs.access(venvPath).then(() => true).catch(() => false);
+            // Generate filename based on timestamp
+            const timestamp = Date.now();
+            const filename = `render_${timestamp}`;
 
-        if (!venvExists) {
-            // Create venv
-            await new Promise((resolve, reject) => {
-                const createVenv = spawn('python', ['-m', 'venv', venvPath]);
-                createVenv.on('close', (code) => {
-                    if (code === 0) resolve();
-                    else reject(new Error('Failed to create venv'));
-                });
+            // Check if cancelled before making request
+            if (!activeGenerations.has(taskId)) {
+                console.log('Render cancelled before backend request:', taskId);
+                return;
+            }
+
+            // Send progress update
+            mainWindow.webContents.send('render-progress', {
+                taskId,
+                status: 'rendering',
+                message: 'Sending code to backend for rendering...',
+                progress: 20,
+                sceneName
             });
 
-            // Install manim
-            const pipPath = process.platform === 'win32'
-                ? path.join(venvPath, 'Scripts', 'pip.exe')
-                : path.join(venvPath, 'bin', 'pip');
+            // Call the backend /render endpoint
+            const response = await axios.post(
+                `${config.VIDEO_GENERATION_URL}/render`,
+                {
+                    filename: filename,
+                    code: code,
+                    SceneName: sceneName
+                },
+                {
+                    responseType: 'arraybuffer',
+                    timeout: 300000 // 5 minute timeout
+                }
+            );
 
-            await new Promise((resolve, reject) => {
-                const installManim = spawn(pipPath, ['install', 'manim']);
-                installManim.on('close', (code) => {
-                    if (code === 0) resolve();
-                    else reject(new Error('Failed to install manim'));
-                });
+            // Check if cancelled after backend response
+            if (!activeGenerations.has(taskId)) {
+                console.log('Render cancelled after backend response:', taskId);
+                return;
+            }
+
+            mainWindow.webContents.send('render-progress', {
+                taskId,
+                status: 'rendering',
+                message: 'Video received, saving...',
+                progress: 80,
+                sceneName
+            });
+
+            // Save the video file
+            const videoPath = path.join(rendersPath, `${filename}.mp4`);
+            await fs.writeFile(videoPath, Buffer.from(response.data));
+
+            // Save the code file
+            const codeFilePath = path.join(codePath, `${filename}.py`);
+            await fs.writeFile(codeFilePath, code);
+
+            // Check for code file path in headers
+            const codeFilePathHeader = response.headers['x-code-file-path'];
+            
+            // Final check if cancelled before sending completion
+            if (!activeGenerations.has(taskId)) {
+                console.log('Render cancelled before completion, cleaning up:', taskId);
+                try {
+                    await fs.unlink(videoPath);
+                    await fs.unlink(codeFilePath);
+                } catch (e) {}
+                return;
+            }
+
+            // Mark as complete
+            activeGenerations.delete(taskId);
+
+            // Send completion event
+            mainWindow.webContents.send('render-complete', {
+                taskId,
+                success: true,
+                videoPath: videoPath,
+                codeFilePath: codeFilePathHeader || codeFilePath,
+                sceneName: sceneName
+            });
+
+        } catch (error) {
+            // Check if cancelled - don't send error if cancelled
+            if (!activeGenerations.has(taskId)) {
+                console.log('Render cancelled during error handling:', taskId);
+                return;
+            }
+
+            console.error('Render error:', error.message);
+            
+            const errorMessage = error.response?.data 
+                ? Buffer.from(error.response.data).toString('utf-8')
+                : error.message;
+            
+            activeGenerations.delete(taskId);
+            
+            mainWindow.webContents.send('render-complete', {
+                taskId,
+                success: false,
+                error: errorMessage,
+                sceneName: sceneName
             });
         }
-
-        // Run manim
-        const pythonPath = process.platform === 'win32'
-            ? path.join(venvPath, 'Scripts', 'python.exe')
-            : path.join(venvPath, 'bin', 'python');
-
-        const outputPath = path.join(sessionPath, 'renders');
-
-        return new Promise((resolve, reject) => {
-            const manimProcess = spawn(pythonPath, [
-                '-m', 'manim',
-                '-pql',
-                '--output_file', 'output',
-                '--media_dir', outputPath,
-                codePath,
-                sceneName
-            ]);
-
-            let output = '';
-            let errorOutput = '';
-
-            manimProcess.stdout.on('data', (data) => {
-                output += data.toString();
-                mainWindow.webContents.send('manim-progress', data.toString());
-            });
-
-            manimProcess.stderr.on('data', (data) => {
-                errorOutput += data.toString();
-            });
-
-            manimProcess.on('close', async (code) => {
-                if (code === 0) {
-                    // Find the generated video file - Manim creates nested folder structure
-                    // videos/<quality>/<scene_name>.mp4
-                    try {
-                        const videosPath = path.join(outputPath, 'videos');
-                        const qualityDirs = await fs.readdir(videosPath);
-                        let videoFile = null;
-                        
-                        for (const dir of qualityDirs) {
-                            const dirPath = path.join(videosPath, dir);
-                            const stat = await fs.stat(dirPath);
-                            if (stat.isDirectory()) {
-                                const files = await fs.readdir(dirPath);
-                                const mp4File = files.find(f => f.endsWith('.mp4'));
-                                if (mp4File) {
-                                    videoFile = path.join(dirPath, mp4File);
-                                    break;
-                                }
-                            }
-                        }
-                        
-                        if (videoFile) {
-                            resolve({
-                                success: true,
-                                videoPath: videoFile,
-                                output,
-                            });
-                        } else {
-                            reject({
-                                success: false,
-                                error: 'Video file not found after rendering',
-                            });
-                        }
-                    } catch (err) {
-                        reject({
-                            success: false,
-                            error: `Failed to find video file: ${err.message}`,
-                        });
-                    }
-                } else {
-                    reject({
-                        success: false,
-                        error: errorOutput || output,
-                    });
-                }
-            });
-        });
-    } catch (error) {
-        return {
-            success: false,
-            error: error.message,
-        };
-    }
+    })();
+    
+    // Return taskId immediately
+    return { taskId, status: 'started' };
 });
 
 // Trim video

@@ -10,6 +10,7 @@ out/
 
 # Session data
 sessions/
+temp_folder/
 
 # Node modules
 node_modules/
