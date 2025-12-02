@@ -16,6 +16,7 @@ from dotenv import load_dotenv
 # FastAPI imports
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 # LangGraph and LangChain imports
@@ -43,6 +44,15 @@ app = FastAPI(
     title="Manim Video Generator",
     description="Generate educational Manim animations from text queries using LangGraph and RAG",
     version="2.0.0"
+)
+
+# Add CORS middleware - allow all origins
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Environment variables
