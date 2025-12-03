@@ -336,6 +336,25 @@ function createWindow() {
         show: false,
     });
 
+    // Handle permission requests (microphone, camera, etc.)
+    mainWindow.webContents.session.setPermissionRequestHandler((webContents, permission, callback) => {
+        const allowedPermissions = ['media', 'mediaKeySystem', 'audioCapture'];
+        console.log('Permission requested:', permission);
+        if (allowedPermissions.includes(permission)) {
+            console.log('Permission granted:', permission);
+            callback(true);
+        } else {
+            console.log('Permission denied:', permission);
+            callback(false);
+        }
+    });
+
+    // Also handle permission checks
+    mainWindow.webContents.session.setPermissionCheckHandler((webContents, permission, requestingOrigin) => {
+        const allowedPermissions = ['media', 'mediaKeySystem', 'audioCapture'];
+        return allowedPermissions.includes(permission);
+    });
+
     // Create application menu
     const menuTemplate = [
         {
@@ -788,16 +807,21 @@ ipcMain.handle('create-session', async (event, sessionId) => {
     try {
         const tempFolder = getTempFolderPath();
         
-        // Clean up old sessions before creating new one
+        // Clean up old sessions before creating new one (preserve voiceovers folder)
         try {
             const exists = await fs.access(tempFolder).then(() => true).catch(() => false);
             if (exists) {
                 const entries = await fs.readdir(tempFolder, { withFileTypes: true });
+                const preservedFolders = [sessionId, 'voiceovers']; // Don't delete these
                 for (const entry of entries) {
-                    if (entry.isDirectory() && entry.name !== sessionId) {
+                    if (entry.isDirectory() && !preservedFolders.includes(entry.name)) {
                         const oldSessionPath = path.join(tempFolder, entry.name);
                         console.log('Cleaning up old session:', oldSessionPath);
-                        await fs.rm(oldSessionPath, { recursive: true, force: true });
+                        try {
+                            await fs.rm(oldSessionPath, { recursive: true, force: true });
+                        } catch (rmErr) {
+                            console.warn('Could not remove:', oldSessionPath, rmErr.message);
+                        }
                     }
                 }
             }
@@ -864,6 +888,45 @@ ipcMain.handle('save-to-session', async (event, sessionId, filename, content) =>
             filePath,
         };
     } catch (error) {
+        return {
+            success: false,
+            error: error.message,
+        };
+    }
+});
+
+// Save voiceover recording to disk
+ipcMain.handle('save-voiceover', async (event, base64Data, fileName, sessionId) => {
+    try {
+        const tempFolder = getTempFolderPath();
+        let voiceoverDir;
+        
+        // Save to session folder if sessionId provided, otherwise to global voiceovers
+        if (sessionId) {
+            voiceoverDir = path.join(tempFolder, sessionId, 'voiceovers');
+        } else {
+            voiceoverDir = path.join(tempFolder, 'voiceovers');
+        }
+        
+        await fs.mkdir(voiceoverDir, { recursive: true });
+        
+        // Remove the data URL prefix if present (e.g., "data:audio/webm;base64,")
+        const base64Content = base64Data.includes(',') 
+            ? base64Data.split(',')[1] 
+            : base64Data;
+        
+        const buffer = Buffer.from(base64Content, 'base64');
+        const filePath = path.join(voiceoverDir, fileName);
+        await fs.writeFile(filePath, buffer);
+        
+        console.log('Voiceover saved to:', filePath);
+        
+        return {
+            success: true,
+            filePath,
+        };
+    } catch (error) {
+        console.error('Error saving voiceover:', error);
         return {
             success: false,
             error: error.message,

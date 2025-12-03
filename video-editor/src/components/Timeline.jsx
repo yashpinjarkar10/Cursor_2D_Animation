@@ -296,7 +296,8 @@ const Timeline = ({
 
     // Handle split position selection
     const handleSplitClick = (e, clip, type) => {
-        if (!splitMode || splitMode.clipId !== clip.id) return;
+        const clipId = clip.timelineId || clip.id;
+        if (!splitMode || splitMode.clipId !== clipId) return;
         e.stopPropagation();
 
         const rect = e.currentTarget.getBoundingClientRect();
@@ -322,7 +323,8 @@ const Timeline = ({
 
     // Handle mouse move in split mode to show preview with time and frame
     const handleSplitMouseMove = (e, clip) => {
-        if (!splitMode || splitMode.clipId !== clip.id) return;
+        const clipId = clip.timelineId || clip.id;
+        if (!splitMode || splitMode.clipId !== clipId) return;
         
         const rect = e.currentTarget.getBoundingClientRect();
         const clickX = e.clientX - rect.left;
@@ -746,22 +748,22 @@ const Timeline = ({
                                                             ? formatDuration((clip.trimEnd || clip.duration) - (clip.trimStart || 0))
                                                             : 'Loading...'}
                                                     </span>
-                                                    <div className="flex items-center gap-2">
+                                                    <div className="flex items-center gap-1 pointer-events-auto">
                                                         {isInSplitMode ? (
                                                             <button
                                                                 onClick={cancelSplitMode}
-                                                                className="text-orange-400 hover:text-orange-300 p-1 rounded hover:bg-dark-700"
+                                                                className="text-orange-400 hover:text-orange-300 p-1.5 rounded hover:bg-dark-700 transition-colors"
                                                                 title="Cancel split"
                                                             >
-                                                                <X className="w-4 h-4" />
+                                                                <X className="w-6 h-6" />
                                                             </button>
                                                         ) : (
                                                             <button
                                                                 onClick={(e) => enterSplitMode(e, clip.id, 'video')}
-                                                                className="text-white/70 hover:text-orange-400 p-1 rounded hover:bg-dark-700"
+                                                                className="text-white/70 hover:text-orange-400 p-1.5 rounded hover:bg-dark-700 transition-colors"
                                                                 title="Split clip (✂️)"
                                                             >
-                                                                <Scissors className="w-4 h-4" />
+                                                                <Scissors className="w-6 h-6" />
                                                             </button>
                                                         )}
                                                         <button
@@ -769,10 +771,10 @@ const Timeline = ({
                                                                 e.stopPropagation();
                                                                 onRemoveClip(clip.id);
                                                             }}
-                                                            className="text-white/70 hover:text-red-400 p-1 rounded hover:bg-dark-700"
+                                                            className="text-white/70 hover:text-red-400 p-1.5 rounded hover:bg-dark-700 transition-colors"
                                                             title="Delete clip"
                                                         >
-                                                            <Trash2 className="w-4 h-4" />
+                                                            <Trash2 className="w-6 h-6" />
                                                         </button>
                                                     </div>
                                                 </div>
@@ -868,22 +870,22 @@ const Timeline = ({
                                                     <span className="text-xs text-white/70">
                                                         {formatDuration((audio.trimEnd || audio.duration) - (audio.trimStart || 0))}
                                                     </span>
-                                                    <div className="flex items-center gap-2">
+                                                    <div className="flex items-center gap-1 pointer-events-auto">
                                                         {isInSplitMode ? (
                                                             <button
                                                                 onClick={cancelSplitMode}
-                                                                className="text-orange-400 hover:text-orange-300 p-1 rounded hover:bg-dark-700"
+                                                                className="text-orange-400 hover:text-orange-300 p-1.5 rounded hover:bg-dark-700 transition-colors"
                                                                 title="Cancel split"
                                                             >
-                                                                <X className="w-4 h-4" />
+                                                                <X className="w-6 h-6" />
                                                             </button>
                                                         ) : (
                                                             <button
                                                                 onClick={(e) => enterSplitMode(e, audio.timelineId || audio.id, 'audio')}
-                                                                className="text-white/70 hover:text-orange-400 p-1 rounded hover:bg-dark-700"
+                                                                className="text-white/70 hover:text-orange-400 p-1.5 rounded hover:bg-dark-700 transition-colors"
                                                                 title="Split audio (✂️)"
                                                             >
-                                                                <Scissors className="w-4 h-4" />
+                                                                <Scissors className="w-6 h-6" />
                                                             </button>
                                                         )}
                                                         <button
@@ -891,10 +893,10 @@ const Timeline = ({
                                                                 e.stopPropagation();
                                                                 onRemoveAudio && onRemoveAudio(audio.timelineId || audio.id);
                                                             }}
-                                                            className="text-white/70 hover:text-red-400 p-1 rounded hover:bg-dark-700"
+                                                            className="text-white/70 hover:text-red-400 p-1.5 rounded hover:bg-dark-700 transition-colors"
                                                             title="Delete audio"
                                                         >
-                                                            <Trash2 className="w-4 h-4" />
+                                                            <Trash2 className="w-6 h-6" />
                                                         </button>
                                                     </div>
                                                 </div>

@@ -1,7 +1,7 @@
 {
   "name": "cursor-2d-video-editor",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A powerful video editor for creating cursor animations and video overlays with Manim support",
   "author": "Yash Pinjarkar <yashpinjarkar2003@gmail.com>",
   "repository": {

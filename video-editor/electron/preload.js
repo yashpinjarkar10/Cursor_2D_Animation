@@ -55,6 +55,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
         ipcRenderer.invoke('export-video', inputPath, outputPath, options, sessionId),
     exportWithOverlays: (exportData) =>
         ipcRenderer.invoke('export-with-overlays', exportData),
+    
+    // Voiceover
+    saveVoiceover: (base64Data, fileName, sessionId) =>
+        ipcRenderer.invoke('save-voiceover', base64Data, fileName, sessionId),
 
     // File dialogs
     selectFile: (options) => ipcRenderer.invoke('select-file', options),

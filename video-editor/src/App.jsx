@@ -54,6 +54,9 @@ function App() {
   // Non-blocking generation tracking
   const [generatingTasks, setGeneratingTasks] = useState([]);
   
+  // Clipboard for copy/paste
+  const [copiedClip, setCopiedClip] = useState(null);
+  
   // Layout state for resizable video player (pixel-based for smooth resizing)
   const [playerHeight, setPlayerHeight] = useState(350); // pixels
   const [showCodeEditor, setShowCodeEditor] = useState(true);
@@ -116,10 +119,86 @@ function App() {
           }
         }
       }
+      
+      // Ctrl+C to copy selected clip
+      if ((e.ctrlKey || e.metaKey) && e.key === 'c' && !['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) {
+        if (selectedClip) {
+          // Get the latest version of the clip from the clips array (it may have updated duration)
+          const latestClip = clips.find(c => c.id === selectedClip.id) || selectedClip;
+          
+          // Check if video clip has duration loaded
+          if (latestClip.type === 'video' && (!latestClip.duration || latestClip.duration <= 0)) {
+            showToast('Please wait for video to load before copying', 'error');
+            return;
+          }
+          
+          const clipToCopy = { ...latestClip, copiedAt: Date.now() };
+          console.log('Copying clip:', { 
+            name: clipToCopy.name, 
+            duration: clipToCopy.duration, 
+            trimStart: clipToCopy.trimStart, 
+            trimEnd: clipToCopy.trimEnd,
+            videoPath: clipToCopy.videoPath 
+          });
+          setCopiedClip(clipToCopy);
+          showToast(`Copied: ${latestClip.name}`, 'info');
+          e.preventDefault();
+        }
+      }
+      
+      // Ctrl+V to paste copied clip at current cursor position
+      if ((e.ctrlKey || e.metaKey) && e.key === 'v' && !['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) {
+        if (copiedClip) {
+          e.preventDefault();
+          if (copiedClip.type === 'video') {
+            // Paste video clip - preserve all video properties
+            // Use explicit checks to handle 0 values properly
+            const duration = copiedClip.duration > 0 ? copiedClip.duration : 0;
+            const trimEnd = copiedClip.trimEnd > 0 ? copiedClip.trimEnd : duration;
+            const trimStart = typeof copiedClip.trimStart === 'number' ? copiedClip.trimStart : 0;
+            
+            const newClip = {
+              ...copiedClip,
+              id: uuidv4(),
+              name: copiedClip.name.replace(/ \(copy(?: \d+)?\)$/, '') + ` (copy)`,
+              // Explicitly set critical properties with proper values
+              videoPath: copiedClip.videoPath,
+              videoUrl: copiedClip.videoUrl,
+              duration: duration,
+              trimStart: trimStart,
+              trimEnd: trimEnd,
+              code: copiedClip.code,
+              source: copiedClip.source,
+              type: 'video',
+            };
+            delete newClip.copiedAt;
+            delete newClip.startTime; // Remove startTime - timeline positions consecutively
+            
+            console.log('Pasting video clip:', { duration, trimStart, trimEnd, videoPath: newClip.videoPath });
+            
+            setClips(prev => [...prev, newClip]);
+            setSelectedClip(newClip);
+            showToast(`Pasted video: ${newClip.name}`, 'success');
+          } else if (copiedClip.type === 'audio') {
+            // Paste audio clip at current time
+            const newAudioClip = {
+              ...copiedClip,
+              id: uuidv4(),
+              timelineId: uuidv4(),
+              name: copiedClip.name.replace(/ \(copy(?: \d+)?\)$/, '') + ` (copy)`,
+              startTime: currentTime,
+            };
+            delete newAudioClip.copiedAt;
+            setAudioClips(prev => [...prev, newAudioClip]);
+            setSelectedClip(newAudioClip);
+            showToast(`Pasted audio at ${currentTime.toFixed(1)}s: ${newAudioClip.name}`, 'success');
+          }
+        }
+      }
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isFullscreen, isCodeEditorFullscreen, selectedClip, showToast]);
+  }, [isFullscreen, isCodeEditorFullscreen, selectedClip, copiedClip, currentTime, clips, showToast]);
 
   useEffect(() => {
     // Initialize session and load existing files
@@ -605,17 +684,46 @@ function App() {
   }, []);
 
   // Add audio clip to timeline
-  const handleAddAudioToTimeline = useCallback((audioClip) => {
+  const handleAddAudioToTimeline = useCallback((audioClip, startAtTime = null) => {
+    // Use provided startTime or current playhead position
+    const audioStartTime = startAtTime !== null ? startAtTime : currentTime;
     const newAudioClip = {
       ...audioClip,
       id: uuidv4(),
-      startTime: 0,
+      startTime: audioStartTime,
       timelineId: uuidv4(),
       trimStart: 0,
       trimEnd: audioClip.duration || 10,
     };
     setAudioClips(prev => [...prev, newAudioClip]);
-    showToast(`Added audio to timeline: ${audioClip.name}`, 'success');
+    showToast(`Added audio at ${audioStartTime.toFixed(1)}s: ${audioClip.name}`, 'success');
+  }, [showToast, currentTime]);
+
+  // Add voiceover recording to timeline (starts from specified time)
+  const handleAddVoiceover = useCallback((voiceoverData) => {
+    const clipId = uuidv4();
+    
+    // First add to clips (assets) so it shows in asset panel
+    const newClip = {
+      ...voiceoverData,
+      id: clipId,
+      type: 'audio',
+      source: 'voiceover',
+      isVoiceover: true,
+    };
+    setClips(prev => [...prev, newClip]);
+    
+    // Then add to timeline
+    const newAudioClip = {
+      ...voiceoverData,
+      id: clipId,
+      timelineId: uuidv4(),
+      trimStart: 0,
+      trimEnd: voiceoverData.duration || 10,
+      isVoiceover: true,
+    };
+    setAudioClips(prev => [...prev, newAudioClip]);
+    showToast(`Added voiceover (${voiceoverData.duration?.toFixed(1) || 0}s)`, 'success');
   }, [showToast]);
 
   // Remove audio from timeline
@@ -870,8 +978,12 @@ function App() {
       const audio = prev[audioIndex];
       const audioStart = audio.trimStart || 0;
       const audioEnd = audio.trimEnd || audio.duration || 0;
+      const originalStartTime = audio.startTime || 0;
       
-      // Create first part
+      // Calculate durations
+      const firstPartDuration = splitTime - audioStart;
+      
+      // Create first part - keeps original timeline position
       const firstPart = {
         ...audio,
         id: uuidv4(),
@@ -879,10 +991,10 @@ function App() {
         name: audio.name.replace(/ \(part \d+\)$/, '') + ' (part 1)',
         trimStart: audioStart,
         trimEnd: splitTime,
-        // Don't set startTime - let timeline position consecutively
+        startTime: originalStartTime, // Keep original position
       };
       
-      // Create second part
+      // Create second part - positioned right after first part
       const secondPart = {
         ...audio,
         id: uuidv4(),
@@ -890,7 +1002,7 @@ function App() {
         name: audio.name.replace(/ \(part \d+\)$/, '') + ' (part 2)',
         trimStart: splitTime,
         trimEnd: audioEnd,
-        // Don't set startTime - let timeline position consecutively
+        startTime: originalStartTime + firstPartDuration, // Position after first part
       };
       
       // Replace original with two parts
@@ -988,6 +1100,10 @@ function App() {
           onRemoveAsset={handleRemoveAsset}
           generatingTasks={generatingTasks}
           onCancelGeneration={handleCancelGeneration}
+          currentTime={currentTime}
+          isPlaying={isPlaying}
+          onAddVoiceover={handleAddVoiceover}
+          sessionId={sessionId}
         />
 
         {/* Center Panel - Video Player & Code Editor (vertical stack) */}

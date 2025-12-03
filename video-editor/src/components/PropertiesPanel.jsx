@@ -542,10 +542,10 @@ const PropertiesPanel = ({
         }
     };
 
-    // Handle adding audio clip to timeline
+    // Handle adding audio clip to timeline at current playhead position
     const handleAddAudioToTimeline = () => {
         if (selectedClip.type === 'audio' && onAddAudioToTimeline) {
-            onAddAudioToTimeline(selectedClip);
+            onAddAudioToTimeline(selectedClip, currentTime);
         }
     };
 
@@ -614,10 +614,10 @@ const PropertiesPanel = ({
                                 onClick={handleAddAudioToTimeline}
                             >
                                 <Plus className="w-4 h-4 inline mr-1" />
-                                Add to Timeline
+                                Add to Timeline at {currentTime.toFixed(1)}s
                             </button>
                             <p className="text-xs text-gray-500">
-                                Add this audio to the audio track in the timeline
+                                Audio will be added where the red cursor is in the timeline
                             </p>
                         </div>
                     </div>
