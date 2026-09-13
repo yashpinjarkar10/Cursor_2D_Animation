@@ -1,0 +1,4598 @@
+{
+  "library": {
+    "name": "Manim",
+    "package": "manim",
+    "version": "0.19.0"
+  },
+  "root": "manim",
+  "nodes": {
+    "animation": {
+      "id": "animation",
+      "name": "Animation",
+      "type": "domain",
+      "parent": "manim",
+      "module": "manim.animation",
+      "children": [
+        "animation.animation",
+        "animation.changing",
+        "animation.composition",
+        "animation.creation",
+        "animation.fading",
+        "animation.growing",
+        "animation.indication",
+        "animation.movement",
+        "animation.numbers",
+        "animation.rotation",
+        "animation.specialized",
+        "animation.speedmodifier",
+        "animation.transform",
+        "animation.transform_matching_parts",
+        "animation.updaters"
+      ]
+    },
+    "animation.animation": {
+      "id": "animation.animation",
+      "name": "Animation",
+      "type": "module",
+      "parent": "animation",
+      "module": "manim.animation.animation",
+      "description": "Animate mobjects.",
+      "symbols": [
+        {
+          "name": "Add",
+          "kind": "class",
+          "qualified_name": "manim.animation.animation.Add"
+        },
+        {
+          "name": "Animation",
+          "kind": "class",
+          "qualified_name": "manim.animation.animation.Animation"
+        },
+        {
+          "name": "Wait",
+          "kind": "class",
+          "qualified_name": "manim.animation.animation.Wait"
+        },
+        {
+          "name": "override_animation",
+          "kind": "function",
+          "qualified_name": "manim.animation.animation.override_animation"
+        },
+        {
+          "name": "prepare_animation",
+          "kind": "function",
+          "qualified_name": "manim.animation.animation.prepare_animation"
+        }
+      ]
+    },
+    "animation.changing": {
+      "id": "animation.changing",
+      "name": "Changing",
+      "type": "module",
+      "parent": "animation",
+      "module": "manim.animation.changing",
+      "description": "Animation of a mobject boundary and tracing of points.",
+      "symbols": [
+        {
+          "name": "AnimatedBoundary",
+          "kind": "class",
+          "qualified_name": "manim.animation.changing.AnimatedBoundary"
+        },
+        {
+          "name": "TracedPath",
+          "kind": "class",
+          "qualified_name": "manim.animation.changing.TracedPath"
+        }
+      ]
+    },
+    "animation.composition": {
+      "id": "animation.composition",
+      "name": "Composition",
+      "type": "module",
+      "parent": "animation",
+      "module": "manim.animation.composition",
+      "description": "Tools for displaying multiple animations at once.",
+      "symbols": [
+        {
+          "name": "AnimationGroup",
+          "kind": "class",
+          "qualified_name": "manim.animation.composition.AnimationGroup"
+        },
+        {
+          "name": "LaggedStart",
+          "kind": "class",
+          "qualified_name": "manim.animation.composition.LaggedStart"
+        },
+        {
+          "name": "LaggedStartMap",
+          "kind": "class",
+          "qualified_name": "manim.animation.composition.LaggedStartMap"
+        },
+        {
+          "name": "Succession",
+          "kind": "class",
+          "qualified_name": "manim.animation.composition.Succession"
+        }
+      ]
+    },
+    "animation.creation": {
+      "id": "animation.creation",
+      "name": "Creation",
+      "type": "module",
+      "parent": "animation",
+      "module": "manim.animation.creation",
+      "description": "Animate the display or removal of a mobject from a scene.",
+      "symbols": [
+        {
+          "name": "AddTextLetterByLetter",
+          "kind": "class",
+          "qualified_name": "manim.animation.creation.AddTextLetterByLetter"
+        },
+        {
+          "name": "AddTextWordByWord",
+          "kind": "class",
+          "qualified_name": "manim.animation.creation.AddTextWordByWord"
+        },
+        {
+          "name": "Create",
+          "kind": "class",
+          "qualified_name": "manim.animation.creation.Create"
+        },
+        {
+          "name": "DrawBorderThenFill",
+          "kind": "class",
+          "qualified_name": "manim.animation.creation.DrawBorderThenFill"
+        },
+        {
+          "name": "RemoveTextLetterByLetter",
+          "kind": "class",
+          "qualified_name": "manim.animation.creation.RemoveTextLetterByLetter"
+        },
+        {
+          "name": "ShowIncreasingSubsets",
+          "kind": "class",
+          "qualified_name": "manim.animation.creation.ShowIncreasingSubsets"
+        },
+        {
+          "name": "ShowPartial",
+          "kind": "class",
+          "qualified_name": "manim.animation.creation.ShowPartial"
+        },
+        {
+          "name": "ShowSubmobjectsOneByOne",
+          "kind": "class",
+          "qualified_name": "manim.animation.creation.ShowSubmobjectsOneByOne"
+        },
+        {
+          "name": "SpiralIn",
+          "kind": "class",
+          "qualified_name": "manim.animation.creation.SpiralIn"
+        },
+        {
+          "name": "TypeWithCursor",
+          "kind": "class",
+          "qualified_name": "manim.animation.creation.TypeWithCursor"
+        },
+        {
+          "name": "Uncreate",
+          "kind": "class",
+          "qualified_name": "manim.animation.creation.Uncreate"
+        },
+        {
+          "name": "UntypeWithCursor",
+          "kind": "class",
+          "qualified_name": "manim.animation.creation.UntypeWithCursor"
+        },
+        {
+          "name": "Unwrite",
+          "kind": "class",
+          "qualified_name": "manim.animation.creation.Unwrite"
+        },
+        {
+          "name": "Write",
+          "kind": "class",
+          "qualified_name": "manim.animation.creation.Write"
+        }
+      ]
+    },
+    "animation.fading": {
+      "id": "animation.fading",
+      "name": "Fading",
+      "type": "module",
+      "parent": "animation",
+      "module": "manim.animation.fading",
+      "description": "Fading in and out of view.",
+      "symbols": [
+        {
+          "name": "FadeIn",
+          "kind": "class",
+          "qualified_name": "manim.animation.fading.FadeIn"
+        },
+        {
+          "name": "FadeOut",
+          "kind": "class",
+          "qualified_name": "manim.animation.fading.FadeOut"
+        }
+      ]
+    },
+    "animation.growing": {
+      "id": "animation.growing",
+      "name": "Growing",
+      "type": "module",
+      "parent": "animation",
+      "module": "manim.animation.growing",
+      "description": "Animations that introduce mobjects to scene by growing them from points.",
+      "symbols": [
+        {
+          "name": "GrowArrow",
+          "kind": "class",
+          "qualified_name": "manim.animation.growing.GrowArrow"
+        },
+        {
+          "name": "GrowFromCenter",
+          "kind": "class",
+          "qualified_name": "manim.animation.growing.GrowFromCenter"
+        },
+        {
+          "name": "GrowFromEdge",
+          "kind": "class",
+          "qualified_name": "manim.animation.growing.GrowFromEdge"
+        },
+        {
+          "name": "GrowFromPoint",
+          "kind": "class",
+          "qualified_name": "manim.animation.growing.GrowFromPoint"
+        },
+        {
+          "name": "SpinInFromNothing",
+          "kind": "class",
+          "qualified_name": "manim.animation.growing.SpinInFromNothing"
+        }
+      ]
+    },
+    "animation.indication": {
+      "id": "animation.indication",
+      "name": "Indication",
+      "type": "module",
+      "parent": "animation",
+      "module": "manim.animation.indication",
+      "description": "Animations drawing attention to particular mobjects.",
+      "symbols": [
+        {
+          "name": "ApplyWave",
+          "kind": "class",
+          "qualified_name": "manim.animation.indication.ApplyWave"
+        },
+        {
+          "name": "Blink",
+          "kind": "class",
+          "qualified_name": "manim.animation.indication.Blink"
+        },
+        {
+          "name": "Circumscribe",
+          "kind": "class",
+          "qualified_name": "manim.animation.indication.Circumscribe"
+        },
+        {
+          "name": "Flash",
+          "kind": "class",
+          "qualified_name": "manim.animation.indication.Flash"
+        },
+        {
+          "name": "FocusOn",
+          "kind": "class",
+          "qualified_name": "manim.animation.indication.FocusOn"
+        },
+        {
+          "name": "Indicate",
+          "kind": "class",
+          "qualified_name": "manim.animation.indication.Indicate"
+        },
+        {
+          "name": "ShowPassingFlash",
+          "kind": "class",
+          "qualified_name": "manim.animation.indication.ShowPassingFlash"
+        },
+        {
+          "name": "ShowPassingFlashWithThinningStrokeWidth",
+          "kind": "class",
+          "qualified_name": "manim.animation.indication.ShowPassingFlashWithThinningStrokeWidth"
+        },
+        {
+          "name": "Wiggle",
+          "kind": "class",
+          "qualified_name": "manim.animation.indication.Wiggle"
+        }
+      ]
+    },
+    "animation.movement": {
+      "id": "animation.movement",
+      "name": "Movement",
+      "type": "module",
+      "parent": "animation",
+      "module": "manim.animation.movement",
+      "description": "Animations related to movement.",
+      "symbols": [
+        {
+          "name": "ComplexHomotopy",
+          "kind": "class",
+          "qualified_name": "manim.animation.movement.ComplexHomotopy"
+        },
+        {
+          "name": "Homotopy",
+          "kind": "class",
+          "qualified_name": "manim.animation.movement.Homotopy"
+        },
+        {
+          "name": "MoveAlongPath",
+          "kind": "class",
+          "qualified_name": "manim.animation.movement.MoveAlongPath"
+        },
+        {
+          "name": "PhaseFlow",
+          "kind": "class",
+          "qualified_name": "manim.animation.movement.PhaseFlow"
+        },
+        {
+          "name": "SmoothedVectorizedHomotopy",
+          "kind": "class",
+          "qualified_name": "manim.animation.movement.SmoothedVectorizedHomotopy"
+        }
+      ]
+    },
+    "animation.numbers": {
+      "id": "animation.numbers",
+      "name": "Numbers",
+      "type": "module",
+      "parent": "animation",
+      "module": "manim.animation.numbers",
+      "description": "Animations for changing numbers.",
+      "symbols": [
+        {
+          "name": "ChangeDecimalToValue",
+          "kind": "class",
+          "qualified_name": "manim.animation.numbers.ChangeDecimalToValue"
+        },
+        {
+          "name": "ChangingDecimal",
+          "kind": "class",
+          "qualified_name": "manim.animation.numbers.ChangingDecimal"
+        }
+      ]
+    },
+    "animation.rotation": {
+      "id": "animation.rotation",
+      "name": "Rotation",
+      "type": "module",
+      "parent": "animation",
+      "module": "manim.animation.rotation",
+      "description": "Animations related to rotation.",
+      "symbols": [
+        {
+          "name": "Rotate",
+          "kind": "class",
+          "qualified_name": "manim.animation.rotation.Rotate"
+        },
+        {
+          "name": "Rotating",
+          "kind": "class",
+          "qualified_name": "manim.animation.rotation.Rotating"
+        }
+      ]
+    },
+    "animation.specialized": {
+      "id": "animation.specialized",
+      "name": "Specialized",
+      "type": "module",
+      "parent": "animation",
+      "module": "manim.animation.specialized",
+      "symbols": [
+        {
+          "name": "Broadcast",
+          "kind": "class",
+          "qualified_name": "manim.animation.specialized.Broadcast"
+        }
+      ]
+    },
+    "animation.speedmodifier": {
+      "id": "animation.speedmodifier",
+      "name": "Speedmodifier",
+      "type": "module",
+      "parent": "animation",
+      "module": "manim.animation.speedmodifier",
+      "description": "Utilities for modifying the speed at which animations are played.",
+      "symbols": [
+        {
+          "name": "ChangeSpeed",
+          "kind": "class",
+          "qualified_name": "manim.animation.speedmodifier.ChangeSpeed"
+        }
+      ]
+    },
+    "animation.transform": {
+      "id": "animation.transform",
+      "name": "Transform",
+      "type": "module",
+      "parent": "animation",
+      "module": "manim.animation.transform",
+      "description": "Animations transforming one mobject into another.",
+      "symbols": [
+        {
+          "name": "ApplyComplexFunction",
+          "kind": "class",
+          "qualified_name": "manim.animation.transform.ApplyComplexFunction"
+        },
+        {
+          "name": "ApplyFunction",
+          "kind": "class",
+          "qualified_name": "manim.animation.transform.ApplyFunction"
+        },
+        {
+          "name": "ApplyMatrix",
+          "kind": "class",
+          "qualified_name": "manim.animation.transform.ApplyMatrix"
+        },
+        {
+          "name": "ApplyMethod",
+          "kind": "class",
+          "qualified_name": "manim.animation.transform.ApplyMethod"
+        },
+        {
+          "name": "ApplyPointwiseFunction",
+          "kind": "class",
+          "qualified_name": "manim.animation.transform.ApplyPointwiseFunction"
+        },
+        {
+          "name": "ApplyPointwiseFunctionToCenter",
+          "kind": "class",
+          "qualified_name": "manim.animation.transform.ApplyPointwiseFunctionToCenter"
+        },
+        {
+          "name": "ClockwiseTransform",
+          "kind": "class",
+          "qualified_name": "manim.animation.transform.ClockwiseTransform"
+        },
+        {
+          "name": "CounterclockwiseTransform",
+          "kind": "class",
+          "qualified_name": "manim.animation.transform.CounterclockwiseTransform"
+        },
+        {
+          "name": "CyclicReplace",
+          "kind": "class",
+          "qualified_name": "manim.animation.transform.CyclicReplace"
+        },
+        {
+          "name": "FadeToColor",
+          "kind": "class",
+          "qualified_name": "manim.animation.transform.FadeToColor"
+        },
+        {
+          "name": "FadeTransform",
+          "kind": "class",
+          "qualified_name": "manim.animation.transform.FadeTransform"
+        },
+        {
+          "name": "FadeTransformPieces",
+          "kind": "class",
+          "qualified_name": "manim.animation.transform.FadeTransformPieces"
+        },
+        {
+          "name": "MoveToTarget",
+          "kind": "class",
+          "qualified_name": "manim.animation.transform.MoveToTarget"
+        },
+        {
+          "name": "ReplacementTransform",
+          "kind": "class",
+          "qualified_name": "manim.animation.transform.ReplacementTransform"
+        },
+        {
+          "name": "Restore",
+          "kind": "class",
+          "qualified_name": "manim.animation.transform.Restore"
+        },
+        {
+          "name": "ScaleInPlace",
+          "kind": "class",
+          "qualified_name": "manim.animation.transform.ScaleInPlace"
+        },
+        {
+          "name": "ShrinkToCenter",
+          "kind": "class",
+          "qualified_name": "manim.animation.transform.ShrinkToCenter"
+        },
+        {
+          "name": "Swap",
+          "kind": "class",
+          "qualified_name": "manim.animation.transform.Swap"
+        },
+        {
+          "name": "Transform",
+          "kind": "class",
+          "qualified_name": "manim.animation.transform.Transform"
+        },
+        {
+          "name": "TransformAnimations",
+          "kind": "class",
+          "qualified_name": "manim.animation.transform.TransformAnimations"
+        },
+        {
+          "name": "TransformFromCopy",
+          "kind": "class",
+          "qualified_name": "manim.animation.transform.TransformFromCopy"
+        }
+      ]
+    },
+    "animation.transform_matching_parts": {
+      "id": "animation.transform_matching_parts",
+      "name": "Transform Matching Parts",
+      "type": "module",
+      "parent": "animation",
+      "module": "manim.animation.transform_matching_parts",
+      "description": "Animations that try to transform Mobjects while keeping track of identical parts.",
+      "symbols": [
+        {
+          "name": "TransformMatchingAbstractBase",
+          "kind": "class",
+          "qualified_name": "manim.animation.transform_matching_parts.TransformMatchingAbstractBase"
+        },
+        {
+          "name": "TransformMatchingShapes",
+          "kind": "class",
+          "qualified_name": "manim.animation.transform_matching_parts.TransformMatchingShapes"
+        },
+        {
+          "name": "TransformMatchingTex",
+          "kind": "class",
+          "qualified_name": "manim.animation.transform_matching_parts.TransformMatchingTex"
+        }
+      ]
+    },
+    "animation.updaters": {
+      "id": "animation.updaters",
+      "name": "Updaters",
+      "type": "module",
+      "parent": "animation",
+      "module": "manim.animation.updaters",
+      "description": "Animations and utility mobjects related to update functions.",
+      "children": [
+        "animation.updaters.mobject_update_utils",
+        "animation.updaters.update"
+      ]
+    },
+    "animation.updaters.mobject_update_utils": {
+      "id": "animation.updaters.mobject_update_utils",
+      "name": "Mobject Update Utils",
+      "type": "module",
+      "parent": "animation.updaters",
+      "module": "manim.animation.updaters.mobject_update_utils",
+      "description": "Utility functions for continuous animation of mobjects.",
+      "symbols": [
+        {
+          "name": "always",
+          "kind": "function",
+          "qualified_name": "manim.animation.updaters.mobject_update_utils.always"
+        },
+        {
+          "name": "always_redraw",
+          "kind": "function",
+          "qualified_name": "manim.animation.updaters.mobject_update_utils.always_redraw"
+        },
+        {
+          "name": "always_rotate",
+          "kind": "function",
+          "qualified_name": "manim.animation.updaters.mobject_update_utils.always_rotate"
+        },
+        {
+          "name": "always_shift",
+          "kind": "function",
+          "qualified_name": "manim.animation.updaters.mobject_update_utils.always_shift"
+        },
+        {
+          "name": "assert_is_mobject_method",
+          "kind": "function",
+          "qualified_name": "manim.animation.updaters.mobject_update_utils.assert_is_mobject_method"
+        },
+        {
+          "name": "cycle_animation",
+          "kind": "function",
+          "qualified_name": "manim.animation.updaters.mobject_update_utils.cycle_animation"
+        },
+        {
+          "name": "f_always",
+          "kind": "function",
+          "qualified_name": "manim.animation.updaters.mobject_update_utils.f_always"
+        },
+        {
+          "name": "turn_animation_into_updater",
+          "kind": "function",
+          "qualified_name": "manim.animation.updaters.mobject_update_utils.turn_animation_into_updater"
+        }
+      ]
+    },
+    "animation.updaters.update": {
+      "id": "animation.updaters.update",
+      "name": "Update",
+      "type": "module",
+      "parent": "animation.updaters",
+      "module": "manim.animation.updaters.update",
+      "description": "Animations that update mobjects.",
+      "symbols": [
+        {
+          "name": "MaintainPositionRelativeTo",
+          "kind": "class",
+          "qualified_name": "manim.animation.updaters.update.MaintainPositionRelativeTo"
+        },
+        {
+          "name": "UpdateFromAlphaFunc",
+          "kind": "class",
+          "qualified_name": "manim.animation.updaters.update.UpdateFromAlphaFunc"
+        },
+        {
+          "name": "UpdateFromFunc",
+          "kind": "class",
+          "qualified_name": "manim.animation.updaters.update.UpdateFromFunc"
+        }
+      ]
+    },
+    "camera": {
+      "id": "camera",
+      "name": "Camera",
+      "type": "domain",
+      "parent": "manim",
+      "module": "manim.camera",
+      "children": [
+        "camera.camera",
+        "camera.mapping_camera",
+        "camera.moving_camera",
+        "camera.multi_camera",
+        "camera.three_d_camera"
+      ]
+    },
+    "camera.camera": {
+      "id": "camera.camera",
+      "name": "Camera",
+      "type": "module",
+      "parent": "camera",
+      "module": "manim.camera.camera",
+      "description": "A camera converts the mobjects contained in a Scene into an array of pixels.",
+      "symbols": [
+        {
+          "name": "BackgroundColoredVMobjectDisplayer",
+          "kind": "class",
+          "qualified_name": "manim.camera.camera.BackgroundColoredVMobjectDisplayer"
+        },
+        {
+          "name": "Camera",
+          "kind": "class",
+          "qualified_name": "manim.camera.camera.Camera"
+        }
+      ]
+    },
+    "camera.mapping_camera": {
+      "id": "camera.mapping_camera",
+      "name": "Mapping Camera",
+      "type": "module",
+      "parent": "camera",
+      "module": "manim.camera.mapping_camera",
+      "description": "A camera that allows mapping between objects.",
+      "symbols": [
+        {
+          "name": "MappingCamera",
+          "kind": "class",
+          "qualified_name": "manim.camera.mapping_camera.MappingCamera"
+        },
+        {
+          "name": "OldMultiCamera",
+          "kind": "class",
+          "qualified_name": "manim.camera.mapping_camera.OldMultiCamera"
+        },
+        {
+          "name": "SplitScreenCamera",
+          "kind": "class",
+          "qualified_name": "manim.camera.mapping_camera.SplitScreenCamera"
+        }
+      ]
+    },
+    "camera.moving_camera": {
+      "id": "camera.moving_camera",
+      "name": "Moving Camera",
+      "type": "module",
+      "parent": "camera",
+      "module": "manim.camera.moving_camera",
+      "description": "A camera able to move through a scene.",
+      "symbols": [
+        {
+          "name": "MovingCamera",
+          "kind": "class",
+          "qualified_name": "manim.camera.moving_camera.MovingCamera"
+        }
+      ]
+    },
+    "camera.multi_camera": {
+      "id": "camera.multi_camera",
+      "name": "Multi Camera",
+      "type": "module",
+      "parent": "camera",
+      "module": "manim.camera.multi_camera",
+      "description": "A camera supporting multiple perspectives.",
+      "symbols": [
+        {
+          "name": "MultiCamera",
+          "kind": "class",
+          "qualified_name": "manim.camera.multi_camera.MultiCamera"
+        }
+      ]
+    },
+    "camera.three_d_camera": {
+      "id": "camera.three_d_camera",
+      "name": "Three D Camera",
+      "type": "module",
+      "parent": "camera",
+      "module": "manim.camera.three_d_camera",
+      "description": "A camera that can be positioned and oriented in three-dimensional space.",
+      "symbols": [
+        {
+          "name": "ThreeDCamera",
+          "kind": "class",
+          "qualified_name": "manim.camera.three_d_camera.ThreeDCamera"
+        }
+      ]
+    },
+    "cli": {
+      "id": "cli",
+      "name": "Cli",
+      "type": "domain",
+      "parent": "manim",
+      "module": "manim.cli",
+      "description": "The Manim CLI, and the available commands for ``manim``.",
+      "children": [
+        "cli.cfg",
+        "cli.checkhealth",
+        "cli.default_group",
+        "cli.init",
+        "cli.plugins",
+        "cli.render"
+      ]
+    },
+    "cli.cfg": {
+      "id": "cli.cfg",
+      "name": "Cfg",
+      "type": "module",
+      "parent": "cli",
+      "module": "manim.cli.cfg",
+      "children": [
+        "cli.cfg.group"
+      ]
+    },
+    "cli.cfg.group": {
+      "id": "cli.cfg.group",
+      "name": "Group",
+      "type": "module",
+      "parent": "cli.cfg",
+      "module": "manim.cli.cfg.group",
+      "description": "Manim's cfg subcommand.",
+      "symbols": [
+        {
+          "name": "is_valid_style",
+          "kind": "function",
+          "qualified_name": "manim.cli.cfg.group.is_valid_style"
+        },
+        {
+          "name": "replace_keys",
+          "kind": "function",
+          "qualified_name": "manim.cli.cfg.group.replace_keys"
+        },
+        {
+          "name": "value_from_string",
+          "kind": "function",
+          "qualified_name": "manim.cli.cfg.group.value_from_string"
+        }
+      ]
+    },
+    "cli.checkhealth": {
+      "id": "cli.checkhealth",
+      "name": "Checkhealth",
+      "type": "module",
+      "parent": "cli",
+      "module": "manim.cli.checkhealth",
+      "children": [
+        "cli.checkhealth.checks",
+        "cli.checkhealth.commands"
+      ]
+    },
+    "cli.checkhealth.checks": {
+      "id": "cli.checkhealth.checks",
+      "name": "Checks",
+      "type": "module",
+      "parent": "cli.checkhealth",
+      "module": "manim.cli.checkhealth.checks",
+      "description": "Auxiliary module for the checkhealth subcommand, contains\nthe actual check implementations.",
+      "symbols": [
+        {
+          "name": "HealthCheckFunction",
+          "kind": "class",
+          "qualified_name": "manim.cli.checkhealth.checks.HealthCheckFunction"
+        },
+        {
+          "name": "healthcheck",
+          "kind": "function",
+          "qualified_name": "manim.cli.checkhealth.checks.healthcheck"
+        },
+        {
+          "name": "is_dvisvgm_available",
+          "kind": "function",
+          "qualified_name": "manim.cli.checkhealth.checks.is_dvisvgm_available"
+        },
+        {
+          "name": "is_latex_available",
+          "kind": "function",
+          "qualified_name": "manim.cli.checkhealth.checks.is_latex_available"
+        },
+        {
+          "name": "is_manim_executable_associated_to_this_library",
+          "kind": "function",
+          "qualified_name": "manim.cli.checkhealth.checks.is_manim_executable_associated_to_this_library"
+        },
+        {
+          "name": "is_manim_on_path",
+          "kind": "function",
+          "qualified_name": "manim.cli.checkhealth.checks.is_manim_on_path"
+        }
+      ]
+    },
+    "cli.checkhealth.commands": {
+      "id": "cli.checkhealth.commands",
+      "name": "Commands",
+      "type": "module",
+      "parent": "cli.checkhealth",
+      "module": "manim.cli.checkhealth.commands",
+      "description": "A CLI utility helping to diagnose problems with\nyour Manim installation."
+    },
+    "cli.default_group": {
+      "id": "cli.default_group",
+      "name": "Default Group",
+      "type": "module",
+      "parent": "cli",
+      "module": "manim.cli.default_group",
+      "description": "``DefaultGroup`` allows a subcommand to act as the main command.",
+      "symbols": [
+        {
+          "name": "DefaultGroup",
+          "kind": "class",
+          "qualified_name": "manim.cli.default_group.DefaultGroup"
+        }
+      ]
+    },
+    "cli.init": {
+      "id": "cli.init",
+      "name": "Init",
+      "type": "module",
+      "parent": "cli",
+      "module": "manim.cli.init",
+      "children": [
+        "cli.init.commands"
+      ]
+    },
+    "cli.init.commands": {
+      "id": "cli.init.commands",
+      "name": "Commands",
+      "type": "module",
+      "parent": "cli.init",
+      "module": "manim.cli.init.commands",
+      "description": "Manim's init subcommand.",
+      "symbols": [
+        {
+          "name": "select_resolution",
+          "kind": "function",
+          "qualified_name": "manim.cli.init.commands.select_resolution"
+        },
+        {
+          "name": "update_cfg",
+          "kind": "function",
+          "qualified_name": "manim.cli.init.commands.update_cfg"
+        }
+      ]
+    },
+    "cli.plugins": {
+      "id": "cli.plugins",
+      "name": "Plugins",
+      "type": "module",
+      "parent": "cli",
+      "module": "manim.cli.plugins",
+      "children": [
+        "cli.plugins.commands"
+      ]
+    },
+    "cli.plugins.commands": {
+      "id": "cli.plugins.commands",
+      "name": "Commands",
+      "type": "module",
+      "parent": "cli.plugins",
+      "module": "manim.cli.plugins.commands",
+      "description": "Manim's plugin subcommand."
+    },
+    "cli.render": {
+      "id": "cli.render",
+      "name": "Render",
+      "type": "module",
+      "parent": "cli",
+      "module": "manim.cli.render",
+      "children": [
+        "cli.render.commands",
+        "cli.render.ease_of_access_options",
+        "cli.render.global_options",
+        "cli.render.output_options",
+        "cli.render.render_options"
+      ]
+    },
+    "cli.render.commands": {
+      "id": "cli.render.commands",
+      "name": "Commands",
+      "type": "module",
+      "parent": "cli.render",
+      "module": "manim.cli.render.commands",
+      "description": "Manim's default subcommand, render.",
+      "symbols": [
+        {
+          "name": "ClickArgs",
+          "kind": "class",
+          "qualified_name": "manim.cli.render.commands.ClickArgs"
+        }
+      ]
+    },
+    "cli.render.ease_of_access_options": {
+      "id": "cli.render.ease_of_access_options",
+      "name": "Ease Of Access Options",
+      "type": "module",
+      "parent": "cli.render",
+      "module": "manim.cli.render.ease_of_access_options"
+    },
+    "cli.render.global_options": {
+      "id": "cli.render.global_options",
+      "name": "Global Options",
+      "type": "module",
+      "parent": "cli.render",
+      "module": "manim.cli.render.global_options",
+      "symbols": [
+        {
+          "name": "validate_gui_location",
+          "kind": "function",
+          "qualified_name": "manim.cli.render.global_options.validate_gui_location"
+        }
+      ]
+    },
+    "cli.render.output_options": {
+      "id": "cli.render.output_options",
+      "name": "Output Options",
+      "type": "module",
+      "parent": "cli.render",
+      "module": "manim.cli.render.output_options"
+    },
+    "cli.render.render_options": {
+      "id": "cli.render.render_options",
+      "name": "Render Options",
+      "type": "module",
+      "parent": "cli.render",
+      "module": "manim.cli.render.render_options",
+      "symbols": [
+        {
+          "name": "validate_resolution",
+          "kind": "function",
+          "qualified_name": "manim.cli.render.render_options.validate_resolution"
+        },
+        {
+          "name": "validate_scene_range",
+          "kind": "function",
+          "qualified_name": "manim.cli.render.render_options.validate_scene_range"
+        }
+      ]
+    },
+    "constants": {
+      "id": "constants",
+      "name": "Constants",
+      "type": "domain",
+      "parent": "manim",
+      "module": "manim.constants",
+      "description": "Constant definitions.",
+      "symbols": [
+        {
+          "name": "CapStyleType",
+          "kind": "class",
+          "qualified_name": "manim.constants.CapStyleType"
+        },
+        {
+          "name": "LineJointType",
+          "kind": "class",
+          "qualified_name": "manim.constants.LineJointType"
+        },
+        {
+          "name": "QualityDict",
+          "kind": "class",
+          "qualified_name": "manim.constants.QualityDict"
+        },
+        {
+          "name": "RendererType",
+          "kind": "class",
+          "qualified_name": "manim.constants.RendererType"
+        }
+      ]
+    },
+    "gui": {
+      "id": "gui",
+      "name": "Gui",
+      "type": "domain",
+      "parent": "manim",
+      "module": "manim.gui",
+      "children": [
+        "gui.gui"
+      ]
+    },
+    "gui.gui": {
+      "id": "gui.gui",
+      "name": "Gui",
+      "type": "module",
+      "parent": "gui",
+      "module": "manim.gui.gui",
+      "symbols": [
+        {
+          "name": "configure_pygui",
+          "kind": "function",
+          "qualified_name": "manim.gui.gui.configure_pygui"
+        }
+      ]
+    },
+    "manim": {
+      "id": "manim",
+      "name": "Manim",
+      "type": "root",
+      "parent": null,
+      "module": "manim",
+      "description": "Manim Community animation engine.",
+      "children": [
+        "animation",
+        "camera",
+        "cli",
+        "constants",
+        "gui",
+        "mobject",
+        "opengl",
+        "plugins",
+        "renderer",
+        "scene",
+        "typing",
+        "utils"
+      ]
+    },
+    "mobject": {
+      "id": "mobject",
+      "name": "Mobject",
+      "type": "domain",
+      "parent": "manim",
+      "module": "manim.mobject",
+      "children": [
+        "mobject.frame",
+        "mobject.geometry",
+        "mobject.graph",
+        "mobject.graphing",
+        "mobject.logo",
+        "mobject.matrix",
+        "mobject.mobject",
+        "mobject.opengl",
+        "mobject.svg",
+        "mobject.table",
+        "mobject.text",
+        "mobject.three_d",
+        "mobject.types",
+        "mobject.utils",
+        "mobject.value_tracker",
+        "mobject.vector_field"
+      ]
+    },
+    "mobject.frame": {
+      "id": "mobject.frame",
+      "name": "Frame",
+      "type": "module",
+      "parent": "mobject",
+      "module": "manim.mobject.frame",
+      "description": "Special rectangles.",
+      "symbols": [
+        {
+          "name": "FullScreenRectangle",
+          "kind": "class",
+          "qualified_name": "manim.mobject.frame.FullScreenRectangle"
+        },
+        {
+          "name": "ScreenRectangle",
+          "kind": "class",
+          "qualified_name": "manim.mobject.frame.ScreenRectangle"
+        }
+      ]
+    },
+    "mobject.geometry": {
+      "id": "mobject.geometry",
+      "name": "Geometry",
+      "type": "module",
+      "parent": "mobject",
+      "module": "manim.mobject.geometry",
+      "description": "Various geometric Mobjects.",
+      "children": [
+        "mobject.geometry.arc",
+        "mobject.geometry.boolean_ops",
+        "mobject.geometry.labeled",
+        "mobject.geometry.line",
+        "mobject.geometry.polygram",
+        "mobject.geometry.shape_matchers",
+        "mobject.geometry.tips"
+      ]
+    },
+    "mobject.geometry.arc": {
+      "id": "mobject.geometry.arc",
+      "name": "Arc",
+      "type": "module",
+      "parent": "mobject.geometry",
+      "module": "manim.mobject.geometry.arc",
+      "description": "Mobjects that are curved.",
+      "symbols": [
+        {
+          "name": "AnnotationDot",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.arc.AnnotationDot"
+        },
+        {
+          "name": "AnnularSector",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.arc.AnnularSector"
+        },
+        {
+          "name": "Annulus",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.arc.Annulus"
+        },
+        {
+          "name": "Arc",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.arc.Arc"
+        },
+        {
+          "name": "ArcBetweenPoints",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.arc.ArcBetweenPoints"
+        },
+        {
+          "name": "ArcPolygon",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.arc.ArcPolygon"
+        },
+        {
+          "name": "ArcPolygonFromArcs",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.arc.ArcPolygonFromArcs"
+        },
+        {
+          "name": "Circle",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.arc.Circle"
+        },
+        {
+          "name": "CubicBezier",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.arc.CubicBezier"
+        },
+        {
+          "name": "CurvedArrow",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.arc.CurvedArrow"
+        },
+        {
+          "name": "CurvedDoubleArrow",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.arc.CurvedDoubleArrow"
+        },
+        {
+          "name": "Dot",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.arc.Dot"
+        },
+        {
+          "name": "Ellipse",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.arc.Ellipse"
+        },
+        {
+          "name": "LabeledDot",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.arc.LabeledDot"
+        },
+        {
+          "name": "Sector",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.arc.Sector"
+        },
+        {
+          "name": "TipableVMobject",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.arc.TipableVMobject"
+        }
+      ]
+    },
+    "mobject.geometry.boolean_ops": {
+      "id": "mobject.geometry.boolean_ops",
+      "name": "Boolean Ops",
+      "type": "module",
+      "parent": "mobject.geometry",
+      "module": "manim.mobject.geometry.boolean_ops",
+      "description": "Boolean operations for two-dimensional mobjects.",
+      "symbols": [
+        {
+          "name": "Difference",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.boolean_ops.Difference"
+        },
+        {
+          "name": "Exclusion",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.boolean_ops.Exclusion"
+        },
+        {
+          "name": "Intersection",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.boolean_ops.Intersection"
+        },
+        {
+          "name": "Union",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.boolean_ops.Union"
+        }
+      ]
+    },
+    "mobject.geometry.labeled": {
+      "id": "mobject.geometry.labeled",
+      "name": "Labeled",
+      "type": "module",
+      "parent": "mobject.geometry",
+      "module": "manim.mobject.geometry.labeled",
+      "description": "Mobjects that inherit from lines and contain a label along the length.",
+      "symbols": [
+        {
+          "name": "Label",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.labeled.Label"
+        },
+        {
+          "name": "LabeledArrow",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.labeled.LabeledArrow"
+        },
+        {
+          "name": "LabeledLine",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.labeled.LabeledLine"
+        },
+        {
+          "name": "LabeledPolygram",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.labeled.LabeledPolygram"
+        }
+      ]
+    },
+    "mobject.geometry.line": {
+      "id": "mobject.geometry.line",
+      "name": "Line",
+      "type": "module",
+      "parent": "mobject.geometry",
+      "module": "manim.mobject.geometry.line",
+      "description": "Mobjects that are lines or variations of them.",
+      "symbols": [
+        {
+          "name": "Angle",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.line.Angle"
+        },
+        {
+          "name": "Arrow",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.line.Arrow"
+        },
+        {
+          "name": "DashedLine",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.line.DashedLine"
+        },
+        {
+          "name": "DoubleArrow",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.line.DoubleArrow"
+        },
+        {
+          "name": "Elbow",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.line.Elbow"
+        },
+        {
+          "name": "Line",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.line.Line"
+        },
+        {
+          "name": "RightAngle",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.line.RightAngle"
+        },
+        {
+          "name": "TangentLine",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.line.TangentLine"
+        },
+        {
+          "name": "Vector",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.line.Vector"
+        }
+      ]
+    },
+    "mobject.geometry.polygram": {
+      "id": "mobject.geometry.polygram",
+      "name": "Polygram",
+      "type": "module",
+      "parent": "mobject.geometry",
+      "module": "manim.mobject.geometry.polygram",
+      "description": "Mobjects that are simple geometric shapes.",
+      "symbols": [
+        {
+          "name": "ConvexHull",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.polygram.ConvexHull"
+        },
+        {
+          "name": "Cutout",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.polygram.Cutout"
+        },
+        {
+          "name": "Polygon",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.polygram.Polygon"
+        },
+        {
+          "name": "Polygram",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.polygram.Polygram"
+        },
+        {
+          "name": "Rectangle",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.polygram.Rectangle"
+        },
+        {
+          "name": "RegularPolygon",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.polygram.RegularPolygon"
+        },
+        {
+          "name": "RegularPolygram",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.polygram.RegularPolygram"
+        },
+        {
+          "name": "RoundedRectangle",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.polygram.RoundedRectangle"
+        },
+        {
+          "name": "Square",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.polygram.Square"
+        },
+        {
+          "name": "Star",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.polygram.Star"
+        },
+        {
+          "name": "Triangle",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.polygram.Triangle"
+        }
+      ]
+    },
+    "mobject.geometry.shape_matchers": {
+      "id": "mobject.geometry.shape_matchers",
+      "name": "Shape Matchers",
+      "type": "module",
+      "parent": "mobject.geometry",
+      "module": "manim.mobject.geometry.shape_matchers",
+      "description": "Mobjects used to mark and annotate other mobjects.",
+      "symbols": [
+        {
+          "name": "BackgroundRectangle",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.shape_matchers.BackgroundRectangle"
+        },
+        {
+          "name": "Cross",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.shape_matchers.Cross"
+        },
+        {
+          "name": "SurroundingRectangle",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.shape_matchers.SurroundingRectangle"
+        },
+        {
+          "name": "Underline",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.shape_matchers.Underline"
+        }
+      ]
+    },
+    "mobject.geometry.tips": {
+      "id": "mobject.geometry.tips",
+      "name": "Tips",
+      "type": "module",
+      "parent": "mobject.geometry",
+      "module": "manim.mobject.geometry.tips",
+      "description": "A collection of tip mobjects for use with :class:`~.TipableVMobject`.",
+      "symbols": [
+        {
+          "name": "ArrowCircleFilledTip",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.tips.ArrowCircleFilledTip"
+        },
+        {
+          "name": "ArrowCircleTip",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.tips.ArrowCircleTip"
+        },
+        {
+          "name": "ArrowSquareFilledTip",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.tips.ArrowSquareFilledTip"
+        },
+        {
+          "name": "ArrowSquareTip",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.tips.ArrowSquareTip"
+        },
+        {
+          "name": "ArrowTip",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.tips.ArrowTip"
+        },
+        {
+          "name": "ArrowTriangleFilledTip",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.tips.ArrowTriangleFilledTip"
+        },
+        {
+          "name": "ArrowTriangleTip",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.tips.ArrowTriangleTip"
+        },
+        {
+          "name": "StealthTip",
+          "kind": "class",
+          "qualified_name": "manim.mobject.geometry.tips.StealthTip"
+        }
+      ]
+    },
+    "mobject.graph": {
+      "id": "mobject.graph",
+      "name": "Graph",
+      "type": "module",
+      "parent": "mobject",
+      "module": "manim.mobject.graph",
+      "description": "Mobjects used to represent mathematical graphs (think graph theory, not plotting).",
+      "symbols": [
+        {
+          "name": "DiGraph",
+          "kind": "class",
+          "qualified_name": "manim.mobject.graph.DiGraph"
+        },
+        {
+          "name": "GenericGraph",
+          "kind": "class",
+          "qualified_name": "manim.mobject.graph.GenericGraph"
+        },
+        {
+          "name": "Graph",
+          "kind": "class",
+          "qualified_name": "manim.mobject.graph.Graph"
+        },
+        {
+          "name": "LayoutFunction",
+          "kind": "class",
+          "qualified_name": "manim.mobject.graph.LayoutFunction"
+        }
+      ]
+    },
+    "mobject.graphing": {
+      "id": "mobject.graphing",
+      "name": "Graphing",
+      "type": "module",
+      "parent": "mobject",
+      "module": "manim.mobject.graphing",
+      "description": "Coordinate systems and function graphing related mobjects.",
+      "children": [
+        "mobject.graphing.coordinate_systems",
+        "mobject.graphing.functions",
+        "mobject.graphing.number_line",
+        "mobject.graphing.probability",
+        "mobject.graphing.scale"
+      ]
+    },
+    "mobject.graphing.coordinate_systems": {
+      "id": "mobject.graphing.coordinate_systems",
+      "name": "Coordinate Systems",
+      "type": "module",
+      "parent": "mobject.graphing",
+      "module": "manim.mobject.graphing.coordinate_systems",
+      "description": "Mobjects that represent coordinate systems.",
+      "symbols": [
+        {
+          "name": "Axes",
+          "kind": "class",
+          "qualified_name": "manim.mobject.graphing.coordinate_systems.Axes"
+        },
+        {
+          "name": "ComplexPlane",
+          "kind": "class",
+          "qualified_name": "manim.mobject.graphing.coordinate_systems.ComplexPlane"
+        },
+        {
+          "name": "CoordinateSystem",
+          "kind": "class",
+          "qualified_name": "manim.mobject.graphing.coordinate_systems.CoordinateSystem"
+        },
+        {
+          "name": "NumberPlane",
+          "kind": "class",
+          "qualified_name": "manim.mobject.graphing.coordinate_systems.NumberPlane"
+        },
+        {
+          "name": "PolarPlane",
+          "kind": "class",
+          "qualified_name": "manim.mobject.graphing.coordinate_systems.PolarPlane"
+        },
+        {
+          "name": "ThreeDAxes",
+          "kind": "class",
+          "qualified_name": "manim.mobject.graphing.coordinate_systems.ThreeDAxes"
+        }
+      ]
+    },
+    "mobject.graphing.functions": {
+      "id": "mobject.graphing.functions",
+      "name": "Functions",
+      "type": "module",
+      "parent": "mobject.graphing",
+      "module": "manim.mobject.graphing.functions",
+      "description": "Mobjects representing function graphs.",
+      "symbols": [
+        {
+          "name": "FunctionGraph",
+          "kind": "class",
+          "qualified_name": "manim.mobject.graphing.functions.FunctionGraph"
+        },
+        {
+          "name": "ImplicitFunction",
+          "kind": "class",
+          "qualified_name": "manim.mobject.graphing.functions.ImplicitFunction"
+        },
+        {
+          "name": "ParametricFunction",
+          "kind": "class",
+          "qualified_name": "manim.mobject.graphing.functions.ParametricFunction"
+        }
+      ]
+    },
+    "mobject.graphing.number_line": {
+      "id": "mobject.graphing.number_line",
+      "name": "Number Line",
+      "type": "module",
+      "parent": "mobject.graphing",
+      "module": "manim.mobject.graphing.number_line",
+      "description": "Mobject representing a number line.",
+      "symbols": [
+        {
+          "name": "NumberLine",
+          "kind": "class",
+          "qualified_name": "manim.mobject.graphing.number_line.NumberLine"
+        },
+        {
+          "name": "UnitInterval",
+          "kind": "class",
+          "qualified_name": "manim.mobject.graphing.number_line.UnitInterval"
+        }
+      ]
+    },
+    "mobject.graphing.probability": {
+      "id": "mobject.graphing.probability",
+      "name": "Probability",
+      "type": "module",
+      "parent": "mobject.graphing",
+      "module": "manim.mobject.graphing.probability",
+      "description": "Mobjects representing objects from probability theory and statistics.",
+      "symbols": [
+        {
+          "name": "BarChart",
+          "kind": "class",
+          "qualified_name": "manim.mobject.graphing.probability.BarChart"
+        },
+        {
+          "name": "SampleSpace",
+          "kind": "class",
+          "qualified_name": "manim.mobject.graphing.probability.SampleSpace"
+        }
+      ]
+    },
+    "mobject.graphing.scale": {
+      "id": "mobject.graphing.scale",
+      "name": "Scale",
+      "type": "module",
+      "parent": "mobject.graphing",
+      "module": "manim.mobject.graphing.scale",
+      "symbols": [
+        {
+          "name": "LinearBase",
+          "kind": "class",
+          "qualified_name": "manim.mobject.graphing.scale.LinearBase"
+        },
+        {
+          "name": "LogBase",
+          "kind": "class",
+          "qualified_name": "manim.mobject.graphing.scale.LogBase"
+        }
+      ]
+    },
+    "mobject.logo": {
+      "id": "mobject.logo",
+      "name": "Logo",
+      "type": "module",
+      "parent": "mobject",
+      "module": "manim.mobject.logo",
+      "description": "Utilities for Manim's logo and banner.",
+      "symbols": [
+        {
+          "name": "ManimBanner",
+          "kind": "class",
+          "qualified_name": "manim.mobject.logo.ManimBanner"
+        }
+      ]
+    },
+    "mobject.matrix": {
+      "id": "mobject.matrix",
+      "name": "Matrix",
+      "type": "module",
+      "parent": "mobject",
+      "module": "manim.mobject.matrix",
+      "description": "Mobjects representing matrices.",
+      "symbols": [
+        {
+          "name": "DecimalMatrix",
+          "kind": "class",
+          "qualified_name": "manim.mobject.matrix.DecimalMatrix"
+        },
+        {
+          "name": "IntegerMatrix",
+          "kind": "class",
+          "qualified_name": "manim.mobject.matrix.IntegerMatrix"
+        },
+        {
+          "name": "Matrix",
+          "kind": "class",
+          "qualified_name": "manim.mobject.matrix.Matrix"
+        },
+        {
+          "name": "MobjectMatrix",
+          "kind": "class",
+          "qualified_name": "manim.mobject.matrix.MobjectMatrix"
+        },
+        {
+          "name": "get_det_text",
+          "kind": "function",
+          "qualified_name": "manim.mobject.matrix.get_det_text"
+        },
+        {
+          "name": "matrix_to_mobject",
+          "kind": "function",
+          "qualified_name": "manim.mobject.matrix.matrix_to_mobject"
+        },
+        {
+          "name": "matrix_to_tex_string",
+          "kind": "function",
+          "qualified_name": "manim.mobject.matrix.matrix_to_tex_string"
+        }
+      ]
+    },
+    "mobject.mobject": {
+      "id": "mobject.mobject",
+      "name": "Mobject",
+      "type": "module",
+      "parent": "mobject",
+      "module": "manim.mobject.mobject",
+      "description": "Base classes for objects that can be displayed.",
+      "symbols": [
+        {
+          "name": "Group",
+          "kind": "class",
+          "qualified_name": "manim.mobject.mobject.Group"
+        },
+        {
+          "name": "Mobject",
+          "kind": "class",
+          "qualified_name": "manim.mobject.mobject.Mobject"
+        },
+        {
+          "name": "override_animate",
+          "kind": "function",
+          "qualified_name": "manim.mobject.mobject.override_animate"
+        }
+      ]
+    },
+    "mobject.opengl": {
+      "id": "mobject.opengl",
+      "name": "Opengl",
+      "type": "module",
+      "parent": "mobject",
+      "module": "manim.mobject.opengl",
+      "children": [
+        "mobject.opengl.dot_cloud",
+        "mobject.opengl.opengl_compatibility",
+        "mobject.opengl.opengl_geometry",
+        "mobject.opengl.opengl_image_mobject",
+        "mobject.opengl.opengl_mobject",
+        "mobject.opengl.opengl_point_cloud_mobject",
+        "mobject.opengl.opengl_surface",
+        "mobject.opengl.opengl_three_dimensions",
+        "mobject.opengl.opengl_vectorized_mobject"
+      ]
+    },
+    "mobject.opengl.dot_cloud": {
+      "id": "mobject.opengl.dot_cloud",
+      "name": "Dot Cloud",
+      "type": "module",
+      "parent": "mobject.opengl",
+      "module": "manim.mobject.opengl.dot_cloud",
+      "symbols": [
+        {
+          "name": "DotCloud",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.dot_cloud.DotCloud"
+        },
+        {
+          "name": "TrueDot",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.dot_cloud.TrueDot"
+        }
+      ]
+    },
+    "mobject.opengl.opengl_compatibility": {
+      "id": "mobject.opengl.opengl_compatibility",
+      "name": "Opengl Compatibility",
+      "type": "module",
+      "parent": "mobject.opengl",
+      "module": "manim.mobject.opengl.opengl_compatibility",
+      "symbols": [
+        {
+          "name": "ConvertToOpenGL",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_compatibility.ConvertToOpenGL"
+        }
+      ]
+    },
+    "mobject.opengl.opengl_geometry": {
+      "id": "mobject.opengl.opengl_geometry",
+      "name": "Opengl Geometry",
+      "type": "module",
+      "parent": "mobject.opengl",
+      "module": "manim.mobject.opengl.opengl_geometry",
+      "symbols": [
+        {
+          "name": "OpenGLAnnularSector",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_geometry.OpenGLAnnularSector"
+        },
+        {
+          "name": "OpenGLAnnulus",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_geometry.OpenGLAnnulus"
+        },
+        {
+          "name": "OpenGLArc",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_geometry.OpenGLArc"
+        },
+        {
+          "name": "OpenGLArcBetweenPoints",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_geometry.OpenGLArcBetweenPoints"
+        },
+        {
+          "name": "OpenGLArrow",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_geometry.OpenGLArrow"
+        },
+        {
+          "name": "OpenGLArrowTip",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_geometry.OpenGLArrowTip"
+        },
+        {
+          "name": "OpenGLCircle",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_geometry.OpenGLCircle"
+        },
+        {
+          "name": "OpenGLCubicBezier",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_geometry.OpenGLCubicBezier"
+        },
+        {
+          "name": "OpenGLCurvedArrow",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_geometry.OpenGLCurvedArrow"
+        },
+        {
+          "name": "OpenGLCurvedDoubleArrow",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_geometry.OpenGLCurvedDoubleArrow"
+        },
+        {
+          "name": "OpenGLDashedLine",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_geometry.OpenGLDashedLine"
+        },
+        {
+          "name": "OpenGLDot",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_geometry.OpenGLDot"
+        },
+        {
+          "name": "OpenGLDoubleArrow",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_geometry.OpenGLDoubleArrow"
+        },
+        {
+          "name": "OpenGLElbow",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_geometry.OpenGLElbow"
+        },
+        {
+          "name": "OpenGLEllipse",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_geometry.OpenGLEllipse"
+        },
+        {
+          "name": "OpenGLLine",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_geometry.OpenGLLine"
+        },
+        {
+          "name": "OpenGLPolygon",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_geometry.OpenGLPolygon"
+        },
+        {
+          "name": "OpenGLRectangle",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_geometry.OpenGLRectangle"
+        },
+        {
+          "name": "OpenGLRegularPolygon",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_geometry.OpenGLRegularPolygon"
+        },
+        {
+          "name": "OpenGLRoundedRectangle",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_geometry.OpenGLRoundedRectangle"
+        },
+        {
+          "name": "OpenGLSector",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_geometry.OpenGLSector"
+        },
+        {
+          "name": "OpenGLSquare",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_geometry.OpenGLSquare"
+        },
+        {
+          "name": "OpenGLTangentLine",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_geometry.OpenGLTangentLine"
+        },
+        {
+          "name": "OpenGLTipableVMobject",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_geometry.OpenGLTipableVMobject"
+        },
+        {
+          "name": "OpenGLTriangle",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_geometry.OpenGLTriangle"
+        },
+        {
+          "name": "OpenGLVector",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_geometry.OpenGLVector"
+        }
+      ]
+    },
+    "mobject.opengl.opengl_image_mobject": {
+      "id": "mobject.opengl.opengl_image_mobject",
+      "name": "Opengl Image Mobject",
+      "type": "module",
+      "parent": "mobject.opengl",
+      "module": "manim.mobject.opengl.opengl_image_mobject",
+      "symbols": [
+        {
+          "name": "OpenGLImageMobject",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_image_mobject.OpenGLImageMobject"
+        }
+      ]
+    },
+    "mobject.opengl.opengl_mobject": {
+      "id": "mobject.opengl.opengl_mobject",
+      "name": "Opengl Mobject",
+      "type": "module",
+      "parent": "mobject.opengl",
+      "module": "manim.mobject.opengl.opengl_mobject",
+      "symbols": [
+        {
+          "name": "OpenGLGroup",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_mobject.OpenGLGroup"
+        },
+        {
+          "name": "OpenGLMobject",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_mobject.OpenGLMobject"
+        },
+        {
+          "name": "OpenGLPoint",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_mobject.OpenGLPoint"
+        },
+        {
+          "name": "affects_shader_info_id",
+          "kind": "function",
+          "qualified_name": "manim.mobject.opengl.opengl_mobject.affects_shader_info_id"
+        },
+        {
+          "name": "override_animate",
+          "kind": "function",
+          "qualified_name": "manim.mobject.opengl.opengl_mobject.override_animate"
+        }
+      ]
+    },
+    "mobject.opengl.opengl_point_cloud_mobject": {
+      "id": "mobject.opengl.opengl_point_cloud_mobject",
+      "name": "Opengl Point Cloud Mobject",
+      "type": "module",
+      "parent": "mobject.opengl",
+      "module": "manim.mobject.opengl.opengl_point_cloud_mobject",
+      "symbols": [
+        {
+          "name": "OpenGLPGroup",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_point_cloud_mobject.OpenGLPGroup"
+        },
+        {
+          "name": "OpenGLPMPoint",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_point_cloud_mobject.OpenGLPMPoint"
+        },
+        {
+          "name": "OpenGLPMobject",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_point_cloud_mobject.OpenGLPMobject"
+        }
+      ]
+    },
+    "mobject.opengl.opengl_surface": {
+      "id": "mobject.opengl.opengl_surface",
+      "name": "Opengl Surface",
+      "type": "module",
+      "parent": "mobject.opengl",
+      "module": "manim.mobject.opengl.opengl_surface",
+      "symbols": [
+        {
+          "name": "OpenGLSurface",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_surface.OpenGLSurface"
+        },
+        {
+          "name": "OpenGLSurfaceGroup",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_surface.OpenGLSurfaceGroup"
+        },
+        {
+          "name": "OpenGLTexturedSurface",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_surface.OpenGLTexturedSurface"
+        }
+      ]
+    },
+    "mobject.opengl.opengl_three_dimensions": {
+      "id": "mobject.opengl.opengl_three_dimensions",
+      "name": "Opengl Three Dimensions",
+      "type": "module",
+      "parent": "mobject.opengl",
+      "module": "manim.mobject.opengl.opengl_three_dimensions",
+      "symbols": [
+        {
+          "name": "OpenGLSurfaceMesh",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_three_dimensions.OpenGLSurfaceMesh"
+        }
+      ]
+    },
+    "mobject.opengl.opengl_vectorized_mobject": {
+      "id": "mobject.opengl.opengl_vectorized_mobject",
+      "name": "Opengl Vectorized Mobject",
+      "type": "module",
+      "parent": "mobject.opengl",
+      "module": "manim.mobject.opengl.opengl_vectorized_mobject",
+      "symbols": [
+        {
+          "name": "OpenGLCurvesAsSubmobjects",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_vectorized_mobject.OpenGLCurvesAsSubmobjects"
+        },
+        {
+          "name": "OpenGLDashedVMobject",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_vectorized_mobject.OpenGLDashedVMobject"
+        },
+        {
+          "name": "OpenGLVGroup",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_vectorized_mobject.OpenGLVGroup"
+        },
+        {
+          "name": "OpenGLVMobject",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_vectorized_mobject.OpenGLVMobject"
+        },
+        {
+          "name": "OpenGLVectorizedPoint",
+          "kind": "class",
+          "qualified_name": "manim.mobject.opengl.opengl_vectorized_mobject.OpenGLVectorizedPoint"
+        },
+        {
+          "name": "triggers_refreshed_triangulation",
+          "kind": "function",
+          "qualified_name": "manim.mobject.opengl.opengl_vectorized_mobject.triggers_refreshed_triangulation"
+        }
+      ]
+    },
+    "mobject.svg": {
+      "id": "mobject.svg",
+      "name": "Svg",
+      "type": "module",
+      "parent": "mobject",
+      "module": "manim.mobject.svg",
+      "description": "Mobjects related to SVG images.",
+      "children": [
+        "mobject.svg.brace",
+        "mobject.svg.svg_mobject"
+      ]
+    },
+    "mobject.svg.brace": {
+      "id": "mobject.svg.brace",
+      "name": "Brace",
+      "type": "module",
+      "parent": "mobject.svg",
+      "module": "manim.mobject.svg.brace",
+      "description": "Mobject representing curly braces.",
+      "symbols": [
+        {
+          "name": "ArcBrace",
+          "kind": "class",
+          "qualified_name": "manim.mobject.svg.brace.ArcBrace"
+        },
+        {
+          "name": "Brace",
+          "kind": "class",
+          "qualified_name": "manim.mobject.svg.brace.Brace"
+        },
+        {
+          "name": "BraceBetweenPoints",
+          "kind": "class",
+          "qualified_name": "manim.mobject.svg.brace.BraceBetweenPoints"
+        },
+        {
+          "name": "BraceLabel",
+          "kind": "class",
+          "qualified_name": "manim.mobject.svg.brace.BraceLabel"
+        },
+        {
+          "name": "BraceText",
+          "kind": "class",
+          "qualified_name": "manim.mobject.svg.brace.BraceText"
+        }
+      ]
+    },
+    "mobject.svg.svg_mobject": {
+      "id": "mobject.svg.svg_mobject",
+      "name": "Svg Mobject",
+      "type": "module",
+      "parent": "mobject.svg",
+      "module": "manim.mobject.svg.svg_mobject",
+      "description": "Mobjects generated from an SVG file.",
+      "symbols": [
+        {
+          "name": "SVGMobject",
+          "kind": "class",
+          "qualified_name": "manim.mobject.svg.svg_mobject.SVGMobject"
+        },
+        {
+          "name": "VMobjectFromSVGPath",
+          "kind": "class",
+          "qualified_name": "manim.mobject.svg.svg_mobject.VMobjectFromSVGPath"
+        }
+      ]
+    },
+    "mobject.table": {
+      "id": "mobject.table",
+      "name": "Table",
+      "type": "module",
+      "parent": "mobject",
+      "module": "manim.mobject.table",
+      "description": "Mobjects representing tables.",
+      "symbols": [
+        {
+          "name": "DecimalTable",
+          "kind": "class",
+          "qualified_name": "manim.mobject.table.DecimalTable"
+        },
+        {
+          "name": "IntegerTable",
+          "kind": "class",
+          "qualified_name": "manim.mobject.table.IntegerTable"
+        },
+        {
+          "name": "MathTable",
+          "kind": "class",
+          "qualified_name": "manim.mobject.table.MathTable"
+        },
+        {
+          "name": "MobjectTable",
+          "kind": "class",
+          "qualified_name": "manim.mobject.table.MobjectTable"
+        },
+        {
+          "name": "Table",
+          "kind": "class",
+          "qualified_name": "manim.mobject.table.Table"
+        }
+      ]
+    },
+    "mobject.text": {
+      "id": "mobject.text",
+      "name": "Text",
+      "type": "module",
+      "parent": "mobject",
+      "module": "manim.mobject.text",
+      "description": "Mobjects used to display Text using Pango or LaTeX.",
+      "children": [
+        "mobject.text.code_mobject",
+        "mobject.text.numbers",
+        "mobject.text.tex_mobject",
+        "mobject.text.text_mobject"
+      ]
+    },
+    "mobject.text.code_mobject": {
+      "id": "mobject.text.code_mobject",
+      "name": "Code Mobject",
+      "type": "module",
+      "parent": "mobject.text",
+      "module": "manim.mobject.text.code_mobject",
+      "description": "Mobject representing highlighted source code listings.",
+      "symbols": [
+        {
+          "name": "Code",
+          "kind": "class",
+          "qualified_name": "manim.mobject.text.code_mobject.Code"
+        }
+      ]
+    },
+    "mobject.text.numbers": {
+      "id": "mobject.text.numbers",
+      "name": "Numbers",
+      "type": "module",
+      "parent": "mobject.text",
+      "module": "manim.mobject.text.numbers",
+      "description": "Mobjects representing numbers.",
+      "symbols": [
+        {
+          "name": "DecimalNumber",
+          "kind": "class",
+          "qualified_name": "manim.mobject.text.numbers.DecimalNumber"
+        },
+        {
+          "name": "Integer",
+          "kind": "class",
+          "qualified_name": "manim.mobject.text.numbers.Integer"
+        },
+        {
+          "name": "Variable",
+          "kind": "class",
+          "qualified_name": "manim.mobject.text.numbers.Variable"
+        }
+      ]
+    },
+    "mobject.text.tex_mobject": {
+      "id": "mobject.text.tex_mobject",
+      "name": "Tex Mobject",
+      "type": "module",
+      "parent": "mobject.text",
+      "module": "manim.mobject.text.tex_mobject",
+      "description": "Mobjects representing text rendered using LaTeX.",
+      "symbols": [
+        {
+          "name": "BulletedList",
+          "kind": "class",
+          "qualified_name": "manim.mobject.text.tex_mobject.BulletedList"
+        },
+        {
+          "name": "MathTex",
+          "kind": "class",
+          "qualified_name": "manim.mobject.text.tex_mobject.MathTex"
+        },
+        {
+          "name": "SingleStringMathTex",
+          "kind": "class",
+          "qualified_name": "manim.mobject.text.tex_mobject.SingleStringMathTex"
+        },
+        {
+          "name": "Tex",
+          "kind": "class",
+          "qualified_name": "manim.mobject.text.tex_mobject.Tex"
+        },
+        {
+          "name": "Title",
+          "kind": "class",
+          "qualified_name": "manim.mobject.text.tex_mobject.Title"
+        }
+      ]
+    },
+    "mobject.text.text_mobject": {
+      "id": "mobject.text.text_mobject",
+      "name": "Text Mobject",
+      "type": "module",
+      "parent": "mobject.text",
+      "module": "manim.mobject.text.text_mobject",
+      "description": "Mobjects used for displaying (non-LaTeX) text.",
+      "symbols": [
+        {
+          "name": "MarkupText",
+          "kind": "class",
+          "qualified_name": "manim.mobject.text.text_mobject.MarkupText"
+        },
+        {
+          "name": "Paragraph",
+          "kind": "class",
+          "qualified_name": "manim.mobject.text.text_mobject.Paragraph"
+        },
+        {
+          "name": "Text",
+          "kind": "class",
+          "qualified_name": "manim.mobject.text.text_mobject.Text"
+        },
+        {
+          "name": "register_font",
+          "kind": "function",
+          "qualified_name": "manim.mobject.text.text_mobject.register_font"
+        },
+        {
+          "name": "remove_invisible_chars",
+          "kind": "function",
+          "qualified_name": "manim.mobject.text.text_mobject.remove_invisible_chars"
+        }
+      ]
+    },
+    "mobject.three_d": {
+      "id": "mobject.three_d",
+      "name": "Three D",
+      "type": "module",
+      "parent": "mobject",
+      "module": "manim.mobject.three_d",
+      "description": "Three-dimensional mobjects.",
+      "children": [
+        "mobject.three_d.polyhedra",
+        "mobject.three_d.three_d_utils",
+        "mobject.three_d.three_dimensions"
+      ]
+    },
+    "mobject.three_d.polyhedra": {
+      "id": "mobject.three_d.polyhedra",
+      "name": "Polyhedra",
+      "type": "module",
+      "parent": "mobject.three_d",
+      "module": "manim.mobject.three_d.polyhedra",
+      "description": "General polyhedral class and platonic solids.",
+      "symbols": [
+        {
+          "name": "ConvexHull3D",
+          "kind": "class",
+          "qualified_name": "manim.mobject.three_d.polyhedra.ConvexHull3D"
+        },
+        {
+          "name": "Dodecahedron",
+          "kind": "class",
+          "qualified_name": "manim.mobject.three_d.polyhedra.Dodecahedron"
+        },
+        {
+          "name": "Icosahedron",
+          "kind": "class",
+          "qualified_name": "manim.mobject.three_d.polyhedra.Icosahedron"
+        },
+        {
+          "name": "Octahedron",
+          "kind": "class",
+          "qualified_name": "manim.mobject.three_d.polyhedra.Octahedron"
+        },
+        {
+          "name": "Polyhedron",
+          "kind": "class",
+          "qualified_name": "manim.mobject.three_d.polyhedra.Polyhedron"
+        },
+        {
+          "name": "Tetrahedron",
+          "kind": "class",
+          "qualified_name": "manim.mobject.three_d.polyhedra.Tetrahedron"
+        }
+      ]
+    },
+    "mobject.three_d.three_d_utils": {
+      "id": "mobject.three_d.three_d_utils",
+      "name": "Three D Utils",
+      "type": "module",
+      "parent": "mobject.three_d",
+      "module": "manim.mobject.three_d.three_d_utils",
+      "description": "Utility functions for three-dimensional mobjects.",
+      "symbols": [
+        {
+          "name": "get_3d_vmob_end_corner",
+          "kind": "function",
+          "qualified_name": "manim.mobject.three_d.three_d_utils.get_3d_vmob_end_corner"
+        },
+        {
+          "name": "get_3d_vmob_end_corner_index",
+          "kind": "function",
+          "qualified_name": "manim.mobject.three_d.three_d_utils.get_3d_vmob_end_corner_index"
+        },
+        {
+          "name": "get_3d_vmob_end_corner_unit_normal",
+          "kind": "function",
+          "qualified_name": "manim.mobject.three_d.three_d_utils.get_3d_vmob_end_corner_unit_normal"
+        },
+        {
+          "name": "get_3d_vmob_gradient_start_and_end_points",
+          "kind": "function",
+          "qualified_name": "manim.mobject.three_d.three_d_utils.get_3d_vmob_gradient_start_and_end_points"
+        },
+        {
+          "name": "get_3d_vmob_start_corner",
+          "kind": "function",
+          "qualified_name": "manim.mobject.three_d.three_d_utils.get_3d_vmob_start_corner"
+        },
+        {
+          "name": "get_3d_vmob_start_corner_index",
+          "kind": "function",
+          "qualified_name": "manim.mobject.three_d.three_d_utils.get_3d_vmob_start_corner_index"
+        },
+        {
+          "name": "get_3d_vmob_start_corner_unit_normal",
+          "kind": "function",
+          "qualified_name": "manim.mobject.three_d.three_d_utils.get_3d_vmob_start_corner_unit_normal"
+        },
+        {
+          "name": "get_3d_vmob_unit_normal",
+          "kind": "function",
+          "qualified_name": "manim.mobject.three_d.three_d_utils.get_3d_vmob_unit_normal"
+        }
+      ]
+    },
+    "mobject.three_d.three_dimensions": {
+      "id": "mobject.three_d.three_dimensions",
+      "name": "Three Dimensions",
+      "type": "module",
+      "parent": "mobject.three_d",
+      "module": "manim.mobject.three_d.three_dimensions",
+      "description": "Three-dimensional mobjects.",
+      "symbols": [
+        {
+          "name": "Arrow3D",
+          "kind": "class",
+          "qualified_name": "manim.mobject.three_d.three_dimensions.Arrow3D"
+        },
+        {
+          "name": "Cone",
+          "kind": "class",
+          "qualified_name": "manim.mobject.three_d.three_dimensions.Cone"
+        },
+        {
+          "name": "Cube",
+          "kind": "class",
+          "qualified_name": "manim.mobject.three_d.three_dimensions.Cube"
+        },
+        {
+          "name": "Cylinder",
+          "kind": "class",
+          "qualified_name": "manim.mobject.three_d.three_dimensions.Cylinder"
+        },
+        {
+          "name": "Dot3D",
+          "kind": "class",
+          "qualified_name": "manim.mobject.three_d.three_dimensions.Dot3D"
+        },
+        {
+          "name": "Line3D",
+          "kind": "class",
+          "qualified_name": "manim.mobject.three_d.three_dimensions.Line3D"
+        },
+        {
+          "name": "Prism",
+          "kind": "class",
+          "qualified_name": "manim.mobject.three_d.three_dimensions.Prism"
+        },
+        {
+          "name": "Sphere",
+          "kind": "class",
+          "qualified_name": "manim.mobject.three_d.three_dimensions.Sphere"
+        },
+        {
+          "name": "Surface",
+          "kind": "class",
+          "qualified_name": "manim.mobject.three_d.three_dimensions.Surface"
+        },
+        {
+          "name": "ThreeDVMobject",
+          "kind": "class",
+          "qualified_name": "manim.mobject.three_d.three_dimensions.ThreeDVMobject"
+        },
+        {
+          "name": "Torus",
+          "kind": "class",
+          "qualified_name": "manim.mobject.three_d.three_dimensions.Torus"
+        }
+      ]
+    },
+    "mobject.types": {
+      "id": "mobject.types",
+      "name": "Types",
+      "type": "module",
+      "parent": "mobject",
+      "module": "manim.mobject.types",
+      "description": "Specialized mobject base classes.",
+      "children": [
+        "mobject.types.image_mobject",
+        "mobject.types.point_cloud_mobject",
+        "mobject.types.vectorized_mobject"
+      ]
+    },
+    "mobject.types.image_mobject": {
+      "id": "mobject.types.image_mobject",
+      "name": "Image Mobject",
+      "type": "module",
+      "parent": "mobject.types",
+      "module": "manim.mobject.types.image_mobject",
+      "description": "Mobjects representing raster images.",
+      "symbols": [
+        {
+          "name": "AbstractImageMobject",
+          "kind": "class",
+          "qualified_name": "manim.mobject.types.image_mobject.AbstractImageMobject"
+        },
+        {
+          "name": "ImageMobject",
+          "kind": "class",
+          "qualified_name": "manim.mobject.types.image_mobject.ImageMobject"
+        },
+        {
+          "name": "ImageMobjectFromCamera",
+          "kind": "class",
+          "qualified_name": "manim.mobject.types.image_mobject.ImageMobjectFromCamera"
+        }
+      ]
+    },
+    "mobject.types.point_cloud_mobject": {
+      "id": "mobject.types.point_cloud_mobject",
+      "name": "Point Cloud Mobject",
+      "type": "module",
+      "parent": "mobject.types",
+      "module": "manim.mobject.types.point_cloud_mobject",
+      "description": "Mobjects representing point clouds.",
+      "symbols": [
+        {
+          "name": "Mobject1D",
+          "kind": "class",
+          "qualified_name": "manim.mobject.types.point_cloud_mobject.Mobject1D"
+        },
+        {
+          "name": "Mobject2D",
+          "kind": "class",
+          "qualified_name": "manim.mobject.types.point_cloud_mobject.Mobject2D"
+        },
+        {
+          "name": "PGroup",
+          "kind": "class",
+          "qualified_name": "manim.mobject.types.point_cloud_mobject.PGroup"
+        },
+        {
+          "name": "PMobject",
+          "kind": "class",
+          "qualified_name": "manim.mobject.types.point_cloud_mobject.PMobject"
+        },
+        {
+          "name": "Point",
+          "kind": "class",
+          "qualified_name": "manim.mobject.types.point_cloud_mobject.Point"
+        },
+        {
+          "name": "PointCloudDot",
+          "kind": "class",
+          "qualified_name": "manim.mobject.types.point_cloud_mobject.PointCloudDot"
+        }
+      ]
+    },
+    "mobject.types.vectorized_mobject": {
+      "id": "mobject.types.vectorized_mobject",
+      "name": "Vectorized Mobject",
+      "type": "module",
+      "parent": "mobject.types",
+      "module": "manim.mobject.types.vectorized_mobject",
+      "description": "Mobjects that use vector graphics.",
+      "symbols": [
+        {
+          "name": "CurvesAsSubmobjects",
+          "kind": "class",
+          "qualified_name": "manim.mobject.types.vectorized_mobject.CurvesAsSubmobjects"
+        },
+        {
+          "name": "DashedVMobject",
+          "kind": "class",
+          "qualified_name": "manim.mobject.types.vectorized_mobject.DashedVMobject"
+        },
+        {
+          "name": "VDict",
+          "kind": "class",
+          "qualified_name": "manim.mobject.types.vectorized_mobject.VDict"
+        },
+        {
+          "name": "VGroup",
+          "kind": "class",
+          "qualified_name": "manim.mobject.types.vectorized_mobject.VGroup"
+        },
+        {
+          "name": "VMobject",
+          "kind": "class",
+          "qualified_name": "manim.mobject.types.vectorized_mobject.VMobject"
+        },
+        {
+          "name": "VectorizedPoint",
+          "kind": "class",
+          "qualified_name": "manim.mobject.types.vectorized_mobject.VectorizedPoint"
+        }
+      ]
+    },
+    "mobject.utils": {
+      "id": "mobject.utils",
+      "name": "Utils",
+      "type": "module",
+      "parent": "mobject",
+      "module": "manim.mobject.utils",
+      "description": "Utilities for working with mobjects.",
+      "symbols": [
+        {
+          "name": "get_mobject_class",
+          "kind": "function",
+          "qualified_name": "manim.mobject.utils.get_mobject_class"
+        },
+        {
+          "name": "get_point_mobject_class",
+          "kind": "function",
+          "qualified_name": "manim.mobject.utils.get_point_mobject_class"
+        },
+        {
+          "name": "get_vectorized_mobject_class",
+          "kind": "function",
+          "qualified_name": "manim.mobject.utils.get_vectorized_mobject_class"
+        }
+      ]
+    },
+    "mobject.value_tracker": {
+      "id": "mobject.value_tracker",
+      "name": "Value Tracker",
+      "type": "module",
+      "parent": "mobject",
+      "module": "manim.mobject.value_tracker",
+      "description": "Simple mobjects that can be used for storing (and updating) a value.",
+      "symbols": [
+        {
+          "name": "ComplexValueTracker",
+          "kind": "class",
+          "qualified_name": "manim.mobject.value_tracker.ComplexValueTracker"
+        },
+        {
+          "name": "ValueTracker",
+          "kind": "class",
+          "qualified_name": "manim.mobject.value_tracker.ValueTracker"
+        }
+      ]
+    },
+    "mobject.vector_field": {
+      "id": "mobject.vector_field",
+      "name": "Vector Field",
+      "type": "module",
+      "parent": "mobject",
+      "module": "manim.mobject.vector_field",
+      "description": "Mobjects representing vector fields.",
+      "symbols": [
+        {
+          "name": "ArrowVectorField",
+          "kind": "class",
+          "qualified_name": "manim.mobject.vector_field.ArrowVectorField"
+        },
+        {
+          "name": "StreamLines",
+          "kind": "class",
+          "qualified_name": "manim.mobject.vector_field.StreamLines"
+        },
+        {
+          "name": "VectorField",
+          "kind": "class",
+          "qualified_name": "manim.mobject.vector_field.VectorField"
+        }
+      ]
+    },
+    "opengl": {
+      "id": "opengl",
+      "name": "Opengl",
+      "type": "domain",
+      "parent": "manim",
+      "module": "manim.opengl"
+    },
+    "plugins": {
+      "id": "plugins",
+      "name": "Plugins",
+      "type": "domain",
+      "parent": "manim",
+      "module": "manim.plugins",
+      "children": [
+        "plugins.plugins_flags"
+      ]
+    },
+    "plugins.plugins_flags": {
+      "id": "plugins.plugins_flags",
+      "name": "Plugins Flags",
+      "type": "module",
+      "parent": "plugins",
+      "module": "manim.plugins.plugins_flags",
+      "description": "Plugin Managing Utility",
+      "symbols": [
+        {
+          "name": "get_plugins",
+          "kind": "function",
+          "qualified_name": "manim.plugins.plugins_flags.get_plugins"
+        },
+        {
+          "name": "list_plugins",
+          "kind": "function",
+          "qualified_name": "manim.plugins.plugins_flags.list_plugins"
+        }
+      ]
+    },
+    "renderer": {
+      "id": "renderer",
+      "name": "Renderer",
+      "type": "domain",
+      "parent": "manim",
+      "module": "manim.renderer",
+      "children": [
+        "renderer.cairo_renderer",
+        "renderer.opengl_renderer",
+        "renderer.opengl_renderer_window",
+        "renderer.shader",
+        "renderer.shader_wrapper",
+        "renderer.vectorized_mobject_rendering"
+      ]
+    },
+    "renderer.cairo_renderer": {
+      "id": "renderer.cairo_renderer",
+      "name": "Cairo Renderer",
+      "type": "module",
+      "parent": "renderer",
+      "module": "manim.renderer.cairo_renderer",
+      "symbols": [
+        {
+          "name": "CairoRenderer",
+          "kind": "class",
+          "qualified_name": "manim.renderer.cairo_renderer.CairoRenderer"
+        }
+      ]
+    },
+    "renderer.opengl_renderer": {
+      "id": "renderer.opengl_renderer",
+      "name": "Opengl Renderer",
+      "type": "module",
+      "parent": "renderer",
+      "module": "manim.renderer.opengl_renderer",
+      "symbols": [
+        {
+          "name": "OpenGLCamera",
+          "kind": "class",
+          "qualified_name": "manim.renderer.opengl_renderer.OpenGLCamera"
+        },
+        {
+          "name": "OpenGLRenderer",
+          "kind": "class",
+          "qualified_name": "manim.renderer.opengl_renderer.OpenGLRenderer"
+        }
+      ]
+    },
+    "renderer.opengl_renderer_window": {
+      "id": "renderer.opengl_renderer_window",
+      "name": "Opengl Renderer Window",
+      "type": "module",
+      "parent": "renderer",
+      "module": "manim.renderer.opengl_renderer_window",
+      "symbols": [
+        {
+          "name": "Window",
+          "kind": "class",
+          "qualified_name": "manim.renderer.opengl_renderer_window.Window"
+        }
+      ]
+    },
+    "renderer.shader": {
+      "id": "renderer.shader",
+      "name": "Shader",
+      "type": "module",
+      "parent": "renderer",
+      "module": "manim.renderer.shader",
+      "symbols": [
+        {
+          "name": "FullScreenQuad",
+          "kind": "class",
+          "qualified_name": "manim.renderer.shader.FullScreenQuad"
+        },
+        {
+          "name": "Mesh",
+          "kind": "class",
+          "qualified_name": "manim.renderer.shader.Mesh"
+        },
+        {
+          "name": "Object3D",
+          "kind": "class",
+          "qualified_name": "manim.renderer.shader.Object3D"
+        },
+        {
+          "name": "Shader",
+          "kind": "class",
+          "qualified_name": "manim.renderer.shader.Shader"
+        },
+        {
+          "name": "filter_attributes",
+          "kind": "function",
+          "qualified_name": "manim.renderer.shader.filter_attributes"
+        },
+        {
+          "name": "get_shader_code_from_file",
+          "kind": "function",
+          "qualified_name": "manim.renderer.shader.get_shader_code_from_file"
+        }
+      ]
+    },
+    "renderer.shader_wrapper": {
+      "id": "renderer.shader_wrapper",
+      "name": "Shader Wrapper",
+      "type": "module",
+      "parent": "renderer",
+      "module": "manim.renderer.shader_wrapper",
+      "symbols": [
+        {
+          "name": "ShaderWrapper",
+          "kind": "class",
+          "qualified_name": "manim.renderer.shader_wrapper.ShaderWrapper"
+        },
+        {
+          "name": "find_file",
+          "kind": "function",
+          "qualified_name": "manim.renderer.shader_wrapper.find_file"
+        },
+        {
+          "name": "get_colormap_code",
+          "kind": "function",
+          "qualified_name": "manim.renderer.shader_wrapper.get_colormap_code"
+        },
+        {
+          "name": "get_shader_code_from_file",
+          "kind": "function",
+          "qualified_name": "manim.renderer.shader_wrapper.get_shader_code_from_file"
+        },
+        {
+          "name": "get_shader_dir",
+          "kind": "function",
+          "qualified_name": "manim.renderer.shader_wrapper.get_shader_dir"
+        }
+      ]
+    },
+    "renderer.vectorized_mobject_rendering": {
+      "id": "renderer.vectorized_mobject_rendering",
+      "name": "Vectorized Mobject Rendering",
+      "type": "module",
+      "parent": "renderer",
+      "module": "manim.renderer.vectorized_mobject_rendering",
+      "symbols": [
+        {
+          "name": "build_matrix_lists",
+          "kind": "function",
+          "qualified_name": "manim.renderer.vectorized_mobject_rendering.build_matrix_lists"
+        },
+        {
+          "name": "render_mobject_fills_with_matrix",
+          "kind": "function",
+          "qualified_name": "manim.renderer.vectorized_mobject_rendering.render_mobject_fills_with_matrix"
+        },
+        {
+          "name": "render_mobject_strokes_with_matrix",
+          "kind": "function",
+          "qualified_name": "manim.renderer.vectorized_mobject_rendering.render_mobject_strokes_with_matrix"
+        },
+        {
+          "name": "render_opengl_vectorized_mobject_fill",
+          "kind": "function",
+          "qualified_name": "manim.renderer.vectorized_mobject_rendering.render_opengl_vectorized_mobject_fill"
+        },
+        {
+          "name": "render_opengl_vectorized_mobject_stroke",
+          "kind": "function",
+          "qualified_name": "manim.renderer.vectorized_mobject_rendering.render_opengl_vectorized_mobject_stroke"
+        },
+        {
+          "name": "triangulate_mobject",
+          "kind": "function",
+          "qualified_name": "manim.renderer.vectorized_mobject_rendering.triangulate_mobject"
+        }
+      ]
+    },
+    "scene": {
+      "id": "scene",
+      "name": "Scene",
+      "type": "domain",
+      "parent": "manim",
+      "module": "manim.scene",
+      "children": [
+        "scene.moving_camera_scene",
+        "scene.scene",
+        "scene.scene_file_writer",
+        "scene.section",
+        "scene.three_d_scene",
+        "scene.vector_space_scene",
+        "scene.zoomed_scene"
+      ]
+    },
+    "scene.moving_camera_scene": {
+      "id": "scene.moving_camera_scene",
+      "name": "Moving Camera Scene",
+      "type": "module",
+      "parent": "scene",
+      "module": "manim.scene.moving_camera_scene",
+      "description": "A scene whose camera can be moved around.",
+      "symbols": [
+        {
+          "name": "MovingCameraScene",
+          "kind": "class",
+          "qualified_name": "manim.scene.moving_camera_scene.MovingCameraScene"
+        }
+      ]
+    },
+    "scene.scene": {
+      "id": "scene.scene",
+      "name": "Scene",
+      "type": "module",
+      "parent": "scene",
+      "module": "manim.scene.scene",
+      "description": "Basic canvas for animations.",
+      "symbols": [
+        {
+          "name": "RerunSceneHandler",
+          "kind": "class",
+          "qualified_name": "manim.scene.scene.RerunSceneHandler"
+        },
+        {
+          "name": "Scene",
+          "kind": "class",
+          "qualified_name": "manim.scene.scene.Scene"
+        }
+      ]
+    },
+    "scene.scene_file_writer": {
+      "id": "scene.scene_file_writer",
+      "name": "Scene File Writer",
+      "type": "module",
+      "parent": "scene",
+      "module": "manim.scene.scene_file_writer",
+      "description": "The interface between scenes and ffmpeg.",
+      "symbols": [
+        {
+          "name": "SceneFileWriter",
+          "kind": "class",
+          "qualified_name": "manim.scene.scene_file_writer.SceneFileWriter"
+        },
+        {
+          "name": "convert_audio",
+          "kind": "function",
+          "qualified_name": "manim.scene.scene_file_writer.convert_audio"
+        },
+        {
+          "name": "to_av_frame_rate",
+          "kind": "function",
+          "qualified_name": "manim.scene.scene_file_writer.to_av_frame_rate"
+        }
+      ]
+    },
+    "scene.section": {
+      "id": "scene.section",
+      "name": "Section",
+      "type": "module",
+      "parent": "scene",
+      "module": "manim.scene.section",
+      "description": "building blocks of segmented video API",
+      "symbols": [
+        {
+          "name": "DefaultSectionType",
+          "kind": "class",
+          "qualified_name": "manim.scene.section.DefaultSectionType"
+        },
+        {
+          "name": "Section",
+          "kind": "class",
+          "qualified_name": "manim.scene.section.Section"
+        }
+      ]
+    },
+    "scene.three_d_scene": {
+      "id": "scene.three_d_scene",
+      "name": "Three D Scene",
+      "type": "module",
+      "parent": "scene",
+      "module": "manim.scene.three_d_scene",
+      "description": "A scene suitable for rendering three-dimensional objects and animations.",
+      "symbols": [
+        {
+          "name": "SpecialThreeDScene",
+          "kind": "class",
+          "qualified_name": "manim.scene.three_d_scene.SpecialThreeDScene"
+        },
+        {
+          "name": "ThreeDScene",
+          "kind": "class",
+          "qualified_name": "manim.scene.three_d_scene.ThreeDScene"
+        }
+      ]
+    },
+    "scene.vector_space_scene": {
+      "id": "scene.vector_space_scene",
+      "name": "Vector Space Scene",
+      "type": "module",
+      "parent": "scene",
+      "module": "manim.scene.vector_space_scene",
+      "description": "A scene suitable for vector spaces.",
+      "symbols": [
+        {
+          "name": "LinearTransformationScene",
+          "kind": "class",
+          "qualified_name": "manim.scene.vector_space_scene.LinearTransformationScene"
+        },
+        {
+          "name": "VectorScene",
+          "kind": "class",
+          "qualified_name": "manim.scene.vector_space_scene.VectorScene"
+        }
+      ]
+    },
+    "scene.zoomed_scene": {
+      "id": "scene.zoomed_scene",
+      "name": "Zoomed Scene",
+      "type": "module",
+      "parent": "scene",
+      "module": "manim.scene.zoomed_scene",
+      "description": "A scene supporting zooming in on a specified section.",
+      "symbols": [
+        {
+          "name": "ZoomedScene",
+          "kind": "class",
+          "qualified_name": "manim.scene.zoomed_scene.ZoomedScene"
+        }
+      ]
+    },
+    "typing": {
+      "id": "typing",
+      "name": "Typing",
+      "type": "domain",
+      "parent": "manim",
+      "module": "manim.typing",
+      "description": "Custom type definitions used in Manim."
+    },
+    "utils": {
+      "id": "utils",
+      "name": "Utils",
+      "type": "domain",
+      "parent": "manim",
+      "module": "manim.utils",
+      "children": [
+        "utils.bezier",
+        "utils.caching",
+        "utils.color",
+        "utils.commands",
+        "utils.config_ops",
+        "utils.debug",
+        "utils.deprecation",
+        "utils.exceptions",
+        "utils.family",
+        "utils.family_ops",
+        "utils.file_ops",
+        "utils.hashing",
+        "utils.images",
+        "utils.ipython_magic",
+        "utils.iterables",
+        "utils.module_ops",
+        "utils.opengl",
+        "utils.parameter_parsing",
+        "utils.paths",
+        "utils.polylabel",
+        "utils.qhull",
+        "utils.rate_functions",
+        "utils.simple_functions",
+        "utils.sounds",
+        "utils.space_ops",
+        "utils.tex",
+        "utils.tex_file_writing",
+        "utils.tex_templates",
+        "utils.unit"
+      ]
+    },
+    "utils.bezier": {
+      "id": "utils.bezier",
+      "name": "Bezier",
+      "type": "module",
+      "parent": "utils",
+      "module": "manim.utils.bezier",
+      "description": "Utility functions related to Bézier curves.",
+      "symbols": [
+        {
+          "name": "bezier",
+          "kind": "function",
+          "qualified_name": "manim.utils.bezier.bezier"
+        },
+        {
+          "name": "bezier_remap",
+          "kind": "function",
+          "qualified_name": "manim.utils.bezier.bezier_remap"
+        },
+        {
+          "name": "get_quadratic_approximation_of_cubic",
+          "kind": "function",
+          "qualified_name": "manim.utils.bezier.get_quadratic_approximation_of_cubic"
+        },
+        {
+          "name": "get_smooth_closed_cubic_bezier_handle_points",
+          "kind": "function",
+          "qualified_name": "manim.utils.bezier.get_smooth_closed_cubic_bezier_handle_points"
+        },
+        {
+          "name": "get_smooth_cubic_bezier_handle_points",
+          "kind": "function",
+          "qualified_name": "manim.utils.bezier.get_smooth_cubic_bezier_handle_points"
+        },
+        {
+          "name": "get_smooth_open_cubic_bezier_handle_points",
+          "kind": "function",
+          "qualified_name": "manim.utils.bezier.get_smooth_open_cubic_bezier_handle_points"
+        },
+        {
+          "name": "integer_interpolate",
+          "kind": "function",
+          "qualified_name": "manim.utils.bezier.integer_interpolate"
+        },
+        {
+          "name": "interpolate",
+          "kind": "function",
+          "qualified_name": "manim.utils.bezier.interpolate"
+        },
+        {
+          "name": "inverse_interpolate",
+          "kind": "function",
+          "qualified_name": "manim.utils.bezier.inverse_interpolate"
+        },
+        {
+          "name": "is_closed",
+          "kind": "function",
+          "qualified_name": "manim.utils.bezier.is_closed"
+        },
+        {
+          "name": "match_interpolate",
+          "kind": "function",
+          "qualified_name": "manim.utils.bezier.match_interpolate"
+        },
+        {
+          "name": "mid",
+          "kind": "function",
+          "qualified_name": "manim.utils.bezier.mid"
+        },
+        {
+          "name": "partial_bezier_points",
+          "kind": "function",
+          "qualified_name": "manim.utils.bezier.partial_bezier_points"
+        },
+        {
+          "name": "point_lies_on_bezier",
+          "kind": "function",
+          "qualified_name": "manim.utils.bezier.point_lies_on_bezier"
+        },
+        {
+          "name": "proportions_along_bezier_curve_for_point",
+          "kind": "function",
+          "qualified_name": "manim.utils.bezier.proportions_along_bezier_curve_for_point"
+        },
+        {
+          "name": "split_bezier",
+          "kind": "function",
+          "qualified_name": "manim.utils.bezier.split_bezier"
+        },
+        {
+          "name": "subdivide_bezier",
+          "kind": "function",
+          "qualified_name": "manim.utils.bezier.subdivide_bezier"
+        }
+      ]
+    },
+    "utils.caching": {
+      "id": "utils.caching",
+      "name": "Caching",
+      "type": "module",
+      "parent": "utils",
+      "module": "manim.utils.caching",
+      "symbols": [
+        {
+          "name": "handle_caching_play",
+          "kind": "function",
+          "qualified_name": "manim.utils.caching.handle_caching_play"
+        }
+      ]
+    },
+    "utils.color": {
+      "id": "utils.color",
+      "name": "Color",
+      "type": "module",
+      "parent": "utils",
+      "module": "manim.utils.color",
+      "description": "Utilities for working with colors and predefined color constants.",
+      "children": [
+        "utils.color.AS2700",
+        "utils.color.BS381",
+        "utils.color.DVIPSNAMES",
+        "utils.color.SVGNAMES",
+        "utils.color.X11",
+        "utils.color.XKCD",
+        "utils.color.core",
+        "utils.color.manim_colors"
+      ]
+    },
+    "utils.color.AS2700": {
+      "id": "utils.color.AS2700",
+      "name": "As2700",
+      "type": "module",
+      "parent": "utils.color",
+      "module": "manim.utils.color.AS2700",
+      "description": "Australian Color Standard"
+    },
+    "utils.color.BS381": {
+      "id": "utils.color.BS381",
+      "name": "Bs381",
+      "type": "module",
+      "parent": "utils.color",
+      "module": "manim.utils.color.BS381",
+      "description": "British Color Standard"
+    },
+    "utils.color.DVIPSNAMES": {
+      "id": "utils.color.DVIPSNAMES",
+      "name": "Dvipsnames",
+      "type": "module",
+      "parent": "utils.color",
+      "module": "manim.utils.color.DVIPSNAMES",
+      "description": "dvips Colors"
+    },
+    "utils.color.SVGNAMES": {
+      "id": "utils.color.SVGNAMES",
+      "name": "Svgnames",
+      "type": "module",
+      "parent": "utils.color",
+      "module": "manim.utils.color.SVGNAMES",
+      "description": "SVG 1.1 Colors"
+    },
+    "utils.color.X11": {
+      "id": "utils.color.X11",
+      "name": "X11",
+      "type": "module",
+      "parent": "utils.color",
+      "module": "manim.utils.color.X11",
+      "description": "X11 Colors"
+    },
+    "utils.color.XKCD": {
+      "id": "utils.color.XKCD",
+      "name": "Xkcd",
+      "type": "module",
+      "parent": "utils.color",
+      "module": "manim.utils.color.XKCD",
+      "description": "Colors from the XKCD Color Name Survey"
+    },
+    "utils.color.core": {
+      "id": "utils.color.core",
+      "name": "Core",
+      "type": "module",
+      "parent": "utils.color",
+      "module": "manim.utils.color.core",
+      "description": "Manim's (internal) color data structure and some utilities for color conversion.",
+      "symbols": [
+        {
+          "name": "HSV",
+          "kind": "class",
+          "qualified_name": "manim.utils.color.core.HSV"
+        },
+        {
+          "name": "ManimColor",
+          "kind": "class",
+          "qualified_name": "manim.utils.color.core.ManimColor"
+        },
+        {
+          "name": "RGBA",
+          "kind": "class",
+          "qualified_name": "manim.utils.color.core.RGBA"
+        },
+        {
+          "name": "average_color",
+          "kind": "function",
+          "qualified_name": "manim.utils.color.core.average_color"
+        },
+        {
+          "name": "color_gradient",
+          "kind": "function",
+          "qualified_name": "manim.utils.color.core.color_gradient"
+        },
+        {
+          "name": "color_to_int_rgb",
+          "kind": "function",
+          "qualified_name": "manim.utils.color.core.color_to_int_rgb"
+        },
+        {
+          "name": "color_to_int_rgba",
+          "kind": "function",
+          "qualified_name": "manim.utils.color.core.color_to_int_rgba"
+        },
+        {
+          "name": "color_to_rgb",
+          "kind": "function",
+          "qualified_name": "manim.utils.color.core.color_to_rgb"
+        },
+        {
+          "name": "color_to_rgba",
+          "kind": "function",
+          "qualified_name": "manim.utils.color.core.color_to_rgba"
+        },
+        {
+          "name": "get_shaded_rgb",
+          "kind": "function",
+          "qualified_name": "manim.utils.color.core.get_shaded_rgb"
+        },
+        {
+          "name": "hex_to_rgb",
+          "kind": "function",
+          "qualified_name": "manim.utils.color.core.hex_to_rgb"
+        },
+        {
+          "name": "interpolate_color",
+          "kind": "function",
+          "qualified_name": "manim.utils.color.core.interpolate_color"
+        },
+        {
+          "name": "invert_color",
+          "kind": "function",
+          "qualified_name": "manim.utils.color.core.invert_color"
+        },
+        {
+          "name": "random_bright_color",
+          "kind": "function",
+          "qualified_name": "manim.utils.color.core.random_bright_color"
+        },
+        {
+          "name": "random_color",
+          "kind": "function",
+          "qualified_name": "manim.utils.color.core.random_color"
+        },
+        {
+          "name": "rgb_to_color",
+          "kind": "function",
+          "qualified_name": "manim.utils.color.core.rgb_to_color"
+        },
+        {
+          "name": "rgb_to_hex",
+          "kind": "function",
+          "qualified_name": "manim.utils.color.core.rgb_to_hex"
+        },
+        {
+          "name": "rgba_to_color",
+          "kind": "function",
+          "qualified_name": "manim.utils.color.core.rgba_to_color"
+        }
+      ]
+    },
+    "utils.color.manim_colors": {
+      "id": "utils.color.manim_colors",
+      "name": "Manim Colors",
+      "type": "module",
+      "parent": "utils.color",
+      "module": "manim.utils.color.manim_colors",
+      "description": "Colors included in the global name space."
+    },
+    "utils.commands": {
+      "id": "utils.commands",
+      "name": "Commands",
+      "type": "module",
+      "parent": "utils",
+      "module": "manim.utils.commands",
+      "symbols": [
+        {
+          "name": "VideoMetadata",
+          "kind": "class",
+          "qualified_name": "manim.utils.commands.VideoMetadata"
+        },
+        {
+          "name": "capture",
+          "kind": "function",
+          "qualified_name": "manim.utils.commands.capture"
+        },
+        {
+          "name": "get_dir_layout",
+          "kind": "function",
+          "qualified_name": "manim.utils.commands.get_dir_layout"
+        },
+        {
+          "name": "get_video_metadata",
+          "kind": "function",
+          "qualified_name": "manim.utils.commands.get_video_metadata"
+        }
+      ]
+    },
+    "utils.config_ops": {
+      "id": "utils.config_ops",
+      "name": "Config Ops",
+      "type": "module",
+      "parent": "utils",
+      "module": "manim.utils.config_ops",
+      "description": "Utilities that might be useful for configuration dictionaries.",
+      "symbols": [
+        {
+          "name": "DictAsObject",
+          "kind": "class",
+          "qualified_name": "manim.utils.config_ops.DictAsObject"
+        },
+        {
+          "name": "merge_dicts_recursively",
+          "kind": "function",
+          "qualified_name": "manim.utils.config_ops.merge_dicts_recursively"
+        },
+        {
+          "name": "update_dict_recursively",
+          "kind": "function",
+          "qualified_name": "manim.utils.config_ops.update_dict_recursively"
+        }
+      ]
+    },
+    "utils.debug": {
+      "id": "utils.debug",
+      "name": "Debug",
+      "type": "module",
+      "parent": "utils",
+      "module": "manim.utils.debug",
+      "description": "Debugging utilities.",
+      "symbols": [
+        {
+          "name": "index_labels",
+          "kind": "function",
+          "qualified_name": "manim.utils.debug.index_labels"
+        },
+        {
+          "name": "print_family",
+          "kind": "function",
+          "qualified_name": "manim.utils.debug.print_family"
+        }
+      ]
+    },
+    "utils.deprecation": {
+      "id": "utils.deprecation",
+      "name": "Deprecation",
+      "type": "module",
+      "parent": "utils",
+      "module": "manim.utils.deprecation",
+      "description": "Decorators for deprecating classes, functions and function parameters.",
+      "symbols": [
+        {
+          "name": "deprecated",
+          "kind": "function",
+          "qualified_name": "manim.utils.deprecation.deprecated"
+        },
+        {
+          "name": "deprecated_params",
+          "kind": "function",
+          "qualified_name": "manim.utils.deprecation.deprecated_params"
+        }
+      ]
+    },
+    "utils.exceptions": {
+      "id": "utils.exceptions",
+      "name": "Exceptions",
+      "type": "module",
+      "parent": "utils",
+      "module": "manim.utils.exceptions",
+      "symbols": [
+        {
+          "name": "EndSceneEarlyException",
+          "kind": "class",
+          "qualified_name": "manim.utils.exceptions.EndSceneEarlyException"
+        },
+        {
+          "name": "MultiAnimationOverrideException",
+          "kind": "class",
+          "qualified_name": "manim.utils.exceptions.MultiAnimationOverrideException"
+        },
+        {
+          "name": "RerunSceneException",
+          "kind": "class",
+          "qualified_name": "manim.utils.exceptions.RerunSceneException"
+        }
+      ]
+    },
+    "utils.family": {
+      "id": "utils.family",
+      "name": "Family",
+      "type": "module",
+      "parent": "utils",
+      "module": "manim.utils.family",
+      "symbols": [
+        {
+          "name": "extract_mobject_family_members",
+          "kind": "function",
+          "qualified_name": "manim.utils.family.extract_mobject_family_members"
+        }
+      ]
+    },
+    "utils.family_ops": {
+      "id": "utils.family_ops",
+      "name": "Family Ops",
+      "type": "module",
+      "parent": "utils",
+      "module": "manim.utils.family_ops",
+      "symbols": [
+        {
+          "name": "extract_mobject_family_members",
+          "kind": "function",
+          "qualified_name": "manim.utils.family_ops.extract_mobject_family_members"
+        },
+        {
+          "name": "restructure_list_to_exclude_certain_family_members",
+          "kind": "function",
+          "qualified_name": "manim.utils.family_ops.restructure_list_to_exclude_certain_family_members"
+        }
+      ]
+    },
+    "utils.file_ops": {
+      "id": "utils.file_ops",
+      "name": "File Ops",
+      "type": "module",
+      "parent": "utils",
+      "module": "manim.utils.file_ops",
+      "description": "Utility functions for interacting with the file system.",
+      "symbols": [
+        {
+          "name": "add_extension_if_not_present",
+          "kind": "function",
+          "qualified_name": "manim.utils.file_ops.add_extension_if_not_present"
+        },
+        {
+          "name": "add_import_statement",
+          "kind": "function",
+          "qualified_name": "manim.utils.file_ops.add_import_statement"
+        },
+        {
+          "name": "add_version_before_extension",
+          "kind": "function",
+          "qualified_name": "manim.utils.file_ops.add_version_before_extension"
+        },
+        {
+          "name": "copy_template_files",
+          "kind": "function",
+          "qualified_name": "manim.utils.file_ops.copy_template_files"
+        },
+        {
+          "name": "ensure_executable",
+          "kind": "function",
+          "qualified_name": "manim.utils.file_ops.ensure_executable"
+        },
+        {
+          "name": "get_template_names",
+          "kind": "function",
+          "qualified_name": "manim.utils.file_ops.get_template_names"
+        },
+        {
+          "name": "get_template_path",
+          "kind": "function",
+          "qualified_name": "manim.utils.file_ops.get_template_path"
+        },
+        {
+          "name": "guarantee_empty_existence",
+          "kind": "function",
+          "qualified_name": "manim.utils.file_ops.guarantee_empty_existence"
+        },
+        {
+          "name": "guarantee_existence",
+          "kind": "function",
+          "qualified_name": "manim.utils.file_ops.guarantee_existence"
+        },
+        {
+          "name": "is_gif_format",
+          "kind": "function",
+          "qualified_name": "manim.utils.file_ops.is_gif_format"
+        },
+        {
+          "name": "is_mov_format",
+          "kind": "function",
+          "qualified_name": "manim.utils.file_ops.is_mov_format"
+        },
+        {
+          "name": "is_mp4_format",
+          "kind": "function",
+          "qualified_name": "manim.utils.file_ops.is_mp4_format"
+        },
+        {
+          "name": "is_png_format",
+          "kind": "function",
+          "qualified_name": "manim.utils.file_ops.is_png_format"
+        },
+        {
+          "name": "is_webm_format",
+          "kind": "function",
+          "qualified_name": "manim.utils.file_ops.is_webm_format"
+        },
+        {
+          "name": "modify_atime",
+          "kind": "function",
+          "qualified_name": "manim.utils.file_ops.modify_atime"
+        },
+        {
+          "name": "open_file",
+          "kind": "function",
+          "qualified_name": "manim.utils.file_ops.open_file"
+        },
+        {
+          "name": "open_media_file",
+          "kind": "function",
+          "qualified_name": "manim.utils.file_ops.open_media_file"
+        },
+        {
+          "name": "seek_full_path_from_defaults",
+          "kind": "function",
+          "qualified_name": "manim.utils.file_ops.seek_full_path_from_defaults"
+        },
+        {
+          "name": "write_to_movie",
+          "kind": "function",
+          "qualified_name": "manim.utils.file_ops.write_to_movie"
+        }
+      ]
+    },
+    "utils.hashing": {
+      "id": "utils.hashing",
+      "name": "Hashing",
+      "type": "module",
+      "parent": "utils",
+      "module": "manim.utils.hashing",
+      "description": "Utilities for scene caching.",
+      "symbols": [
+        {
+          "name": "get_hash_from_play_call",
+          "kind": "function",
+          "qualified_name": "manim.utils.hashing.get_hash_from_play_call"
+        },
+        {
+          "name": "get_json",
+          "kind": "function",
+          "qualified_name": "manim.utils.hashing.get_json"
+        }
+      ]
+    },
+    "utils.images": {
+      "id": "utils.images",
+      "name": "Images",
+      "type": "module",
+      "parent": "utils",
+      "module": "manim.utils.images",
+      "description": "Image manipulation utilities.",
+      "symbols": [
+        {
+          "name": "change_to_rgba_array",
+          "kind": "function",
+          "qualified_name": "manim.utils.images.change_to_rgba_array"
+        },
+        {
+          "name": "drag_pixels",
+          "kind": "function",
+          "qualified_name": "manim.utils.images.drag_pixels"
+        },
+        {
+          "name": "get_full_raster_image_path",
+          "kind": "function",
+          "qualified_name": "manim.utils.images.get_full_raster_image_path"
+        },
+        {
+          "name": "get_full_vector_image_path",
+          "kind": "function",
+          "qualified_name": "manim.utils.images.get_full_vector_image_path"
+        },
+        {
+          "name": "invert_image",
+          "kind": "function",
+          "qualified_name": "manim.utils.images.invert_image"
+        }
+      ]
+    },
+    "utils.ipython_magic": {
+      "id": "utils.ipython_magic",
+      "name": "Ipython Magic",
+      "type": "module",
+      "parent": "utils",
+      "module": "manim.utils.ipython_magic",
+      "description": "Utilities for using Manim with IPython (in particular: Jupyter notebooks)",
+      "symbols": [
+        {
+          "name": "ManimMagic",
+          "kind": "class",
+          "qualified_name": "manim.utils.ipython_magic.ManimMagic"
+        }
+      ]
+    },
+    "utils.iterables": {
+      "id": "utils.iterables",
+      "name": "Iterables",
+      "type": "module",
+      "parent": "utils",
+      "module": "manim.utils.iterables",
+      "description": "Operations on iterables.",
+      "symbols": [
+        {
+          "name": "adjacent_n_tuples",
+          "kind": "function",
+          "qualified_name": "manim.utils.iterables.adjacent_n_tuples"
+        },
+        {
+          "name": "adjacent_pairs",
+          "kind": "function",
+          "qualified_name": "manim.utils.iterables.adjacent_pairs"
+        },
+        {
+          "name": "all_elements_are_instances",
+          "kind": "function",
+          "qualified_name": "manim.utils.iterables.all_elements_are_instances"
+        },
+        {
+          "name": "batch_by_property",
+          "kind": "function",
+          "qualified_name": "manim.utils.iterables.batch_by_property"
+        },
+        {
+          "name": "concatenate_lists",
+          "kind": "function",
+          "qualified_name": "manim.utils.iterables.concatenate_lists"
+        },
+        {
+          "name": "hash_obj",
+          "kind": "function",
+          "qualified_name": "manim.utils.iterables.hash_obj"
+        },
+        {
+          "name": "list_difference_update",
+          "kind": "function",
+          "qualified_name": "manim.utils.iterables.list_difference_update"
+        },
+        {
+          "name": "list_update",
+          "kind": "function",
+          "qualified_name": "manim.utils.iterables.list_update"
+        },
+        {
+          "name": "listify",
+          "kind": "function",
+          "qualified_name": "manim.utils.iterables.listify"
+        },
+        {
+          "name": "make_even",
+          "kind": "function",
+          "qualified_name": "manim.utils.iterables.make_even"
+        },
+        {
+          "name": "make_even_by_cycling",
+          "kind": "function",
+          "qualified_name": "manim.utils.iterables.make_even_by_cycling"
+        },
+        {
+          "name": "remove_list_redundancies",
+          "kind": "function",
+          "qualified_name": "manim.utils.iterables.remove_list_redundancies"
+        },
+        {
+          "name": "remove_nones",
+          "kind": "function",
+          "qualified_name": "manim.utils.iterables.remove_nones"
+        },
+        {
+          "name": "resize_array",
+          "kind": "function",
+          "qualified_name": "manim.utils.iterables.resize_array"
+        },
+        {
+          "name": "resize_preserving_order",
+          "kind": "function",
+          "qualified_name": "manim.utils.iterables.resize_preserving_order"
+        },
+        {
+          "name": "resize_with_interpolation",
+          "kind": "function",
+          "qualified_name": "manim.utils.iterables.resize_with_interpolation"
+        },
+        {
+          "name": "stretch_array_to_length",
+          "kind": "function",
+          "qualified_name": "manim.utils.iterables.stretch_array_to_length"
+        },
+        {
+          "name": "tuplify",
+          "kind": "function",
+          "qualified_name": "manim.utils.iterables.tuplify"
+        },
+        {
+          "name": "uniq_chain",
+          "kind": "function",
+          "qualified_name": "manim.utils.iterables.uniq_chain"
+        }
+      ]
+    },
+    "utils.module_ops": {
+      "id": "utils.module_ops",
+      "name": "Module Ops",
+      "type": "module",
+      "parent": "utils",
+      "module": "manim.utils.module_ops",
+      "symbols": [
+        {
+          "name": "get_module",
+          "kind": "function",
+          "qualified_name": "manim.utils.module_ops.get_module"
+        },
+        {
+          "name": "get_scene_classes_from_module",
+          "kind": "function",
+          "qualified_name": "manim.utils.module_ops.get_scene_classes_from_module"
+        },
+        {
+          "name": "get_scenes_to_render",
+          "kind": "function",
+          "qualified_name": "manim.utils.module_ops.get_scenes_to_render"
+        },
+        {
+          "name": "prompt_user_for_choice",
+          "kind": "function",
+          "qualified_name": "manim.utils.module_ops.prompt_user_for_choice"
+        },
+        {
+          "name": "scene_classes_from_file",
+          "kind": "function",
+          "qualified_name": "manim.utils.module_ops.scene_classes_from_file"
+        }
+      ]
+    },
+    "utils.opengl": {
+      "id": "utils.opengl",
+      "name": "Opengl",
+      "type": "module",
+      "parent": "utils",
+      "module": "manim.utils.opengl",
+      "symbols": [
+        {
+          "name": "matrix_to_shader_input",
+          "kind": "function",
+          "qualified_name": "manim.utils.opengl.matrix_to_shader_input"
+        },
+        {
+          "name": "orthographic_projection_matrix",
+          "kind": "function",
+          "qualified_name": "manim.utils.opengl.orthographic_projection_matrix"
+        },
+        {
+          "name": "perspective_projection_matrix",
+          "kind": "function",
+          "qualified_name": "manim.utils.opengl.perspective_projection_matrix"
+        },
+        {
+          "name": "rotate_in_place_matrix",
+          "kind": "function",
+          "qualified_name": "manim.utils.opengl.rotate_in_place_matrix"
+        },
+        {
+          "name": "rotation_matrix",
+          "kind": "function",
+          "qualified_name": "manim.utils.opengl.rotation_matrix"
+        },
+        {
+          "name": "scale_matrix",
+          "kind": "function",
+          "qualified_name": "manim.utils.opengl.scale_matrix"
+        },
+        {
+          "name": "translation_matrix",
+          "kind": "function",
+          "qualified_name": "manim.utils.opengl.translation_matrix"
+        },
+        {
+          "name": "view_matrix",
+          "kind": "function",
+          "qualified_name": "manim.utils.opengl.view_matrix"
+        },
+        {
+          "name": "x_rotation_matrix",
+          "kind": "function",
+          "qualified_name": "manim.utils.opengl.x_rotation_matrix"
+        },
+        {
+          "name": "y_rotation_matrix",
+          "kind": "function",
+          "qualified_name": "manim.utils.opengl.y_rotation_matrix"
+        },
+        {
+          "name": "z_rotation_matrix",
+          "kind": "function",
+          "qualified_name": "manim.utils.opengl.z_rotation_matrix"
+        }
+      ]
+    },
+    "utils.parameter_parsing": {
+      "id": "utils.parameter_parsing",
+      "name": "Parameter Parsing",
+      "type": "module",
+      "parent": "utils",
+      "module": "manim.utils.parameter_parsing",
+      "symbols": [
+        {
+          "name": "flatten_iterable_parameters",
+          "kind": "function",
+          "qualified_name": "manim.utils.parameter_parsing.flatten_iterable_parameters"
+        }
+      ]
+    },
+    "utils.paths": {
+      "id": "utils.paths",
+      "name": "Paths",
+      "type": "module",
+      "parent": "utils",
+      "module": "manim.utils.paths",
+      "description": "Functions determining transformation paths between sets of points.",
+      "symbols": [
+        {
+          "name": "clockwise_path",
+          "kind": "function",
+          "qualified_name": "manim.utils.paths.clockwise_path"
+        },
+        {
+          "name": "counterclockwise_path",
+          "kind": "function",
+          "qualified_name": "manim.utils.paths.counterclockwise_path"
+        },
+        {
+          "name": "path_along_arc",
+          "kind": "function",
+          "qualified_name": "manim.utils.paths.path_along_arc"
+        },
+        {
+          "name": "path_along_circles",
+          "kind": "function",
+          "qualified_name": "manim.utils.paths.path_along_circles"
+        },
+        {
+          "name": "spiral_path",
+          "kind": "function",
+          "qualified_name": "manim.utils.paths.spiral_path"
+        },
+        {
+          "name": "straight_path",
+          "kind": "function",
+          "qualified_name": "manim.utils.paths.straight_path"
+        }
+      ]
+    },
+    "utils.polylabel": {
+      "id": "utils.polylabel",
+      "name": "Polylabel",
+      "type": "module",
+      "parent": "utils",
+      "module": "manim.utils.polylabel",
+      "symbols": [
+        {
+          "name": "Cell",
+          "kind": "class",
+          "qualified_name": "manim.utils.polylabel.Cell"
+        },
+        {
+          "name": "Polygon",
+          "kind": "class",
+          "qualified_name": "manim.utils.polylabel.Polygon"
+        },
+        {
+          "name": "polylabel",
+          "kind": "function",
+          "qualified_name": "manim.utils.polylabel.polylabel"
+        }
+      ]
+    },
+    "utils.qhull": {
+      "id": "utils.qhull",
+      "name": "Qhull",
+      "type": "module",
+      "parent": "utils",
+      "module": "manim.utils.qhull",
+      "symbols": [
+        {
+          "name": "Facet",
+          "kind": "class",
+          "qualified_name": "manim.utils.qhull.Facet"
+        },
+        {
+          "name": "Horizon",
+          "kind": "class",
+          "qualified_name": "manim.utils.qhull.Horizon"
+        },
+        {
+          "name": "QuickHull",
+          "kind": "class",
+          "qualified_name": "manim.utils.qhull.QuickHull"
+        },
+        {
+          "name": "QuickHullPoint",
+          "kind": "class",
+          "qualified_name": "manim.utils.qhull.QuickHullPoint"
+        },
+        {
+          "name": "SubFacet",
+          "kind": "class",
+          "qualified_name": "manim.utils.qhull.SubFacet"
+        }
+      ]
+    },
+    "utils.rate_functions": {
+      "id": "utils.rate_functions",
+      "name": "Rate Functions",
+      "type": "module",
+      "parent": "utils",
+      "module": "manim.utils.rate_functions",
+      "description": "A selection of rate functions, i.e., *speed curves* for animations.\nPlease find a standard list at https://easings.net/. Here is a picture\nfor the non-standard ones",
+      "symbols": [
+        {
+          "name": "RateFunction",
+          "kind": "class",
+          "qualified_name": "manim.utils.rate_functions.RateFunction"
+        },
+        {
+          "name": "double_smooth",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.double_smooth"
+        },
+        {
+          "name": "ease_in_back",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.ease_in_back"
+        },
+        {
+          "name": "ease_in_bounce",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.ease_in_bounce"
+        },
+        {
+          "name": "ease_in_circ",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.ease_in_circ"
+        },
+        {
+          "name": "ease_in_cubic",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.ease_in_cubic"
+        },
+        {
+          "name": "ease_in_elastic",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.ease_in_elastic"
+        },
+        {
+          "name": "ease_in_expo",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.ease_in_expo"
+        },
+        {
+          "name": "ease_in_out_back",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.ease_in_out_back"
+        },
+        {
+          "name": "ease_in_out_bounce",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.ease_in_out_bounce"
+        },
+        {
+          "name": "ease_in_out_circ",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.ease_in_out_circ"
+        },
+        {
+          "name": "ease_in_out_cubic",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.ease_in_out_cubic"
+        },
+        {
+          "name": "ease_in_out_elastic",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.ease_in_out_elastic"
+        },
+        {
+          "name": "ease_in_out_expo",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.ease_in_out_expo"
+        },
+        {
+          "name": "ease_in_out_quad",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.ease_in_out_quad"
+        },
+        {
+          "name": "ease_in_out_quart",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.ease_in_out_quart"
+        },
+        {
+          "name": "ease_in_out_quint",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.ease_in_out_quint"
+        },
+        {
+          "name": "ease_in_out_sine",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.ease_in_out_sine"
+        },
+        {
+          "name": "ease_in_quad",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.ease_in_quad"
+        },
+        {
+          "name": "ease_in_quart",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.ease_in_quart"
+        },
+        {
+          "name": "ease_in_quint",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.ease_in_quint"
+        },
+        {
+          "name": "ease_in_sine",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.ease_in_sine"
+        },
+        {
+          "name": "ease_out_back",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.ease_out_back"
+        },
+        {
+          "name": "ease_out_bounce",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.ease_out_bounce"
+        },
+        {
+          "name": "ease_out_circ",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.ease_out_circ"
+        },
+        {
+          "name": "ease_out_cubic",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.ease_out_cubic"
+        },
+        {
+          "name": "ease_out_elastic",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.ease_out_elastic"
+        },
+        {
+          "name": "ease_out_expo",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.ease_out_expo"
+        },
+        {
+          "name": "ease_out_quad",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.ease_out_quad"
+        },
+        {
+          "name": "ease_out_quart",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.ease_out_quart"
+        },
+        {
+          "name": "ease_out_quint",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.ease_out_quint"
+        },
+        {
+          "name": "ease_out_sine",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.ease_out_sine"
+        },
+        {
+          "name": "exponential_decay",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.exponential_decay"
+        },
+        {
+          "name": "linear",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.linear"
+        },
+        {
+          "name": "lingering",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.lingering"
+        },
+        {
+          "name": "not_quite_there",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.not_quite_there"
+        },
+        {
+          "name": "running_start",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.running_start"
+        },
+        {
+          "name": "rush_from",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.rush_from"
+        },
+        {
+          "name": "rush_into",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.rush_into"
+        },
+        {
+          "name": "slow_into",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.slow_into"
+        },
+        {
+          "name": "smooth",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.smooth"
+        },
+        {
+          "name": "smoothererstep",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.smoothererstep"
+        },
+        {
+          "name": "smootherstep",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.smootherstep"
+        },
+        {
+          "name": "smoothstep",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.smoothstep"
+        },
+        {
+          "name": "squish_rate_func",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.squish_rate_func"
+        },
+        {
+          "name": "there_and_back",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.there_and_back"
+        },
+        {
+          "name": "there_and_back_with_pause",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.there_and_back_with_pause"
+        },
+        {
+          "name": "unit_interval",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.unit_interval"
+        },
+        {
+          "name": "wiggle",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.wiggle"
+        },
+        {
+          "name": "zero",
+          "kind": "function",
+          "qualified_name": "manim.utils.rate_functions.zero"
+        }
+      ]
+    },
+    "utils.simple_functions": {
+      "id": "utils.simple_functions",
+      "name": "Simple Functions",
+      "type": "module",
+      "parent": "utils",
+      "module": "manim.utils.simple_functions",
+      "description": "A collection of simple functions.",
+      "symbols": [
+        {
+          "name": "Comparable",
+          "kind": "class",
+          "qualified_name": "manim.utils.simple_functions.Comparable"
+        },
+        {
+          "name": "binary_search",
+          "kind": "function",
+          "qualified_name": "manim.utils.simple_functions.binary_search"
+        },
+        {
+          "name": "clip",
+          "kind": "function",
+          "qualified_name": "manim.utils.simple_functions.clip"
+        },
+        {
+          "name": "sigmoid",
+          "kind": "function",
+          "qualified_name": "manim.utils.simple_functions.sigmoid"
+        }
+      ]
+    },
+    "utils.sounds": {
+      "id": "utils.sounds",
+      "name": "Sounds",
+      "type": "module",
+      "parent": "utils",
+      "module": "manim.utils.sounds",
+      "description": "Sound-related utility functions.",
+      "symbols": [
+        {
+          "name": "get_full_sound_file_path",
+          "kind": "function",
+          "qualified_name": "manim.utils.sounds.get_full_sound_file_path"
+        }
+      ]
+    },
+    "utils.space_ops": {
+      "id": "utils.space_ops",
+      "name": "Space Ops",
+      "type": "module",
+      "parent": "utils",
+      "module": "manim.utils.space_ops",
+      "description": "Utility functions for two- and three-dimensional vectors.",
+      "symbols": [
+        {
+          "name": "R3_to_complex",
+          "kind": "function",
+          "qualified_name": "manim.utils.space_ops.R3_to_complex"
+        },
+        {
+          "name": "angle_axis_from_quaternion",
+          "kind": "function",
+          "qualified_name": "manim.utils.space_ops.angle_axis_from_quaternion"
+        },
+        {
+          "name": "angle_between_vectors",
+          "kind": "function",
+          "qualified_name": "manim.utils.space_ops.angle_between_vectors"
+        },
+        {
+          "name": "angle_of_vector",
+          "kind": "function",
+          "qualified_name": "manim.utils.space_ops.angle_of_vector"
+        },
+        {
+          "name": "cartesian_to_spherical",
+          "kind": "function",
+          "qualified_name": "manim.utils.space_ops.cartesian_to_spherical"
+        },
+        {
+          "name": "center_of_mass",
+          "kind": "function",
+          "qualified_name": "manim.utils.space_ops.center_of_mass"
+        },
+        {
+          "name": "compass_directions",
+          "kind": "function",
+          "qualified_name": "manim.utils.space_ops.compass_directions"
+        },
+        {
+          "name": "complex_func_to_R3_func",
+          "kind": "function",
+          "qualified_name": "manim.utils.space_ops.complex_func_to_R3_func"
+        },
+        {
+          "name": "complex_to_R3",
+          "kind": "function",
+          "qualified_name": "manim.utils.space_ops.complex_to_R3"
+        },
+        {
+          "name": "cross",
+          "kind": "function",
+          "qualified_name": "manim.utils.space_ops.cross"
+        },
+        {
+          "name": "cross2d",
+          "kind": "function",
+          "qualified_name": "manim.utils.space_ops.cross2d"
+        },
+        {
+          "name": "earclip_triangulation",
+          "kind": "function",
+          "qualified_name": "manim.utils.space_ops.earclip_triangulation"
+        },
+        {
+          "name": "find_intersection",
+          "kind": "function",
+          "qualified_name": "manim.utils.space_ops.find_intersection"
+        },
+        {
+          "name": "get_unit_normal",
+          "kind": "function",
+          "qualified_name": "manim.utils.space_ops.get_unit_normal"
+        },
+        {
+          "name": "get_winding_number",
+          "kind": "function",
+          "qualified_name": "manim.utils.space_ops.get_winding_number"
+        },
+        {
+          "name": "line_intersection",
+          "kind": "function",
+          "qualified_name": "manim.utils.space_ops.line_intersection"
+        },
+        {
+          "name": "midpoint",
+          "kind": "function",
+          "qualified_name": "manim.utils.space_ops.midpoint"
+        },
+        {
+          "name": "norm_squared",
+          "kind": "function",
+          "qualified_name": "manim.utils.space_ops.norm_squared"
+        },
+        {
+          "name": "normalize",
+          "kind": "function",
+          "qualified_name": "manim.utils.space_ops.normalize"
+        },
+        {
+          "name": "normalize_along_axis",
+          "kind": "function",
+          "qualified_name": "manim.utils.space_ops.normalize_along_axis"
+        },
+        {
+          "name": "perpendicular_bisector",
+          "kind": "function",
+          "qualified_name": "manim.utils.space_ops.perpendicular_bisector"
+        },
+        {
+          "name": "quaternion_conjugate",
+          "kind": "function",
+          "qualified_name": "manim.utils.space_ops.quaternion_conjugate"
+        },
+        {
+          "name": "quaternion_from_angle_axis",
+          "kind": "function",
+          "qualified_name": "manim.utils.space_ops.quaternion_from_angle_axis"
+        },
+        {
+          "name": "quaternion_mult",
+          "kind": "function",
+          "qualified_name": "manim.utils.space_ops.quaternion_mult"
+        },
+        {
+          "name": "regular_vertices",
+          "kind": "function",
+          "qualified_name": "manim.utils.space_ops.regular_vertices"
+        },
+        {
+          "name": "rotate_vector",
+          "kind": "function",
+          "qualified_name": "manim.utils.space_ops.rotate_vector"
+        },
+        {
+          "name": "rotation_about_z",
+          "kind": "function",
+          "qualified_name": "manim.utils.space_ops.rotation_about_z"
+        },
+        {
+          "name": "rotation_matrix",
+          "kind": "function",
+          "qualified_name": "manim.utils.space_ops.rotation_matrix"
+        },
+        {
+          "name": "rotation_matrix_from_quaternion",
+          "kind": "function",
+          "qualified_name": "manim.utils.space_ops.rotation_matrix_from_quaternion"
+        },
+        {
+          "name": "rotation_matrix_transpose",
+          "kind": "function",
+          "qualified_name": "manim.utils.space_ops.rotation_matrix_transpose"
+        },
+        {
+          "name": "rotation_matrix_transpose_from_quaternion",
+          "kind": "function",
+          "qualified_name": "manim.utils.space_ops.rotation_matrix_transpose_from_quaternion"
+        },
+        {
+          "name": "shoelace",
+          "kind": "function",
+          "qualified_name": "manim.utils.space_ops.shoelace"
+        },
+        {
+          "name": "shoelace_direction",
+          "kind": "function",
+          "qualified_name": "manim.utils.space_ops.shoelace_direction"
+        },
+        {
+          "name": "spherical_to_cartesian",
+          "kind": "function",
+          "qualified_name": "manim.utils.space_ops.spherical_to_cartesian"
+        },
+        {
+          "name": "thick_diagonal",
+          "kind": "function",
+          "qualified_name": "manim.utils.space_ops.thick_diagonal"
+        },
+        {
+          "name": "z_to_vector",
+          "kind": "function",
+          "qualified_name": "manim.utils.space_ops.z_to_vector"
+        }
+      ]
+    },
+    "utils.tex": {
+      "id": "utils.tex",
+      "name": "Tex",
+      "type": "module",
+      "parent": "utils",
+      "module": "manim.utils.tex",
+      "description": "Utilities for processing LaTeX templates.",
+      "symbols": [
+        {
+          "name": "TexTemplate",
+          "kind": "class",
+          "qualified_name": "manim.utils.tex.TexTemplate"
+        }
+      ]
+    },
+    "utils.tex_file_writing": {
+      "id": "utils.tex_file_writing",
+      "name": "Tex File Writing",
+      "type": "module",
+      "parent": "utils",
+      "module": "manim.utils.tex_file_writing",
+      "description": "Interface for writing, compiling, and converting ``.tex`` files.",
+      "symbols": [
+        {
+          "name": "compile_tex",
+          "kind": "function",
+          "qualified_name": "manim.utils.tex_file_writing.compile_tex"
+        },
+        {
+          "name": "convert_to_svg",
+          "kind": "function",
+          "qualified_name": "manim.utils.tex_file_writing.convert_to_svg"
+        },
+        {
+          "name": "delete_nonsvg_files",
+          "kind": "function",
+          "qualified_name": "manim.utils.tex_file_writing.delete_nonsvg_files"
+        },
+        {
+          "name": "generate_tex_file",
+          "kind": "function",
+          "qualified_name": "manim.utils.tex_file_writing.generate_tex_file"
+        },
+        {
+          "name": "insight_inputenc_error",
+          "kind": "function",
+          "qualified_name": "manim.utils.tex_file_writing.insight_inputenc_error"
+        },
+        {
+          "name": "insight_package_not_found_error",
+          "kind": "function",
+          "qualified_name": "manim.utils.tex_file_writing.insight_package_not_found_error"
+        },
+        {
+          "name": "make_tex_compilation_command",
+          "kind": "function",
+          "qualified_name": "manim.utils.tex_file_writing.make_tex_compilation_command"
+        },
+        {
+          "name": "print_all_tex_errors",
+          "kind": "function",
+          "qualified_name": "manim.utils.tex_file_writing.print_all_tex_errors"
+        },
+        {
+          "name": "print_tex_error",
+          "kind": "function",
+          "qualified_name": "manim.utils.tex_file_writing.print_tex_error"
+        },
+        {
+          "name": "tex_hash",
+          "kind": "function",
+          "qualified_name": "manim.utils.tex_file_writing.tex_hash"
+        },
+        {
+          "name": "tex_to_svg_file",
+          "kind": "function",
+          "qualified_name": "manim.utils.tex_file_writing.tex_to_svg_file"
+        }
+      ]
+    },
+    "utils.tex_templates": {
+      "id": "utils.tex_templates",
+      "name": "Tex Templates",
+      "type": "module",
+      "parent": "utils",
+      "module": "manim.utils.tex_templates",
+      "description": "A library of LaTeX templates.",
+      "symbols": [
+        {
+          "name": "TexFontTemplates",
+          "kind": "class",
+          "qualified_name": "manim.utils.tex_templates.TexFontTemplates"
+        },
+        {
+          "name": "TexTemplateLibrary",
+          "kind": "class",
+          "qualified_name": "manim.utils.tex_templates.TexTemplateLibrary"
+        }
+      ]
+    },
+    "utils.unit": {
+      "id": "utils.unit",
+      "name": "Unit",
+      "type": "module",
+      "parent": "utils",
+      "module": "manim.utils.unit",
+      "description": "Implement the Unit class.",
+      "symbols": [
+        {
+          "name": "Percent",
+          "kind": "class",
+          "qualified_name": "manim.utils.unit.Percent"
+        }
+      ]
+    }
+  }
+}

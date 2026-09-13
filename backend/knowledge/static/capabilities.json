@@ -1,0 +1,3152 @@
+{
+  "library": {
+    "name": "Manim",
+    "package": "manim",
+    "version": "0.19.0"
+  },
+  "capabilities": [
+    {
+      "id": "add_annotations_and_emphasis",
+      "name": "Add annotations and emphasis marks like crosses and underlines",
+      "description": "Add visual annotations such as an underline or a cross mark to emphasize, cross out, or mark parts of a scene or mobject.",
+      "apis": [
+        "manim.mobject.geometry.shape_matchers.Cross",
+        "manim.mobject.geometry.shape_matchers.Underline"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "underline this word",
+        "cross out the incorrect option",
+        "add a cross over the mobject"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "animate_decimal_numbers",
+      "name": "Animate Decimal Number Values",
+      "description": "Animate the change of decimal numbers or value trackers dynamically within a scene.",
+      "apis": [
+        "manim.animation.numbers.ChangeDecimalToValue",
+        "manim.animation.numbers.ChangingDecimal"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "animate a changing decimal number",
+        "change decimal to a new value",
+        "update a number dynamically during animation"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "homotopy_point_transformation",
+      "name": "Animate Homotopy Point Transformation",
+      "description": "Transform the points of a mobject over time using a continuous homotopy function mapping coordinates and time.",
+      "apis": [
+        "manim.animation.movement.Homotopy",
+        "manim.animation.movement.ComplexHomotopy",
+        "manim.animation.movement.SmoothedVectorizedHomotopy"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "apply a homotopy transformation to a shape",
+        "warp a mobject using a custom time-dependent coordinate function"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "animate_numerical_parameters_with_value_trackers",
+      "name": "Animate numerical and complex parameters with value trackers",
+      "description": "Animate continuous changes in real-valued or complex-valued parameters to drive dynamic updates in scenes, such as moving pointers along number lines, updating angles, or shifting coordinates.",
+      "apis": [
+        "manim.mobject.value_tracker.ValueTracker",
+        "manim.mobject.value_tracker.ComplexValueTracker"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "animate numerical changes using a value tracker",
+        "drive scene updates with a continuous parameter tracker",
+        "animate complex-valued parameters on a plane"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "phase_flow_animation",
+      "name": "Animate Phase Flow",
+      "description": "Animate vector fields or phase flow trajectories over a given runtime and rate function.",
+      "apis": [
+        "manim.animation.movement.PhaseFlow"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "animate phase flow for differential equations",
+        "visualize vector field flow over time"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "animate_stroke_slivers",
+      "name": "Animate Stroke Slivers and Passing Flashes",
+      "description": "Show only a passing sliver or moving portion of a VMobject's stroke along its path.",
+      "apis": [
+        "manim.animation.indication.ShowPassingFlash",
+        "manim.animation.indication.ShowPassingFlashWithThinningStrokeWidth"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "pass a flash along the outline of the shape",
+        "show a sliver of the stroke moving around the polygon"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "handwriting_and_typing_text",
+      "name": "Animate writing, typing, and revealing text",
+      "description": "Simulate hand-writing text/equations or typing characters letter by letter with optional cursor effects.",
+      "apis": [
+        "manim.animation.creation.Write",
+        "manim.animation.creation.Unwrite",
+        "manim.animation.creation.AddTextLetterByLetter",
+        "manim.animation.creation.RemoveTextLetterByLetter",
+        "manim.animation.creation.AddTextWordByWord",
+        "manim.animation.creation.TypeWithCursor",
+        "manim.animation.creation.UntypeWithCursor"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "write text on the screen",
+        "simulate hand writing equations",
+        "type text letter by letter with a cursor",
+        "erase text using unwrite",
+        "remove text letter by letter"
+      ],
+      "constraints": [
+        "Some character-by-character animations apply primarily to Text rather than MathTex"
+      ],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "apply_custom_functions_and_methods",
+      "name": "Apply Custom Functions and Methods",
+      "description": "Animate mobjects by applying arbitrary python functions, pointwise functions, or methods dynamically.",
+      "apis": [
+        "manim.animation.transform.ApplyFunction",
+        "manim.animation.transform.ApplyMethod",
+        "manim.animation.transform.ApplyPointwiseFunction",
+        "manim.animation.transform.ApplyPointwiseFunctionToCenter",
+        "manim.animation.transform.ApplyComplexFunction"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "apply a custom function to a shape",
+        "warp a square using a pointwise function",
+        "animate a method call on a mobject"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "apply_matrix_transformations",
+      "name": "Apply Matrix Transformations",
+      "description": "Apply linear transformation matrices to mobjects and number planes.",
+      "apis": [
+        "manim.animation.transform.ApplyMatrix"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "apply a transformation matrix to a grid",
+        "transform an object using a matrix"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "vectorized_base_mobjects",
+      "name": "Base vectorized mobjects and points",
+      "description": "Fundamental base classes for handling vectorized geometric shapes, paths, and points with custom stroke and sheen settings.",
+      "apis": [
+        "manim.mobject.types.vectorized_mobject.VMobject",
+        "manim.mobject.types.vectorized_mobject.VectorizedPoint"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "create a custom vectorized mobject",
+        "define a vectorized point position"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "broadcast_pulse_animation",
+      "name": "Broadcast pulse animation",
+      "description": "Animate a mobject with a radiating broadcast or pulse effect emerging from a focal point.",
+      "apis": [
+        "manim.animation.specialized.Broadcast"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "broadcast a circle outwards",
+        "create a pulse effect from a point",
+        "animate expanding ripples from a mobject"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "cairo_scene_rendering",
+      "name": "Cairo Scene Rendering",
+      "description": "Render scenes and animations using the Cairo-based graphics backend.",
+      "apis": [
+        "manim.renderer.cairo_renderer.CairoRenderer"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "render the scene using cairo",
+        "use the cairo graphics backend for rendering"
+      ],
+      "constraints": [
+        "Requires Cairo backend configuration"
+      ],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "cli_configuration_style_and_parsing_utilities",
+      "name": "CLI configuration style and parsing utilities",
+      "description": "Validate color styles and parse configuration dictionaries and values for the command line interface.",
+      "apis": [
+        "manim.cli.cfg.group.is_valid_style",
+        "manim.cli.cfg.group.replace_keys",
+        "manim.cli.cfg.group.value_from_string"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "check if a rich color style is valid",
+        "replace underscores and dots in configuration keys",
+        "extract a literal of proper datatype from a string value"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "color_conversion_and_formatting",
+      "name": "Color Conversion and Formatting",
+      "description": "Convert colors between RGB, RGBA, hex codes, and integer or float arrays.",
+      "apis": [
+        "manim.utils.color.core.color_to_int_rgb",
+        "manim.utils.color.core.color_to_int_rgba",
+        "manim.utils.color.core.color_to_rgb",
+        "manim.utils.color.core.color_to_rgba",
+        "manim.utils.color.core.hex_to_rgb",
+        "manim.utils.color.core.rgb_to_color",
+        "manim.utils.color.core.rgb_to_hex",
+        "manim.utils.color.core.rgba_to_color"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "convert hex code to rgb",
+        "convert color to rgb array",
+        "transform rgba tuple to color"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "color_interpolation_and_gradients",
+      "name": "Color Interpolation and Gradients",
+      "description": "Interpolate between multiple colors, generate color gradients, and find average colors.",
+      "apis": [
+        "manim.utils.color.core.average_color",
+        "manim.utils.color.core.color_gradient",
+        "manim.utils.color.core.interpolate_color",
+        "manim.utils.color.core.invert_color"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "generate a color gradient",
+        "interpolate between two colors",
+        "calculate average color",
+        "invert a color"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "color_management_and_spaces",
+      "name": "Color Management and Spaces",
+      "description": "Define, parse, and convert colors using internal representations and color spaces like HSV and ManimColor.",
+      "apis": [
+        "manim.utils.color.core.ManimColor",
+        "manim.utils.color.core.HSV"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "create a custom ManimColor",
+        "work with HSV color space",
+        "convert between color formats"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "tex_compilation_and_rendering",
+      "name": "Compile and render TeX expressions to SVG",
+      "description": "Generate TeX files from expressions, compile them using TeX compilers, convert the output to SVG format, and handle TeX compilation errors.",
+      "apis": [
+        "manim.utils.tex_file_writing.compile_tex",
+        "manim.utils.tex_file_writing.convert_to_svg",
+        "manim.utils.tex_file_writing.delete_nonsvg_files",
+        "manim.utils.tex_file_writing.generate_tex_file",
+        "manim.utils.tex_file_writing.insight_inputenc_error",
+        "manim.utils.tex_file_writing.insight_package_not_found_error",
+        "manim.utils.tex_file_writing.make_tex_compilation_command",
+        "manim.utils.tex_file_writing.print_all_tex_errors",
+        "manim.utils.tex_file_writing.print_tex_error",
+        "manim.utils.tex_file_writing.tex_hash",
+        "manim.utils.tex_file_writing.tex_to_svg_file"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "compile a tex string to svg",
+        "generate a tex file and convert to svg",
+        "handle latex compilation errors"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "compose_and_synchronize_animations",
+      "name": "Compose and Synchronize Multiple Animations",
+      "description": "Group, sequence, or stagger multiple animations with customizable lag ratios and runtime controls to create complex coordinated scene choreography.",
+      "apis": [
+        "manim.animation.composition.AnimationGroup",
+        "manim.animation.composition.LaggedStart",
+        "manim.animation.composition.LaggedStartMap",
+        "manim.animation.composition.Succession"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "play multiple animations with a delay between them",
+        "sequence animations one after another",
+        "stagger an animation across submobjects with a lag ratio",
+        "group several animations to play simultaneously"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "compute_polygon_pole_of_inaccessibility",
+      "name": "Compute polygon pole of inaccessibility",
+      "description": "Finds the point farthest from the edges of a polygon (pole of inaccessibility) using a grid-based approach with cells and polygonal rings.",
+      "apis": [
+        "manim.utils.polylabel.Cell",
+        "manim.utils.polylabel.Polygon",
+        "manim.utils.polylabel.polylabel"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "find the pole of inaccessibility of a polygon",
+        "calculate the deepest interior point of a polygon",
+        "find the furthest point from the edges inside a polygon"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "configure_graph_axis_scaling",
+      "name": "Configure Graph Axis Scaling",
+      "description": "Configure linear or logarithmic scaling bases for coordinate systems and function plotting.",
+      "apis": [
+        "manim.mobject.graphing.scale.LinearBase",
+        "manim.mobject.graphing.scale.LogBase"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "scale the axis logarithmically",
+        "use a linear scale for the graph",
+        "configure custom labels on a logarithmic number line"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "configure_latex_templates",
+      "name": "Configure LaTeX Templates",
+      "description": "Customize LaTeX templates and packages used for rendering mathematical text and formulas.",
+      "apis": [
+        "manim.utils.tex.TexTemplate"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "use a custom latex template",
+        "add a latex package for text rendering"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "configure_pygui",
+      "name": "Configure PyGUI",
+      "description": "Configure the Manim PyGUI graphical user interface settings.",
+      "apis": [
+        "manim.gui.gui.configure_pygui"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "configure pygui",
+        "set up the manim gui configuration"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "configure_scene_camera_and_background",
+      "name": "Configure scene camera and background",
+      "description": "Configure camera settings, background images, colors, and display properties for a scene.",
+      "apis": [
+        "manim.camera.camera.Camera",
+        "manim.camera.camera.BackgroundColoredVMobjectDisplayer"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "set a background image for the camera",
+        "configure camera pixel dimensions and background color",
+        "display vectorized mobjects with a background image"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "configure_three_d_camera",
+      "name": "Configure Three-Dimensional Camera",
+      "description": "Configure the 3D camera settings, viewport, and background properties for rendering three-dimensional scenes.",
+      "apis": [
+        "manim.camera.three_d_camera.ThreeDCamera"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "set up a 3d camera",
+        "configure camera background and resolution for 3d scenes"
+      ],
+      "constraints": [
+        "Requires a 3D scene context"
+      ],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "construct_convex_hulls_and_cutouts",
+      "name": "Construct convex hulls and shape cutouts",
+      "description": "Generate convex hulls around sets of points or carve out smaller shapes from a primary shape.",
+      "apis": [
+        "manim.mobject.geometry.polygram.ConvexHull",
+        "manim.mobject.geometry.polygram.Cutout",
+        "manim.utils.qhull.QuickHull",
+        "manim.utils.qhull.Facet",
+        "manim.utils.qhull.SubFacet",
+        "manim.utils.qhull.Horizon",
+        "manim.utils.qhull.QuickHullPoint"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "create a convex hull around a set of points",
+        "cut out shapes from a main shape",
+        "compute a convex hull for a set of points",
+        "construct a convex hull using QuickHull"
+      ],
+      "constraints": [],
+      "merged_from": [
+        "construct_convex_hull"
+      ],
+      "version": "0.19.0"
+    },
+    {
+      "id": "construct_tangent_lines",
+      "name": "Construct tangent lines to shapes",
+      "description": "Construct a line tangent to any VMobject at a specific point along its path.",
+      "apis": [
+        "manim.mobject.geometry.line.TangentLine"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "draw a tangent line to a circle at a given alpha",
+        "construct a tangent at a point on a curve"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "continuous_mobject_updaters_and_redrawing",
+      "name": "Continuous Mobject Updaters and Redrawing",
+      "description": "Continuously redraw, shift, rotate, or synchronize mobject properties every frame using updater utility functions.",
+      "apis": [
+        "manim.animation.updaters.mobject_update_utils.always",
+        "manim.animation.updaters.mobject_update_utils.always_redraw",
+        "manim.animation.updaters.mobject_update_utils.always_rotate",
+        "manim.animation.updaters.mobject_update_utils.always_shift",
+        "manim.animation.updaters.mobject_update_utils.f_always",
+        "manim.animation.updaters.mobject_update_utils.turn_animation_into_updater"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "always redraw an object based on a function every frame",
+        "continuously rotate a mobject at a certain rate",
+        "continuously shift a mobject along a direction",
+        "turn an animation into a continuous updater"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "coordinate_transformations",
+      "name": "Coordinate Space Transformations",
+      "description": "Convert points and vectors between Cartesian, spherical, complex, and R3 coordinate systems.",
+      "apis": [
+        "manim.utils.space_ops.R3_to_complex",
+        "manim.utils.space_ops.cartesian_to_spherical",
+        "manim.utils.space_ops.complex_func_to_R3_func",
+        "manim.utils.space_ops.complex_to_R3",
+        "manim.utils.space_ops.spherical_to_cartesian"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "convert spherical coordinates to cartesian",
+        "transform complex functions to R3 functions",
+        "convert coordinates between systems"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "create_three_dimensional_axes",
+      "name": "Create 3D Axes",
+      "description": "Create a 3-dimensional set of axes for spatial plots, 3D surfaces, and camera rotations.",
+      "apis": [
+        "manim.mobject.graphing.coordinate_systems.ThreeDAxes"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "create 3D axes with x, y, and z ranges",
+        "add three-dimensional axes to a 3D scene"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "create_3d_geometric_primitives",
+      "name": "Create 3D geometric primitives",
+      "description": "Create basic three-dimensional geometric solids and objects like cubes, prisms, arrows, lines, and points in a 3D scene.",
+      "apis": [
+        "manim.mobject.three_d.three_dimensions.Cube",
+        "manim.mobject.three_d.three_dimensions.Prism",
+        "manim.mobject.three_d.three_dimensions.Arrow3D",
+        "manim.mobject.three_d.three_dimensions.Line3D",
+        "manim.mobject.three_d.three_dimensions.Dot3D",
+        "manim.mobject.three_d.three_dimensions.ThreeDVMobject"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "draw a 3D cube",
+        "add a prism and an arrow in 3D space",
+        "place a dot in a 3D coordinate system"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "create_zoomed_scene_focus",
+      "name": "Create a zoomed-in region within a scene",
+      "description": "Highlight and display a zoomed-in portion of a scene separately, useful for focusing on intricate details or small objects.",
+      "apis": [
+        "manim.scene.zoomed_scene.ZoomedScene",
+        "manim.mobject.geometry.arc.Dot",
+        "manim.mobject.types.image_mobject.ImageMobject",
+        "manim.mobject.text.text_mobject.Text",
+        "manim.mobject.geometry.shape_matchers.BackgroundRectangle",
+        "manim.animation.updaters.update.UpdateFromFunc",
+        "manim.animation.creation.Create",
+        "manim.animation.fading.FadeIn",
+        "manim.animation.fading.FadeOut",
+        "manim.animation.transform.ScaleInPlace",
+        "manim.animation.creation.Uncreate"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "zoom in on a specific part of the scene",
+        "create a zoomed scene with a magnifying window",
+        "display a magnified view of an animation region"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "create_and_animate_3d_scenes",
+      "name": "Create and animate 3D scenes",
+      "description": "Create three-dimensional scenes, rotate cameras, manipulate 3D light sources, and render 3D surface plots and objects with specialized three-dimensional camera settings.",
+      "apis": [
+        "manim.scene.three_d_scene.ThreeDScene",
+        "manim.scene.three_d_scene.SpecialThreeDScene"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "create a 3d scene with rotating camera",
+        "plot a surface in 3d",
+        "adjust lighting and camera position in a 3d scene"
+      ],
+      "constraints": [
+        "Requires 3D-compatible objects and axes for proper visual results."
+      ],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "create_and_animate_3d_surfaces",
+      "name": "Create and animate 3D surfaces",
+      "description": "Create and display 3D mathematical surfaces, cones, cylinders, spheres, toruses, and other custom parameterized 3D shapes.",
+      "apis": [
+        "manim.mobject.three_d.three_dimensions.Surface",
+        "manim.mobject.three_d.three_dimensions.Cone",
+        "manim.mobject.three_d.three_dimensions.Cylinder",
+        "manim.mobject.three_d.three_dimensions.Sphere",
+        "manim.mobject.three_d.three_dimensions.Torus"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "create a 3D surface plot",
+        "render a cone in 3D",
+        "display a sphere and torus"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "create_and_annotate_arcs_and_sectors",
+      "name": "Create and annotate arcs and sectors",
+      "description": "Construct circular arcs, arc segments, sectors, annuli, and annotated shapes with specific angles and radii.",
+      "apis": [
+        "manim.mobject.geometry.arc.AnnotationDot",
+        "manim.mobject.geometry.arc.AnnularSector",
+        "manim.mobject.geometry.arc.Annulus",
+        "manim.mobject.geometry.arc.Arc",
+        "manim.mobject.geometry.arc.ArcBetweenPoints",
+        "manim.mobject.geometry.arc.ArcPolygon",
+        "manim.mobject.geometry.arc.ArcPolygonFromArcs",
+        "manim.mobject.geometry.arc.CurvedArrow",
+        "manim.mobject.geometry.arc.CurvedDoubleArrow",
+        "manim.mobject.geometry.arc.Sector"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "draw an arc of angle pi",
+        "create an annular sector with inner and outer radii",
+        "construct an annulus and place it in the scene",
+        "draw a sector of a circle"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "create_bar_charts",
+      "name": "Create and display bar charts",
+      "description": "Generate statistical bar charts with customized values, bar names, and axis configurations.",
+      "apis": [
+        "manim.mobject.graphing.probability.BarChart"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "create a bar chart",
+        "plot statistical data using bars",
+        "visualize categories with a bar chart"
+      ],
+      "constraints": [
+        "Values can include negative numbers",
+        "Bar names and custom ranges can be specified"
+      ],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "create_and_display_tables",
+      "name": "Create and Display Tables",
+      "description": "Create, format, and display tabular data, grids, and matrices using standard and specialized table mobjects.",
+      "apis": [
+        "manim.mobject.table.Table",
+        "manim.mobject.table.MathTable",
+        "manim.mobject.table.IntegerTable",
+        "manim.mobject.table.DecimalTable",
+        "manim.mobject.table.MobjectTable"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "create a table with data",
+        "display a mathematical table",
+        "show a grid of numbers or mobjects"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "create_and_manage_scene",
+      "name": "Create and manage animation scenes",
+      "description": "Define the canvas and core scene environment to manage mobjects, play animations, and control the rendering lifecycle.",
+      "apis": [
+        "manim.scene.scene.Scene",
+        "manim.scene.scene.RerunSceneHandler"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "create a new scene class",
+        "define the construct method for an animation",
+        "rerun the scene automatically when the file is modified"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "create_and_manage_point_clouds",
+      "name": "Create and manage point clouds and point-based mobjects",
+      "description": "Create individual points, point cloud dots, and organize collections of point-based mobjects into groups and grids.",
+      "apis": [
+        "manim.mobject.types.point_cloud_mobject.Mobject1D",
+        "manim.mobject.types.point_cloud_mobject.Mobject2D",
+        "manim.mobject.types.point_cloud_mobject.PGroup",
+        "manim.mobject.types.point_cloud_mobject.PMobject",
+        "manim.mobject.types.point_cloud_mobject.Point",
+        "manim.mobject.types.point_cloud_mobject.PointCloudDot"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "create a point cloud",
+        "generate a cloud of points",
+        "group point mobjects",
+        "display a collection of point dots"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "create_sample_spaces",
+      "name": "Create and partition sample spaces",
+      "description": "Render two-dimensional rectangular sampling spaces that can be subdivided and styled for probability demonstrations.",
+      "apis": [
+        "manim.mobject.graphing.probability.SampleSpace"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "create a sample space",
+        "visualize a probability sample space",
+        "divide a rectangular sampling area"
+      ],
+      "constraints": [
+        "Supports vertical division and color mapping for partitions"
+      ],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "create_opengl_3d_surfaces",
+      "name": "Create and render OpenGL 3D surfaces and textured meshes",
+      "description": "Allows the creation and grouping of 3D parametric surfaces, textured surfaces, and surface collections using the OpenGL renderer for high-performance visualization.",
+      "apis": [
+        "manim.mobject.opengl.opengl_surface.OpenGLSurface",
+        "manim.mobject.opengl.opengl_surface.OpenGLSurfaceGroup",
+        "manim.mobject.opengl.opengl_surface.OpenGLTexturedSurface"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "render a 3d surface using opengl",
+        "create an opengl textured surface",
+        "group multiple opengl surfaces together"
+      ],
+      "constraints": [
+        "Requires OpenGL rendering context."
+      ],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "create_and_style_circles_and_ellipses",
+      "name": "Create and style circles and ellipses",
+      "description": "Create, customize, and arrange circular shapes, ovals, and related geometry like ellipses and circles.",
+      "apis": [
+        "manim.mobject.geometry.arc.Circle",
+        "manim.mobject.geometry.arc.Ellipse"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "draw a circle with a specific radius and color",
+        "create an ellipse and arrange shapes in a group",
+        "display a colored circle"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "create_and_visualize_graphs",
+      "name": "Create and Visualize Graphs",
+      "description": "Create undirected and directed graphs with customizable layouts, vertices, edges, and labels.",
+      "apis": [
+        "manim.mobject.graph.Graph",
+        "manim.mobject.graph.DiGraph",
+        "manim.mobject.graph.GenericGraph",
+        "manim.mobject.graph.LayoutFunction"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "draw a graph with vertices and edges",
+        "create a directed graph",
+        "visualize a networkx graph with a custom layout"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "create_braces_and_annotations",
+      "name": "Create braces and annotations",
+      "description": "Create braces, arc braces, and point-to-point braces to annotate lengths, dimensions, or groupings of objects in a scene.",
+      "apis": [
+        "manim.mobject.svg.brace.ArcBrace",
+        "manim.mobject.svg.brace.Brace",
+        "manim.mobject.svg.brace.BraceBetweenPoints"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "draw a brace next to an object",
+        "add a brace between two points",
+        "create an arc brace"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "create_cartesian_and_custom_axes",
+      "name": "Create Cartesian and Custom Axes",
+      "description": "Create customizable 2D axes for plotting mathematical functions, number lines, and coordinate-based visual elements.",
+      "apis": [
+        "manim.mobject.graphing.coordinate_systems.Axes",
+        "manim.mobject.graphing.coordinate_systems.CoordinateSystem"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "create a set of 2D axes",
+        "plot graphs on coordinate axes",
+        "setup x and y axes with custom ranges"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "create_cartesian_number_planes",
+      "name": "Create Cartesian Number Planes",
+      "description": "Create a cartesian grid system with background lines and scaling for plotting points, vectors, and grid transformations.",
+      "apis": [
+        "manim.mobject.graphing.coordinate_systems.NumberPlane"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "create a number plane with background grid lines",
+        "display a cartesian coordinate plane",
+        "add a scaled background grid to the scene"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "create_complex_number_planes",
+      "name": "Create Complex Number Planes",
+      "description": "Create specialized number planes configured for visualizing complex numbers, points, and mappings.",
+      "apis": [
+        "manim.mobject.graphing.coordinate_systems.ComplexPlane"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "create a complex plane for plotting complex numbers",
+        "visualize points on a complex coordinate plane"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "create_complex_stars_and_polygrams",
+      "name": "Create complex stars and polygrams",
+      "description": "Construct generalized polygrams, regular polygrams, and star shapes with custom densities and radii.",
+      "apis": [
+        "manim.mobject.geometry.polygram.Polygram",
+        "manim.mobject.geometry.polygram.RegularPolygram",
+        "manim.mobject.geometry.polygram.Star"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "draw a star with multiple points",
+        "create a regular polygram or pentagram",
+        "construct a polygram with disconnected edge groups"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "dashed_and_submobject_curves",
+      "name": "Create dashed curves and convert curves to submobjects",
+      "description": "Transform vectorized curves and shapes into dashed lines or break curve elements into individual submobjects for fine-grained styling and gradients.",
+      "apis": [
+        "manim.mobject.types.vectorized_mobject.DashedVMobject",
+        "manim.mobject.types.vectorized_mobject.CurvesAsSubmobjects"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "convert a circle or function graph into a dashed line",
+        "turn curve elements into submobjects to apply color gradients"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "create_labeled_braces",
+      "name": "Create labeled braces",
+      "description": "Create braces with accompanying text or mathematical labels to annotate measurements and sections with explanations.",
+      "apis": [
+        "manim.mobject.svg.brace.BraceLabel",
+        "manim.mobject.svg.brace.BraceText"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "add a brace with a label to an object",
+        "create a brace text annotation"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "create_labeled_geometry_elements",
+      "name": "Create labeled geometric elements and shapes",
+      "description": "Create shapes, lines, arrows, and custom regions with integrated text labels and background frames.",
+      "apis": [
+        "manim.mobject.geometry.labeled.Label",
+        "manim.mobject.geometry.labeled.LabeledArrow",
+        "manim.mobject.geometry.labeled.LabeledLine",
+        "manim.mobject.geometry.labeled.LabeledPolygram"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "create an arrow with a text label",
+        "draw a line with a label along its length",
+        "display a labeled geometric shape or polygram",
+        "add a framed text label to the scene"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "create_matrix_determinants",
+      "name": "Create Matrix Determinants",
+      "description": "Generate determinant text and visual representations associated with a given matrix.",
+      "apis": [
+        "manim.mobject.matrix.get_det_text"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "show the determinant of a matrix",
+        "create determinant text for a matrix"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "create_number_lines",
+      "name": "Create number lines and unit intervals",
+      "description": "Create number lines and unit intervals with customizable tick marks, labels, and scaling.",
+      "apis": [
+        "manim.mobject.graphing.number_line.NumberLine",
+        "manim.mobject.graphing.number_line.UnitInterval"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "create a number line",
+        "draw a unit interval",
+        "add a number line with custom ticks"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "opengl_basic_geometric_shapes",
+      "name": "Create OpenGL Geometric Shapes",
+      "description": "Construct basic 2D geometric shapes such as circles, squares, rectangles, polygons, and bezier curves using OpenGL.",
+      "apis": [
+        "manim.mobject.opengl.opengl_geometry.OpenGLCircle",
+        "manim.mobject.opengl.opengl_geometry.OpenGLCubicBezier",
+        "manim.mobject.opengl.opengl_geometry.OpenGLElbow",
+        "manim.mobject.opengl.opengl_geometry.OpenGLEllipse",
+        "manim.mobject.opengl.opengl_geometry.OpenGLPolygon",
+        "manim.mobject.opengl.opengl_geometry.OpenGLRectangle",
+        "manim.mobject.opengl.opengl_geometry.OpenGLRegularPolygon",
+        "manim.mobject.opengl.opengl_geometry.OpenGLRoundedRectangle",
+        "manim.mobject.opengl.opengl_geometry.OpenGLSector",
+        "manim.mobject.opengl.opengl_geometry.OpenGLSquare",
+        "manim.mobject.opengl.opengl_geometry.OpenGLTriangle",
+        "manim.mobject.opengl.opengl_geometry.OpenGLDot",
+        "manim.mobject.opengl.opengl_geometry.OpenGLDoubleArrow"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "draw a circle with opengl",
+        "create an opengl rectangle",
+        "render a regular polygon using opengl"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "opengl_curved_and_straight_vector_graphics",
+      "name": "Create OpenGL Lines, Arcs, and Vectors",
+      "description": "Render and style lines, arcs, arrows, and vector representations using the OpenGL renderer pipeline.",
+      "apis": [
+        "manim.mobject.opengl.opengl_geometry.OpenGLAnnularSector",
+        "manim.mobject.opengl.opengl_geometry.OpenGLAnnulus",
+        "manim.mobject.opengl.opengl_geometry.OpenGLArc",
+        "manim.mobject.opengl.opengl_geometry.OpenGLArcBetweenPoints",
+        "manim.mobject.opengl.opengl_geometry.OpenGLArrow",
+        "manim.mobject.opengl.opengl_geometry.OpenGLArrowTip",
+        "manim.mobject.opengl.opengl_geometry.OpenGLCurvedArrow",
+        "manim.mobject.opengl.opengl_geometry.OpenGLCurvedDoubleArrow",
+        "manim.mobject.opengl.opengl_geometry.OpenGLDashedLine",
+        "manim.mobject.opengl.opengl_geometry.OpenGLLine",
+        "manim.mobject.opengl.opengl_geometry.OpenGLTangentLine",
+        "manim.mobject.opengl.opengl_geometry.OpenGLTipableVMobject",
+        "manim.mobject.opengl.opengl_geometry.OpenGLVector"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "draw a line using opengl",
+        "create an arrow in opengl",
+        "render an arc using the opengl renderer"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "create_platonic_solids",
+      "name": "Create Platonic Solids and 3D Polyhedra",
+      "description": "Create and display 3D platonic solids such as tetrahedrons, cubes/hexahedrons, octahedrons, dodecahedrons, and icosahedrons, or custom polyhedra and convex hulls in a ThreeDScene.",
+      "apis": [
+        "manim.mobject.three_d.polyhedra.ConvexHull3D",
+        "manim.mobject.three_d.polyhedra.Dodecahedron",
+        "manim.mobject.three_d.polyhedra.Icosahedron",
+        "manim.mobject.three_d.polyhedra.Octahedron",
+        "manim.mobject.three_d.polyhedra.Polyhedron",
+        "manim.mobject.three_d.polyhedra.Tetrahedron"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "Create a 3D polyhedron",
+        "Display a Dodecahedron in 3D",
+        "Show a Tetrahedron or Icosahedron",
+        "Build a custom 3D polyhedron from vertices and faces",
+        "Generate a 3D convex hull for a set of points"
+      ],
+      "constraints": [
+        "Requires a ThreeDScene for proper camera orientation and rendering."
+      ],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "create_polar_planes",
+      "name": "Create Polar Planes",
+      "description": "Create polar coordinate planes with customizable azimuth angles and radial distance steps.",
+      "apis": [
+        "manim.mobject.graphing.coordinate_systems.PolarPlane"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "create a polar plane",
+        "display polar coordinate grid with azimuth and radius"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "create_polygons_and_triangles",
+      "name": "Create polygons and triangles",
+      "description": "Construct general polygons, equilateral triangles, and regular polygons with specified vertices or sides.",
+      "apis": [
+        "manim.mobject.geometry.polygram.Polygon",
+        "manim.mobject.geometry.polygram.RegularPolygon",
+        "manim.mobject.geometry.polygram.Triangle"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "create a triangle",
+        "draw a regular polygon with n sides",
+        "construct a custom polygon from vertices"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "create_rectangles_and_squares",
+      "name": "Create rectangles and squares",
+      "description": "Create standard rectangular and square shapes with customizable dimensions, corner radiuses, and grid lines.",
+      "apis": [
+        "manim.mobject.geometry.polygram.Rectangle",
+        "manim.mobject.geometry.polygram.RoundedRectangle",
+        "manim.mobject.geometry.polygram.Square"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "draw a rectangle with specific dimensions",
+        "create a square shape",
+        "make a rounded rectangle"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "create_screen_and_full_screen_rectangles",
+      "name": "Create screen-sized and full-screen rectangular framing elements",
+      "description": "Create specialized rectangular frames representing screens or full-screen views, useful for UI mockups or framing scenes.",
+      "apis": [
+        "manim.mobject.frame.ScreenRectangle",
+        "manim.mobject.frame.FullScreenRectangle"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "add a screen rectangle to the scene",
+        "create a full screen frame rectangle"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "multi_view_and_split_screen_cameras",
+      "name": "Create split-screen and multi-camera layouts",
+      "description": "Set up multiple viewpoints or split-screen camera configurations to display different portions of a scene simultaneously.",
+      "apis": [
+        "manim.camera.mapping_camera.OldMultiCamera",
+        "manim.camera.mapping_camera.SplitScreenCamera"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "create a split screen view",
+        "use multiple cameras in a scene",
+        "split the scene into multiple camera displays"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "curved_and_special_transformation_paths",
+      "name": "Curved and Special Transformation Paths",
+      "description": "Customize object transformation trajectories using geometric paths such as clockwise, counterclockwise, circular arcs, custom circles, spirals, or straight lines.",
+      "apis": [
+        "manim.utils.paths.clockwise_path",
+        "manim.utils.paths.counterclockwise_path",
+        "manim.utils.paths.path_along_arc",
+        "manim.utils.paths.path_along_circles",
+        "manim.utils.paths.spiral_path",
+        "manim.utils.paths.straight_path"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "animate objects moving along a circular arc during transform",
+        "transform objects along a spiral path",
+        "move points along clockwise or counterclockwise paths",
+        "specify a custom path function for transformations"
+      ],
+      "constraints": [
+        "Must be used with path-aware animations such as Transform"
+      ],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "animation_overrides_and_preparation",
+      "name": "Custom animation overrides and preparation",
+      "description": "Customize default animation behaviors for mobjects using decorators and prepare animation factories or method chains.",
+      "apis": [
+        "manim.animation.animation.override_animation",
+        "manim.animation.animation.prepare_animation"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "override default fade in animation for a custom shape",
+        "prepare an animation factory or method animation"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "customize_animation_rate_functions",
+      "name": "Customize Animation Rate Functions",
+      "description": "Control the speed and pacing of animations over time using custom rate functions such as smooth transitions, bounces, elastic effects, and exponential decay.",
+      "apis": [
+        "manim.utils.rate_functions.RateFunction",
+        "manim.utils.rate_functions.double_smooth",
+        "manim.utils.rate_functions.ease_in_back",
+        "manim.utils.rate_functions.ease_in_bounce",
+        "manim.utils.rate_functions.ease_in_circ",
+        "manim.utils.rate_functions.ease_in_cubic",
+        "manim.utils.rate_functions.ease_in_elastic",
+        "manim.utils.rate_functions.ease_in_expo",
+        "manim.utils.rate_functions.ease_in_out_back",
+        "manim.utils.rate_functions.ease_in_out_bounce",
+        "manim.utils.rate_functions.ease_in_out_circ",
+        "manim.utils.rate_functions.ease_in_out_cubic",
+        "manim.utils.rate_functions.ease_in_out_elastic",
+        "manim.utils.rate_functions.ease_in_out_expo",
+        "manim.utils.rate_functions.ease_in_out_quad",
+        "manim.utils.rate_functions.ease_in_out_quart",
+        "manim.utils.rate_functions.ease_in_out_quint",
+        "manim.utils.rate_functions.ease_in_out_sine",
+        "manim.utils.rate_functions.ease_in_quad",
+        "manim.utils.rate_functions.ease_in_quart",
+        "manim.utils.rate_functions.ease_in_quint",
+        "manim.utils.rate_functions.ease_in_sine",
+        "manim.utils.rate_functions.ease_out_back",
+        "manim.utils.rate_functions.ease_out_bounce",
+        "manim.utils.rate_functions.ease_out_circ",
+        "manim.utils.rate_functions.ease_out_cubic",
+        "manim.utils.rate_functions.ease_out_elastic",
+        "manim.utils.rate_functions.ease_out_expo",
+        "manim.utils.rate_functions.ease_out_quad",
+        "manim.utils.rate_functions.ease_out_quart",
+        "manim.utils.rate_functions.ease_out_quint",
+        "manim.utils.rate_functions.ease_out_sine",
+        "manim.utils.rate_functions.exponential_decay",
+        "manim.utils.rate_functions.linear",
+        "manim.utils.rate_functions.lingering",
+        "manim.utils.rate_functions.not_quite_there",
+        "manim.utils.rate_functions.running_start",
+        "manim.utils.rate_functions.rush_from",
+        "manim.utils.rate_functions.rush_into",
+        "manim.utils.rate_functions.slow_into",
+        "manim.utils.rate_functions.smooth",
+        "manim.utils.rate_functions.smoothererstep",
+        "manim.utils.rate_functions.smootherstep",
+        "manim.utils.rate_functions.smoothstep",
+        "manim.utils.rate_functions.squish_rate_func",
+        "manim.utils.rate_functions.there_and_back",
+        "manim.utils.rate_functions.there_and_back_with_pause",
+        "manim.utils.rate_functions.unit_interval",
+        "manim.utils.rate_functions.wiggle",
+        "manim.utils.rate_functions.zero"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "animate with an ease-in-out bounce rate function",
+        "make the animation speed up exponentially",
+        "apply a linear rate function to the transition",
+        "use an elastic ease-out effect for the movement",
+        "make the animation slow down near the end",
+        "add a wiggle effect to the animation using rate functions",
+        "accelerate the transition smoothly"
+      ],
+      "constraints": [],
+      "merged_from": [
+        "customize_animation_easing_and_rate_functions"
+      ],
+      "version": "0.19.0"
+    },
+    {
+      "id": "customize_arrow_tips",
+      "name": "Customize Arrow Tips",
+      "description": "Configure and apply various arrow tip styles such as triangular, circular, square, and stealth tips to arrows and vectors.",
+      "apis": [
+        "manim.mobject.geometry.tips.ArrowTip",
+        "manim.mobject.geometry.tips.ArrowTriangleTip",
+        "manim.mobject.geometry.tips.ArrowTriangleFilledTip",
+        "manim.mobject.geometry.tips.ArrowCircleTip",
+        "manim.mobject.geometry.tips.ArrowCircleFilledTip",
+        "manim.mobject.geometry.tips.ArrowSquareTip",
+        "manim.mobject.geometry.tips.ArrowSquareFilledTip",
+        "manim.mobject.geometry.tips.StealthTip"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "change the arrow tip style",
+        "use a custom arrow tip shape",
+        "add a circular arrow tip",
+        "showcase different arrow tips"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "customize_line_joint_types",
+      "name": "Customize Line Joint Types",
+      "description": "Configure how line segments and corners join together on vector mobjects.",
+      "apis": [
+        "manim.constants.LineJointType"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "change the line joint type to miter, round, or bevel",
+        "visualize different line joint variants on corner paths"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "customize_stroke_cap_styles",
+      "name": "Customize Stroke Cap Styles",
+      "description": "Configure the cap style of strokes on vector mobjects and shapes such as arcs.",
+      "apis": [
+        "manim.constants.CapStyleType"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "change the stroke cap style to round or projecting",
+        "visualize different cap style variants on lines and arcs"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "customize_tex_and_math_fonts",
+      "name": "Customize TeX and Math Fonts",
+      "description": "Customize the font and template styling of TeX and MathTex mobjects using preset template libraries.",
+      "apis": [
+        "manim.utils.tex_templates.TexFontTemplates",
+        "manim.utils.tex_templates.TexTemplateLibrary"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "render text using a specific TeX font template",
+        "use comic sans font for math equations",
+        "apply a custom tex template to a math expression"
+      ],
+      "constraints": [
+        "Requires specific LaTeX packages and fonts to be installed on the local system for certain templates."
+      ],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "cyclic_mobject_swaps_and_replaces",
+      "name": "Cyclic Mobject Swaps and Replaces",
+      "description": "Animate groups of mobjects swapping positions or cycling through each other's places.",
+      "apis": [
+        "manim.animation.transform.CyclicReplace",
+        "manim.animation.transform.Swap"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "cyclically replace a group of shapes",
+        "swap the positions of mobjects"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "deprecate_code_elements",
+      "name": "Deprecate Functions Classes and Parameters",
+      "description": "Mark functions, classes, or specific parameters as deprecated with warnings, version information, and optional replacements.",
+      "apis": [
+        "manim.utils.deprecation.deprecated",
+        "manim.utils.deprecation.deprecated_params"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "mark a function as deprecated",
+        "deprecate parameters with automatic redirection",
+        "issue warnings for deprecated class methods"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "discover_and_load_scenes_from_modules",
+      "name": "Discover and load scene classes from modules or files",
+      "description": "Inspect Python modules and files to find, list, and select Manim Scene classes for rendering.",
+      "apis": [
+        "manim.utils.module_ops.get_module",
+        "manim.utils.module_ops.get_scene_classes_from_module",
+        "manim.utils.module_ops.get_scenes_to_render",
+        "manim.utils.module_ops.prompt_user_for_choice",
+        "manim.utils.module_ops.scene_classes_from_file"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "load scene classes from file",
+        "get scenes to render from module",
+        "prompt user to choose a scene class"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "display_and_manipulate_raster_images",
+      "name": "Display and manipulate raster images",
+      "description": "Display images from numpy arrays or files, configure resampling algorithms, and integrate raster images into scenes with transformations or camera rendering.",
+      "apis": [
+        "manim.mobject.types.image_mobject.AbstractImageMobject",
+        "manim.mobject.types.image_mobject.ImageMobject",
+        "manim.mobject.types.image_mobject.ImageMobjectFromCamera"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "display an image from a numpy array",
+        "show an image file on screen",
+        "change image resampling interpolation algorithm",
+        "render an image from camera view"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "display_and_track_numerical_values",
+      "name": "Display and track numerical values and variables",
+      "description": "Create, display, and continuously update numerical values, integers, and labeled variables driven by value trackers or scene updaters.",
+      "apis": [
+        "manim.mobject.text.numbers.DecimalNumber",
+        "manim.mobject.text.numbers.Integer",
+        "manim.mobject.text.numbers.Variable"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "display a decimal number on screen",
+        "show an integer value",
+        "create a variable label that updates with a value tracker"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "display_highlighted_source_code",
+      "name": "Display highlighted source code",
+      "description": "Display syntax-highlighted source code files or code strings with optional line numbers and window backgrounds.",
+      "apis": [
+        "manim.mobject.text.code_mobject.Code"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "show source code on the screen",
+        "display a highlighted code snippet",
+        "render a python code file"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "draw_lines_and_vectors",
+      "name": "Draw lines, vectors, and dashed lines",
+      "description": "Create straight line segments, directional arrows, vectors for coordinate systems, double-sided arrows, and dashed lines.",
+      "apis": [
+        "manim.mobject.geometry.line.Line",
+        "manim.mobject.geometry.line.Arrow",
+        "manim.mobject.geometry.line.Vector",
+        "manim.mobject.geometry.line.DashedLine",
+        "manim.mobject.geometry.line.DoubleArrow"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "draw a straight line between two points",
+        "create an arrow pointing from left to right",
+        "display a vector on a coordinate plane",
+        "draw a dashed line across the screen"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "draw_temporary_focus_indicators",
+      "name": "Draw Temporary Focus Indicators and Shapes",
+      "description": "Surround or point to objects using temporary shapes, circumscriptions, flashing rays, or spotlight effects.",
+      "apis": [
+        "manim.animation.indication.Circumscribe",
+        "manim.animation.indication.Flash",
+        "manim.animation.indication.FocusOn"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "draw a circle around the object",
+        "circumscribe the label",
+        "flash lines around the dot",
+        "focus on this point with a spotlight"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "dynamic_object_updating_and_dependencies",
+      "name": "Dynamic Object Updating and Dependencies",
+      "description": "Animate and update objects based on custom functions, alpha values, or relative positions to other simultaneously animated objects.",
+      "apis": [
+        "manim.animation.updaters.update.MaintainPositionRelativeTo",
+        "manim.animation.updaters.update.UpdateFromAlphaFunc",
+        "manim.animation.updaters.update.UpdateFromFunc"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "update an object's state using a custom function during animation",
+        "maintain the position of one object relative to another",
+        "animate dependent objects using update functions"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "bezier_curve_evaluation_and_geometry",
+      "name": "Evaluate and Analyze Bézier Curves",
+      "description": "Compute points, evaluate parametric formulas, test point containment, and check properties of Bézier curves and splines.",
+      "apis": [
+        "manim.utils.bezier.bezier",
+        "manim.utils.bezier.is_closed",
+        "manim.utils.bezier.point_lies_on_bezier",
+        "manim.utils.bezier.proportions_along_bezier_curve_for_point"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "Evaluate a Bézier curve at parameter t",
+        "Check if a point lies on a Bézier curve",
+        "Determine if a spline path is closed",
+        "Find the proportion along a curve for a given point"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "fade_and_color_transitions",
+      "name": "Fade and Color Transitions",
+      "description": "Transition mobject colors, fade between different mobjects, or fade their individual pieces.",
+      "apis": [
+        "manim.animation.transform.FadeToColor",
+        "manim.animation.transform.FadeTransform",
+        "manim.animation.transform.FadeTransformPieces"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "fade a mobject into another",
+        "change the color of a text or shape",
+        "fade submobjects into target submobjects"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "fade_mobjects_in_and_out",
+      "name": "Fade Mobjects In and Out",
+      "description": "Fade mobjects in or out of the scene with optional shifting, scaling, and target positions.",
+      "apis": [
+        "manim.animation.fading.FadeIn",
+        "manim.animation.fading.FadeOut"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "fade in an object",
+        "fade out a mobject",
+        "fade an element with scaling and shifting"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "file_and_directory_management",
+      "name": "File and Directory Management",
+      "description": "Manage files, directories, templates, and path creation operations.",
+      "apis": [
+        "manim.utils.file_ops.add_extension_if_not_present",
+        "manim.utils.file_ops.add_import_statement",
+        "manim.utils.file_ops.add_version_before_extension",
+        "manim.utils.file_ops.copy_template_files",
+        "manim.utils.file_ops.ensure_executable",
+        "manim.utils.file_ops.get_template_names",
+        "manim.utils.file_ops.get_template_path",
+        "manim.utils.file_ops.guarantee_empty_existence",
+        "manim.utils.file_ops.guarantee_existence",
+        "manim.utils.file_ops.modify_atime",
+        "manim.utils.file_ops.seek_full_path_from_defaults"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "ensure file or directory exists",
+        "copy project template files",
+        "get template path and names"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "generate_transformation_and_projection_matrices",
+      "name": "Generate geometric transformation and camera projection matrices",
+      "description": "Construct mathematical transformation matrices such as rotations, translations, scaling, and camera views/projections for custom graphics or shader pipelines.",
+      "apis": [
+        "manim.utils.opengl.matrix_to_shader_input",
+        "manim.utils.opengl.orthographic_projection_matrix",
+        "manim.utils.opengl.perspective_projection_matrix",
+        "manim.utils.opengl.rotate_in_place_matrix",
+        "manim.utils.opengl.rotation_matrix",
+        "manim.utils.opengl.scale_matrix",
+        "manim.utils.opengl.translation_matrix",
+        "manim.utils.opengl.view_matrix",
+        "manim.utils.opengl.x_rotation_matrix",
+        "manim.utils.opengl.y_rotation_matrix",
+        "manim.utils.opengl.z_rotation_matrix"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "calculate a rotation matrix for an angle",
+        "generate a perspective projection matrix",
+        "construct a translation matrix for 3D coordinates",
+        "convert a transformation matrix to shader input format"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "smooth_cubic_spline_generation",
+      "name": "Generate Smooth Cubic Spline Handle Points",
+      "description": "Compute control handles for open and closed cubic Bézier splines to ensure continuous smoothness through anchor points.",
+      "apis": [
+        "manim.utils.bezier.get_quadratic_approximation_of_cubic",
+        "manim.utils.bezier.get_smooth_closed_cubic_bezier_handle_points",
+        "manim.utils.bezier.get_smooth_cubic_bezier_handle_points",
+        "manim.utils.bezier.get_smooth_open_cubic_bezier_handle_points"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "Generate smooth cubic Bézier handle points through a set of anchors",
+        "Compute smooth handle points for a closed spline loop",
+        "Approximate a cubic Bézier curve with quadratic Béziers"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "geometric_intersections_and_bisectors",
+      "name": "Geometric Intersections and Bisectors",
+      "description": "Find intersection points of lines and rays, compute midpoints, and calculate perpendicular bisectors.",
+      "apis": [
+        "manim.utils.space_ops.find_intersection",
+        "manim.utils.space_ops.line_intersection",
+        "manim.utils.space_ops.midpoint",
+        "manim.utils.space_ops.perpendicular_bisector"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "find the intersection of two lines",
+        "calculate the midpoint between two points",
+        "get the perpendicular bisector of a line segment"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "group_and_manage_mobjects",
+      "name": "Group and organize multiple mathematical objects",
+      "description": "Combine multiple mobjects together into a single logical collection for synchronized transformations and structural organization.",
+      "apis": [
+        "manim.mobject.mobject.Group",
+        "manim.mobject.mobject.Mobject"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "group these mobjects together",
+        "create a collection of shapes",
+        "organize multiple objects into a group"
+      ],
+      "constraints": [
+        "Repetitions of the same mobject added to a group are automatically ignored."
+      ],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "opengl_surface_mesh_grouping",
+      "name": "Group and organize OpenGL surface meshes and vector objects",
+      "description": "Allows grouping multiple OpenGL surface meshes or vector mobjects together to manipulate, transform, and manage them collectively in OpenGL scenes.",
+      "apis": [
+        "manim.mobject.opengl.opengl_three_dimensions.OpenGLSurfaceMesh"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "group multiple surface meshes together",
+        "manage a collection of opengl mobjects",
+        "combine vector objects for collective scaling and movement"
+      ],
+      "constraints": [
+        "Requires the OpenGL renderer to be enabled"
+      ],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "vectorized_object_grouping_and_dictionaries",
+      "name": "Group and organize vectorized mobjects",
+      "description": "Combine multiple vectorized mobjects together into collections or key-value structures to manipulate, style, or animate them simultaneously.",
+      "apis": [
+        "manim.mobject.types.vectorized_mobject.VGroup",
+        "manim.mobject.types.vectorized_mobject.VDict"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "group multiple vectorized shapes together",
+        "organize mobjects in a dictionary structure with keys"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "grow_mobjects_into_scene",
+      "name": "Grow mobjects into scene",
+      "description": "Introduce objects, shapes, and arrows into the scene by growing them from a center point, edge, specific point, or with a spinning effect.",
+      "apis": [
+        "manim.animation.growing.GrowArrow",
+        "manim.animation.growing.GrowFromCenter",
+        "manim.animation.growing.GrowFromEdge",
+        "manim.animation.growing.GrowFromPoint",
+        "manim.animation.growing.SpinInFromNothing"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "grow a square from the center",
+        "introduce an arrow by growing it from start to tip",
+        "spin an object into existence from nothing",
+        "grow a shape from a specific edge or point"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "handle_caching_play",
+      "name": "Handle caching for animation play invocations",
+      "description": "Decorate play-like functions to compute hashes and skip rendering if animations are already cached.",
+      "apis": [
+        "manim.utils.caching.handle_caching_play"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "cache animation playback",
+        "skip rendering already cached animations"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "highlight_and_indicate_objects",
+      "name": "Highlight and Indicate Objects",
+      "description": "Draw attention to objects on the screen using temporary scaling, color changes, wiggles, waves, or blinking.",
+      "apis": [
+        "manim.animation.indication.ApplyWave",
+        "manim.animation.indication.Blink",
+        "manim.animation.indication.Indicate",
+        "manim.animation.indication.Wiggle"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "highlight this text",
+        "indicate the mobject",
+        "make the object wiggle",
+        "send a wave through the text",
+        "blink the label"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "highlight_or_frame_mobjects",
+      "name": "Highlight or frame mobjects with rectangles",
+      "description": "Create background rectangles or surrounding boxes to highlight, frame, or visually isolate text, shapes, and images.",
+      "apis": [
+        "manim.mobject.geometry.shape_matchers.BackgroundRectangle",
+        "manim.mobject.geometry.shape_matchers.SurroundingRectangle"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "highlight this text with a surrounding box",
+        "add a background rectangle behind the circle",
+        "create a box around the formula"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "import_and_render_svg_graphics",
+      "name": "Import and Render SVG Graphics",
+      "description": "Import vector graphics and paths from SVG files into the animation scene for manipulation and display.",
+      "apis": [
+        "manim.mobject.svg.svg_mobject.SVGMobject",
+        "manim.mobject.svg.svg_mobject.VMobjectFromSVGPath"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "import an svg file into the animation",
+        "display vector graphics from an svg",
+        "load an svg path as a mobject"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "incremental_object_creation",
+      "name": "Incrementally create and draw shapes",
+      "description": "Gradually draw, trace, or unveil vector graphics and geometric shapes on the scene.",
+      "apis": [
+        "manim.animation.creation.Create",
+        "manim.animation.creation.Uncreate",
+        "manim.animation.creation.DrawBorderThenFill",
+        "manim.animation.creation.SpiralIn",
+        "manim.animation.creation.ShowPartial"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "draw a square on the screen",
+        "create a circle gradually",
+        "uncreate a shape",
+        "draw border then fill a shape",
+        "spiral in shapes"
+      ],
+      "constraints": [
+        "Target must be a VMobject"
+      ],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "inspect_and_debug_mobject_submobjects",
+      "name": "Inspect and debug mobject submobjects and indices",
+      "description": "Inspect and visualize the hierarchical structure and submobject indices of complex mobjects for precise targeting and debugging.",
+      "apis": [
+        "manim.utils.debug.index_labels",
+        "manim.utils.debug.print_family"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "show the indices of submobjects",
+        "debug the family tree of a mobject",
+        "inspect parts of a complex formula"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "inspect_mobject_hierarchy",
+      "name": "Inspect Mobject Hierarchy and Family Members",
+      "description": "Extract and examine a flat list of all mobjects, submobjects, and their recursive family members currently in the scene.",
+      "apis": [
+        "manim.utils.family.extract_mobject_family_members"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "get all family members of a mobject",
+        "extract mobject hierarchy",
+        "list all submobjects recursively"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "video_metadata_inspection",
+      "name": "Inspect video file metadata",
+      "description": "Extract and inspect metadata from generated video files using command utilities.",
+      "apis": [
+        "manim.utils.commands.VideoMetadata",
+        "manim.utils.commands.get_video_metadata",
+        "manim.utils.commands.capture"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "get video metadata",
+        "inspect output video properties",
+        "retrieve video resolution and duration"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "ipython_magic_commands",
+      "name": "IPython and Jupyter Notebook Magic Commands",
+      "description": "Integrate Manim rendering directly into Jupyter notebooks using IPython magic functions.",
+      "apis": [
+        "manim.utils.ipython_magic.ManimMagic"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "use manim in a jupyter notebook cell",
+        "render manim animations with ipython magic"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "iterable_and_sequence_resizing",
+      "name": "Iterable and Array Resizing",
+      "description": "Resize, stretch, interpolate, or balance arrays and iterables to match target lengths.",
+      "apis": [
+        "manim.utils.iterables.make_even",
+        "manim.utils.iterables.make_even_by_cycling",
+        "manim.utils.iterables.resize_array",
+        "manim.utils.iterables.resize_preserving_order",
+        "manim.utils.iterables.resize_with_interpolation",
+        "manim.utils.iterables.stretch_array_to_length"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "resize numpy array to match length",
+        "interpolate array elements to new length",
+        "make two iterables even in length"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "iterable_grouping_and_chunking",
+      "name": "Iterable Grouping and Chunking",
+      "description": "Split sequences into adjacent pairs, n-tuples, or batch elements by a property function.",
+      "apis": [
+        "manim.utils.iterables.adjacent_n_tuples",
+        "manim.utils.iterables.adjacent_pairs",
+        "manim.utils.iterables.batch_by_property"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "get adjacent pairs from list",
+        "batch sequence by property"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "list_and_collection_manipulation",
+      "name": "List and Collection Manipulation",
+      "description": "Concatenate lists, compute differences, remove redundancies, and filter out null elements.",
+      "apis": [
+        "manim.utils.iterables.concatenate_lists",
+        "manim.utils.iterables.list_difference_update",
+        "manim.utils.iterables.list_update",
+        "manim.utils.iterables.remove_list_redundancies",
+        "manim.utils.iterables.remove_nones",
+        "manim.utils.iterables.uniq_chain"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "remove none values from list",
+        "get difference between two lists maintaining order",
+        "concatenate multiple lists"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "manage_manim_configuration_and_resolution",
+      "name": "Manage Manim Configuration and Resolution",
+      "description": "Configure project settings by updating the manim.cfg file and selecting rendering resolutions.",
+      "apis": [
+        "manim.cli.init.commands.select_resolution",
+        "manim.cli.init.commands.update_cfg"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "update the manim configuration file",
+        "select a rendering resolution for the project"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "manage_manim_plugins",
+      "name": "Manage Manim Plugins",
+      "description": "Discover and retrieve installed Manim plugins to extend functionality.",
+      "apis": [
+        "manim.plugins.plugins_flags.get_plugins",
+        "manim.plugins.plugins_flags.list_plugins"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "list installed plugins",
+        "get available manim plugins"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "manage_mobject_families_and_lists",
+      "name": "Manage Mobject Families and Lists",
+      "description": "Extract mobject family members and restructure lists of mobjects to handle family exclusions and hierarchical group modifications.",
+      "apis": [
+        "manim.utils.family_ops.extract_mobject_family_members",
+        "manim.utils.family_ops.restructure_list_to_exclude_certain_family_members"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "extract family members from a mobject",
+        "restructure mobject lists when removing group submobjects"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "opengl_point_cloud_management",
+      "name": "Manage OpenGL Point Cloud Objects",
+      "description": "Create and manipulate point cloud mobjects, point groups, and individual point representations using the OpenGL rendering backend.",
+      "apis": [
+        "manim.mobject.opengl.opengl_point_cloud_mobject.OpenGLPMobject",
+        "manim.mobject.opengl.opengl_point_cloud_mobject.OpenGLPGroup",
+        "manim.mobject.opengl.opengl_point_cloud_mobject.OpenGLPMPoint"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "create an OpenGL point cloud",
+        "group OpenGL point mobjects",
+        "render point data using OpenGLPMobject"
+      ],
+      "constraints": [
+        "Requires OpenGL rendering context."
+      ],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "bezier_curve_manipulation_and_subdivision",
+      "name": "Manipulate and Subdivide Bézier Curves",
+      "description": "Split, subdivide, remap, and extract portions of Bézier curves for precise geometric path control.",
+      "apis": [
+        "manim.utils.bezier.bezier_remap",
+        "manim.utils.bezier.partial_bezier_points",
+        "manim.utils.bezier.split_bezier",
+        "manim.utils.bezier.subdivide_bezier"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "Split a Bézier curve at a specific parameter t",
+        "Subdivide a Bézier curve into multiple subcurves",
+        "Extract a partial segment of a Bézier curve",
+        "Remap Bézier curves to a new number of segments"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "image_pixel_and_color_manipulation",
+      "name": "Manipulate image pixels and color arrays",
+      "description": "Process image arrays by converting RGB data to RGBA or inverting image colors.",
+      "apis": [
+        "manim.utils.images.change_to_rgba_array",
+        "manim.utils.images.invert_image"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "convert an rgb image array to rgba",
+        "invert the colors of an image"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "mapping_camera_transforms",
+      "name": "Map and transform views between objects",
+      "description": "Configure specialized cameras like MappingCamera to manage spatial mappings and relationships between rendered objects.",
+      "apis": [
+        "manim.camera.mapping_camera.MappingCamera"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "use a mapping camera",
+        "map objects using camera transformations"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "mathematical_interpolation_and_scaling",
+      "name": "Mathematical Interpolation and Range Mapping",
+      "description": "Perform linear interpolation, inverse interpolation, range matching, and midpoint calculations for numeric and vector values.",
+      "apis": [
+        "manim.utils.bezier.integer_interpolate",
+        "manim.utils.bezier.interpolate",
+        "manim.utils.bezier.inverse_interpolate",
+        "manim.utils.bezier.match_interpolate",
+        "manim.utils.bezier.mid"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "Linearly interpolate between start and end values",
+        "Find the alpha value for a given point via inverse interpolation",
+        "Map a value from one numerical range to another",
+        "Calculate the midpoint between two values or points"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "media_file_playback",
+      "name": "Media File Playback",
+      "description": "Open generated media files and output files for viewing.",
+      "apis": [
+        "manim.utils.file_ops.open_file",
+        "manim.utils.file_ops.open_media_file"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "open generated media file",
+        "open output file"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "modify_animation_speed",
+      "name": "Modify animation speed",
+      "description": "Adjust the playback speed of animations or updaters dynamically over time using speed profiles and rate functions.",
+      "apis": [
+        "manim.animation.speedmodifier.ChangeSpeed"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "slow down this animation",
+        "speed up a specific part of the animation",
+        "change the playback speed of an animation group"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "morph_and_transform_mobjects",
+      "name": "Morph and Transform Mobjects",
+      "description": "Transform one mobject into another, including replacement transforms, copies, and state restorations.",
+      "apis": [
+        "manim.animation.transform.Transform",
+        "manim.animation.transform.ReplacementTransform",
+        "manim.animation.transform.TransformFromCopy",
+        "manim.animation.transform.Restore",
+        "manim.animation.transform.MoveToTarget"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "transform a square into a circle",
+        "morph one shape into another",
+        "restore a mobject to its saved state",
+        "move mobject to its target attribute"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "move_mobject_along_path",
+      "name": "Move Mobject Along Path",
+      "description": "Animate a mobject so that it travels along the path or trajectory of another mobject.",
+      "apis": [
+        "manim.animation.movement.MoveAlongPath"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "make an object move along a path",
+        "animate a dot traveling along a curve or line"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "moving_camera_framing",
+      "name": "Moving Camera Framing",
+      "description": "Create a camera that can follow, pan, and zoom on specific regions or objects using a frame rectangle.",
+      "apis": [
+        "manim.camera.moving_camera.MovingCamera"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "use a moving camera to pan around the scene",
+        "frame a specific area with a moving camera"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "moving_camera_scene_animation",
+      "name": "Moving Camera Scene Animation",
+      "description": "Create scenes with dynamic camera movements, such as following objects along paths or zooming and panning across coordinate systems.",
+      "apis": [
+        "manim.scene.moving_camera_scene.MovingCameraScene"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "pan and zoom the camera around the scene",
+        "make the camera follow an object moving along a path",
+        "create a moving camera scene with graphs"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "multi_perspective_camera_management",
+      "name": "Multi-perspective camera management",
+      "description": "Render and manage scenes from multiple simultaneous camera perspectives using specialized multi-camera setups.",
+      "apis": [
+        "manim.camera.multi_camera.MultiCamera"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "display multiple camera views",
+        "use a multi-camera setup for different perspectives"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "numerical_utility_functions",
+      "name": "Numerical utility functions",
+      "description": "Perform numerical operations such as bounding values, computing the sigmoid function, or finding roots via binary search.",
+      "apis": [
+        "manim.utils.simple_functions.binary_search",
+        "manim.utils.simple_functions.clip",
+        "manim.utils.simple_functions.sigmoid"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "perform a binary search for a function value",
+        "clip a value to a specific interval",
+        "compute the sigmoid function"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "opengl_rendering_window",
+      "name": "OpenGL Rendering Window",
+      "description": "Manage the window display context using the Pyglet-based OpenGL renderer.",
+      "apis": [
+        "manim.renderer.opengl_renderer_window.Window"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "create an opengl window",
+        "initialize the pyglet display window"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "opengl_vectorized_graphics_and_grouping",
+      "name": "OpenGL Vectorized Graphics and Grouping",
+      "description": "Group, transform, and manipulate vectorized mobjects and curves using the OpenGL renderer.",
+      "apis": [
+        "manim.mobject.opengl.opengl_vectorized_mobject.OpenGLCurvesAsSubmobjects",
+        "manim.mobject.opengl.opengl_vectorized_mobject.OpenGLDashedVMobject",
+        "manim.mobject.opengl.opengl_vectorized_mobject.OpenGLVGroup",
+        "manim.mobject.opengl.opengl_vectorized_mobject.OpenGLVMobject",
+        "manim.mobject.opengl.opengl_vectorized_mobject.OpenGLVectorizedPoint"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "create a group of vectorized objects in opengl",
+        "convert curve elements to submobjects in opengl",
+        "create dashed vmobjects using opengl"
+      ],
+      "constraints": [
+        "Requires OpenGL renderer context."
+      ],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "opengl_mobject_management",
+      "name": "OpenGL-accelerated graphical object management",
+      "description": "Create and organize OpenGL-based graphical objects and containers for high-performance rendering.",
+      "apis": [
+        "manim.mobject.opengl.opengl_mobject.OpenGLGroup",
+        "manim.mobject.opengl.opengl_mobject.OpenGLMobject",
+        "manim.mobject.opengl.opengl_mobject.OpenGLPoint"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "create an OpenGL group of objects",
+        "initialize an OpenGL mobject",
+        "place an OpenGL point on screen"
+      ],
+      "constraints": [
+        "Requires OpenGL rendering context."
+      ],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "output_media_format_handling",
+      "name": "Output Media Format Handling",
+      "description": "Determine and check output media formats like MP4, GIF, MOV, PNG, and WebM.",
+      "apis": [
+        "manim.utils.file_ops.is_gif_format",
+        "manim.utils.file_ops.is_mov_format",
+        "manim.utils.file_ops.is_mp4_format",
+        "manim.utils.file_ops.is_png_format",
+        "manim.utils.file_ops.is_webm_format",
+        "manim.utils.file_ops.write_to_movie"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "check if output format is mp4 or gif",
+        "determine if output should be written to movie"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "override_method_animations",
+      "name": "Override method animations with custom behaviors",
+      "description": "Decorate custom methods to define specific animations when used with the .animate syntax on composite mobjects.",
+      "apis": [
+        "manim.mobject.mobject.override_animate",
+        "manim.mobject.opengl.opengl_mobject.override_animate"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "override the animation for this method",
+        "define a custom animation for method chaining",
+        "customize .animate behavior for a class method",
+        "override standard animate behavior for a custom method",
+        "define custom animations for method calls using .animate"
+      ],
+      "constraints": [
+        "Overridden methods cannot be combined with normal or other overridden methods using method chaining."
+      ],
+      "merged_from": [
+        "override_method_animations_2"
+      ],
+      "version": "0.19.0"
+    },
+    {
+      "id": "path_guided_transforms",
+      "name": "Path-Guided and Arc Transforms",
+      "description": "Transform mobjects along specific paths, circular arcs, clockwise, or counterclockwise orientations.",
+      "apis": [
+        "manim.animation.transform.ClockwiseTransform",
+        "manim.animation.transform.CounterclockwiseTransform"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "transform objects along a clockwise path",
+        "rotate and transform objects counterclockwise"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "perform_boolean_operations_on_vector_shapes",
+      "name": "Perform boolean operations on vector shapes",
+      "description": "Combine, subtract, intersect, or find symmetric differences between vector mobjects using boolean operations.",
+      "apis": [
+        "manim.mobject.geometry.boolean_ops.Difference",
+        "manim.mobject.geometry.boolean_ops.Exclusion",
+        "manim.mobject.geometry.boolean_ops.Intersection",
+        "manim.mobject.geometry.boolean_ops.Union"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "Find the intersection of two shapes",
+        "Subtract one shape from another",
+        "Union multiple vector shapes together",
+        "Calculate the exclusion or XOR of two shapes"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "place_dots_and_custom_curves",
+      "name": "Place dots and custom curves",
+      "description": "Position individual coordinate dots, labeled dots, and draw custom cubic Bezier curves or tipable vector objects.",
+      "apis": [
+        "manim.mobject.geometry.arc.Dot",
+        "manim.mobject.geometry.arc.CubicBezier",
+        "manim.mobject.geometry.arc.LabeledDot",
+        "manim.mobject.geometry.arc.TipableVMobject"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "place a dot at a specific coordinate location",
+        "create a labeled dot with a math expression or text",
+        "draw a cubic bezier curve between points"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "plot_mathematical_functions_and_parametric_curves",
+      "name": "Plot mathematical functions and parametric curves",
+      "description": "Create and display 2D mathematical functions, parametric curves, and implicit curves in the scene.",
+      "apis": [
+        "manim.mobject.graphing.functions.FunctionGraph",
+        "manim.mobject.graphing.functions.ImplicitFunction",
+        "manim.mobject.graphing.functions.ParametricFunction"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "plot a function graph",
+        "draw a parametric curve",
+        "plot an implicit function"
+      ],
+      "constraints": [
+        "Requires valid python lambda or function definitions for math expressions"
+      ],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "polygon_and_mesh_geometry",
+      "name": "Polygon and Mesh Geometry Analysis",
+      "description": "Analyze polygons, calculate winding numbers, compute areas using the shoelace formula, triangulate shapes, and generate regular vertices.",
+      "apis": [
+        "manim.utils.space_ops.center_of_mass",
+        "manim.utils.space_ops.compass_directions",
+        "manim.utils.space_ops.earclip_triangulation",
+        "manim.utils.space_ops.get_winding_number",
+        "manim.utils.space_ops.regular_vertices",
+        "manim.utils.space_ops.shoelace",
+        "manim.utils.space_ops.shoelace_direction",
+        "manim.utils.space_ops.thick_diagonal"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "calculate the winding number of a polygon",
+        "triangulate a polygon",
+        "generate regular vertices for a shape",
+        "calculate the area of a polygon using the shoelace formula"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "query_three_d_vector_mobject_geometry",
+      "name": "Query 3D Vector Mobject Geometry",
+      "description": "Inspect and retrieve geometric attributes, corners, indices, and unit normals of 3D vector mobjects.",
+      "apis": [
+        "manim.mobject.three_d.three_d_utils.get_3d_vmob_end_corner",
+        "manim.mobject.three_d.three_d_utils.get_3d_vmob_end_corner_index",
+        "manim.mobject.three_d.three_d_utils.get_3d_vmob_end_corner_unit_normal",
+        "manim.mobject.three_d.three_d_utils.get_3d_vmob_gradient_start_and_end_points",
+        "manim.mobject.three_d.three_d_utils.get_3d_vmob_start_corner",
+        "manim.mobject.three_d.three_d_utils.get_3d_vmob_start_corner_index",
+        "manim.mobject.three_d.three_d_utils.get_3d_vmob_start_corner_unit_normal",
+        "manim.mobject.three_d.three_d_utils.get_3d_vmob_unit_normal"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "Get the end corner of a 3D VMobject",
+        "Find the unit normal of a 3D vector mobject",
+        "Retrieve gradient start and end points for a 3D VMobject"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "random_and_shaded_coloring",
+      "name": "Random and Shaded Coloring",
+      "description": "Generate random or bright colors and calculate shaded RGB values for surfaces and lighting effects.",
+      "apis": [
+        "manim.utils.color.core.get_shaded_rgb",
+        "manim.utils.color.core.random_bright_color",
+        "manim.utils.color.core.random_color"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "get a random color",
+        "generate a random bright color",
+        "calculate shaded rgb for a surface"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "recursively_merge_and_update_dictionaries",
+      "name": "Recursively merge and update dictionaries",
+      "description": "Combine and update configuration dictionaries recursively, prioritizing later dictionaries in the list.",
+      "apis": [
+        "manim.utils.config_ops.merge_dicts_recursively",
+        "manim.utils.config_ops.update_dict_recursively"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "merge two configuration dictionaries recursively",
+        "update a dictionary recursively with another dict"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "render_manim_banner",
+      "name": "Render and animate the Manim banner",
+      "description": "Create and animate the official Manim logo banner with customizable dark and light themes.",
+      "apis": [
+        "manim.mobject.logo.ManimBanner"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "display the manim banner",
+        "animate the manim logo",
+        "show manim banner with light theme"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "render_and_display_matrices",
+      "name": "Render and Display Matrices",
+      "description": "Create and display general matrices, integer matrices, decimal matrices, and matrices containing arbitrary mobjects on the screen with customizable brackets and formatting.",
+      "apis": [
+        "manim.mobject.matrix.Matrix",
+        "manim.mobject.matrix.IntegerMatrix",
+        "manim.mobject.matrix.DecimalMatrix",
+        "manim.mobject.matrix.MobjectMatrix",
+        "manim.mobject.matrix.matrix_to_mobject",
+        "manim.mobject.matrix.matrix_to_tex_string"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "display a matrix on the screen",
+        "create a matrix with integer or decimal entries",
+        "show a matrix of mobjects or custom symbols"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "render_and_display_opengl_image_surface",
+      "name": "Render and display OpenGL image surface",
+      "description": "Create and render a surface using OpenGL image mobject parameters such as uv_func, ranges, resolution, and color scales.",
+      "apis": [
+        "manim.mobject.opengl.opengl_image_mobject.OpenGLImageMobject"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "render a surface using OpenGL image mobject",
+        "create an OpenGL image surface with custom ranges and colors"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "opengl_dot_cloud_rendering",
+      "name": "Render and manage OpenGL dot clouds",
+      "description": "Create and display collections of points and dots using OpenGL acceleration.",
+      "apis": [
+        "manim.mobject.opengl.dot_cloud.DotCloud",
+        "manim.mobject.opengl.dot_cloud.TrueDot"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "display a dot cloud using opengl",
+        "create an opengl true dot"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "render_custom_shaders_and_meshes",
+      "name": "Render custom shaders and meshes",
+      "description": "Configure and render low-level shader programs, 3D meshes, objects, and full-screen quads for custom visual effects.",
+      "apis": [
+        "manim.renderer.shader.FullScreenQuad",
+        "manim.renderer.shader.Mesh",
+        "manim.renderer.shader.Object3D",
+        "manim.renderer.shader.Shader",
+        "manim.renderer.shader.filter_attributes",
+        "manim.renderer.shader.get_shader_code_from_file"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "create a custom shader program",
+        "load shader code from a file",
+        "render a 3D mesh using custom shaders",
+        "apply a full screen quad effect"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "render_latex_text",
+      "name": "Render LaTeX Text and Documents",
+      "description": "Create and display standard text, titles, and bulleted lists rendered via LaTeX.",
+      "apis": [
+        "manim.mobject.text.tex_mobject.Tex",
+        "manim.mobject.text.tex_mobject.Title",
+        "manim.mobject.text.tex_mobject.BulletedList"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "display a bulleted list",
+        "add a title with an underline",
+        "render normal text using LaTeX"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "render_mathematical_equations",
+      "name": "Render Mathematical Equations",
+      "description": "Create and display mathematical formulas and expressions compiled with LaTeX in math mode.",
+      "apis": [
+        "manim.mobject.text.tex_mobject.MathTex",
+        "manim.mobject.text.tex_mobject.SingleStringMathTex"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "display a math formula",
+        "write an equation using LaTeX",
+        "render a mathematical expression"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "render_standard_text",
+      "name": "Render standard text and paragraphs",
+      "description": "Create and style non-LaTeX text using Pango, including custom fonts, multi-line paragraphs, and styling options such as weights, slants, and colors.",
+      "apis": [
+        "manim.mobject.text.text_mobject.Text",
+        "manim.mobject.text.text_mobject.Paragraph",
+        "manim.mobject.text.text_mobject.register_font",
+        "manim.mobject.text.text_mobject.remove_invisible_chars"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "display text on the screen",
+        "add a paragraph of text with custom line spacing",
+        "render text using a custom font file",
+        "style specific words within a text object"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "render_markup_text",
+      "name": "Render styled markup text",
+      "description": "Display non-LaTeX text rendered using Pango markup language for inline styling like colors, sizes, and HTML-like tags.",
+      "apis": [
+        "manim.mobject.text.text_mobject.MarkupText"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "display text with inline HTML-like markup styles",
+        "render colored text using Pango markup"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "represent_angles_and_right_angles",
+      "name": "Represent angles and right angles",
+      "description": "Construct circular arc angles between intersecting lines, elbows, and right angle markers with optional dots.",
+      "apis": [
+        "manim.mobject.geometry.line.Angle",
+        "manim.mobject.geometry.line.Elbow",
+        "manim.mobject.geometry.line.RightAngle"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "show the angle between two intersecting lines",
+        "draw a right angle marker with a dot",
+        "create an L-shaped elbow for perpendicular lines"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "raster_and_vector_image_path_resolution",
+      "name": "Resolve raster and vector image paths",
+      "description": "Locate and retrieve the full file paths for raster or vector images to be loaded into the scene.",
+      "apis": [
+        "manim.utils.images.get_full_raster_image_path",
+        "manim.utils.images.get_full_vector_image_path"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "find the full path for an image file",
+        "get vector image path"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "resolve_sound_file_paths",
+      "name": "Resolve Sound File Paths",
+      "description": "Locate and retrieve the full filesystem path for audio files used in video production.",
+      "apis": [
+        "manim.utils.sounds.get_full_sound_file_path"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "get sound file path",
+        "locate audio file for scene"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "rotate_coordinate_system_to_vector",
+      "name": "Rotate coordinate system using a target vector",
+      "description": "Compute a 3D rotation matrix to align the z-axis with a normalized target vector.",
+      "apis": [
+        "manim.utils.space_ops.z_to_vector"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "align the z axis with a vector",
+        "find rotation matrix from z to vector"
+      ],
+      "constraints": [
+        "Vector is normalized automatically"
+      ],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "rotate_objects_and_continuous_rotation",
+      "name": "Rotate objects and apply continuous rotation",
+      "description": "Rotate mobjects around specific points, axes, or apply continuous rotational animations.",
+      "apis": [
+        "manim.animation.rotation.Rotate",
+        "manim.animation.rotation.Rotating"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "rotate this object around a point",
+        "apply a continuous rotation animation",
+        "spin the shape by an angle"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "rotations_and_quaternions",
+      "name": "Rotations and Quaternion Operations",
+      "description": "Perform rotations, manipulate rotation matrices, and compute quaternion products, conjugates, and angle-axis representations.",
+      "apis": [
+        "manim.utils.space_ops.angle_axis_from_quaternion",
+        "manim.utils.space_ops.quaternion_conjugate",
+        "manim.utils.space_ops.quaternion_from_angle_axis",
+        "manim.utils.space_ops.quaternion_mult",
+        "manim.utils.space_ops.rotate_vector",
+        "manim.utils.space_ops.rotation_about_z",
+        "manim.utils.space_ops.rotation_matrix",
+        "manim.utils.space_ops.rotation_matrix_from_quaternion",
+        "manim.utils.space_ops.rotation_matrix_transpose",
+        "manim.utils.space_ops.rotation_matrix_transpose_from_quaternion"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "rotate a vector around an axis",
+        "compute a rotation matrix from a quaternion",
+        "multiply two quaternions"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "scale_and_shrink_mobjects",
+      "name": "Scale and Shrink Mobjects",
+      "description": "Scale mobjects in place or shrink them down to their center point.",
+      "apis": [
+        "manim.animation.transform.ScaleInPlace",
+        "manim.animation.transform.ShrinkToCenter"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "scale a mobject in place",
+        "shrink a text to its center"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "scene_timing_and_mobject_addition",
+      "name": "Scene timing and mobject addition",
+      "description": "Control scene pacing with wait periods and add mobjects dynamically or instantly during animations.",
+      "apis": [
+        "manim.animation.animation.Add",
+        "manim.animation.animation.Wait",
+        "manim.animation.animation.Animation"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "wait for a few seconds",
+        "add a mobject in the middle of an animation",
+        "pause the scene progression"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "segment_scene_into_sections",
+      "name": "Segment scene into sections",
+      "description": "Organize a scene into distinct sections with custom types and video output settings for presentations or modular rendering.",
+      "apis": [
+        "manim.scene.section.Section",
+        "manim.scene.section.DefaultSectionType"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "divide the scene into presentation sections",
+        "create a section with a loop type",
+        "segment animations into render sections"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "shader_and_rendering_utilities",
+      "name": "Shader and Rendering Utilities",
+      "description": "Manage shader files, colormap codes, and low-level rendering shader wrappers for custom graphics configuration.",
+      "apis": [
+        "manim.renderer.shader_wrapper.ShaderWrapper",
+        "manim.renderer.shader_wrapper.find_file",
+        "manim.renderer.shader_wrapper.get_colormap_code",
+        "manim.renderer.shader_wrapper.get_shader_code_from_file",
+        "manim.renderer.shader_wrapper.get_shader_dir"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "load custom shader code for rendering",
+        "find shader files and colormap configurations"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "sequential_submobject_display",
+      "name": "Show submobjects sequentially or progressively",
+      "description": "Reveal submobjects one by one or in increasing subsets, either keeping previous ones visible or replacing them.",
+      "apis": [
+        "manim.animation.creation.ShowIncreasingSubsets",
+        "manim.animation.creation.ShowSubmobjectsOneByOne"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "show submobjects one by one",
+        "display increasing subsets of a group"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "trace_moving_object_paths",
+      "name": "Trace moving object paths",
+      "description": "Create trailing paths or animated boundaries that follow and visualize the motion or changing state of objects over time.",
+      "apis": [
+        "manim.animation.changing.AnimatedBoundary",
+        "manim.animation.changing.TracedPath"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "trace the path of a moving dot",
+        "leave a trail behind a rolling circle",
+        "add an animated color boundary around text"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "transform_mathematical_equations",
+      "name": "Transform Mathematical Equations",
+      "description": "Transform rendered LaTeX strings and equations by matching corresponding LaTeX parts and symbols.",
+      "apis": [
+        "manim.animation.transform_matching_parts.TransformMatchingTex"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "transform one math equation into another",
+        "morph parts of a LaTeX equation into a new formula"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "transform_matching_parts_and_shapes",
+      "name": "Transform Shapes and Submobjects by Matching Parts",
+      "description": "Transform groups, text, or shapes by automatically identifying and matching corresponding submobjects or geometric parts.",
+      "apis": [
+        "manim.animation.transform_matching_parts.TransformMatchingAbstractBase",
+        "manim.animation.transform_matching_parts.TransformMatchingShapes"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "transform text into an anagram by matching shapes",
+        "transform between shapes while keeping track of matching submobjects"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "directory_layout_traversal",
+      "name": "Traverse directory layout",
+      "description": "Recursively get relative file paths within a directory layout.",
+      "apis": [
+        "manim.utils.commands.get_dir_layout"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "get directory layout",
+        "list files recursively relative to directory",
+        "traverse output files"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "type_conversion_and_utility",
+      "name": "Type Conversion and Iterable Utilities",
+      "description": "Intelligently convert objects to lists or tuples, verify types, and compute object hashes.",
+      "apis": [
+        "manim.utils.iterables.all_elements_are_instances",
+        "manim.utils.iterables.hash_obj",
+        "manim.utils.iterables.listify",
+        "manim.utils.iterables.tuplify"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "convert object to list intelligently",
+        "check if all elements are instances of class",
+        "hash mutable object"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "use_percentage_units",
+      "name": "Use percentage-based positioning and sizing units",
+      "description": "Position or scale objects using percentages of the screen or frame dimensions.",
+      "apis": [
+        "manim.utils.unit.Percent"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "position object at a certain percentage of the screen",
+        "scale object by percentage"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "vector_and_angle_calculations",
+      "name": "Vector and Angle Calculations",
+      "description": "Compute angles, dot/cross products, norms, and geometric relationships between vectors in 2D and 3D space.",
+      "apis": [
+        "manim.utils.space_ops.angle_between_vectors",
+        "manim.utils.space_ops.angle_of_vector",
+        "manim.utils.space_ops.cross",
+        "manim.utils.space_ops.cross2d",
+        "manim.utils.space_ops.get_unit_normal",
+        "manim.utils.space_ops.norm_squared",
+        "manim.utils.space_ops.normalize",
+        "manim.utils.space_ops.normalize_along_axis"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "calculate the angle between two vectors",
+        "find the unit normal of vectors",
+        "normalize a vector or array along an axis"
+      ],
+      "constraints": [],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "vector_space_and_linear_transformation_scenes",
+      "name": "Vector Space and Linear Transformation Scenes",
+      "description": "Create specialized scenes for visualizing vectors, coordinate planes, and matrix linear transformations.",
+      "apis": [
+        "manim.scene.vector_space_scene.LinearTransformationScene",
+        "manim.scene.vector_space_scene.VectorScene"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "show a linear transformation using a matrix",
+        "visualize vector spaces and basis vectors",
+        "animate a matrix transformation on a coordinate plane"
+      ],
+      "constraints": [
+        "Use LinearTransformationScene when applying matrix transformations with basis vectors."
+      ],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "vectorized_mobject_low_level_rendering",
+      "name": "Vectorized Mobject Low-Level Rendering and Triangulation",
+      "description": "Handle low-level rendering operations for fills, strokes, matrix lists, and triangulation of vectorized mobjects.",
+      "apis": [
+        "manim.renderer.vectorized_mobject_rendering.build_matrix_lists",
+        "manim.renderer.vectorized_mobject_rendering.render_mobject_fills_with_matrix",
+        "manim.renderer.vectorized_mobject_rendering.render_mobject_strokes_with_matrix",
+        "manim.renderer.vectorized_mobject_rendering.render_opengl_vectorized_mobject_fill",
+        "manim.renderer.vectorized_mobject_rendering.render_opengl_vectorized_mobject_stroke",
+        "manim.renderer.vectorized_mobject_rendering.triangulate_mobject"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "render vectorized mobject fills and strokes",
+        "triangulate mobject geometry",
+        "build matrix lists for vector rendering"
+      ],
+      "constraints": [
+        "Low-level internal rendering functions; typically handled automatically by the rendering pipeline."
+      ],
+      "merged_from": [],
+      "version": "0.19.0"
+    },
+    {
+      "id": "visualize_vector_fields",
+      "name": "Visualize and animate vector fields",
+      "description": "Create and display mathematical vector fields using arrow grids or animated flow stream lines.",
+      "apis": [
+        "manim.mobject.vector_field.ArrowVectorField",
+        "manim.mobject.vector_field.StreamLines",
+        "manim.mobject.vector_field.VectorField"
+      ],
+      "examples": [],
+      "intent_patterns": [
+        "display a vector field",
+        "animate stream lines for a vector function",
+        "show a 2D arrow vector field"
+      ],
+      "constraints": [
+        "Requires a function defining the rate of change at every position."
+      ],
+      "merged_from": [],
+      "version": "0.19.0"
+    }
+  ],
+  "statistics": {
+    "raw_capability_count": 161,
+    "final_capability_count": 158,
+    "merged_capabilities": 3,
+    "global_merge_groups": 3,
+    "global_example_count": 75
+  }
+}

@@ -1,0 +1,623 @@
+{
+  "library": {
+    "name": "Manim",
+    "version": "0.19.0"
+  },
+  "statistics": {
+    "examples": 75,
+    "ref_class_references": 61,
+    "code_lines": 2003
+  },
+  "examples": [
+    {
+      "title": "Formula1",
+      "ref_classes": [],
+      "code": "class Formula1(Scene):\n\n    def construct(self):\n\n        t = MathTex(r\"\\int_a^b f'(x) dx = f(b) - f(a)\")\n\n        self.add(t)\n\n        self.wait(1)\n",
+      "source_file": "docs\\source\\contributing\\docs\\examples.rst",
+      "id": "manim_example_00000"
+    },
+    {
+      "title": "ArgMinExample",
+      "ref_classes": [],
+      "code": "class ArgMinExample(Scene):\n\n    def construct(self):\n\n        ax = Axes(\n\n            x_range=[0, 10], y_range=[0, 100, 10], axis_config={\"include_tip\": False}\n\n        )\n\n        labels = ax.get_axis_labels(x_label=\"x\", y_label=\"f(x)\")\n\n\n        t = ValueTracker(0)\n\n\n        def func(x):\n\n            return 2 * (x - 5) ** 2\n\n        graph = ax.plot(func, color=MAROON)\n\n\n        initial_point = [ax.coords_to_point(t.get_value(), func(t.get_value()))]\n\n        dot = Dot(point=initial_point)\n\n\n        dot.add_updater(lambda x: x.move_to(ax.c2p(t.get_value(), func(t.get_value()))))\n\n        x_space = np.linspace(*ax.x_range[:2],200)\n\n        minimum_index = func(x_space).argmin()\n\n\n        self.add(ax, labels, graph, dot)\n\n        self.play(t.animate.set_value(x_space[minimum_index]))\n\n        self.wait()\n",
+      "source_file": "docs\\source\\examples.rst",
+      "id": "manim_example_00001"
+    },
+    {
+      "title": "BooleanOperations",
+      "ref_classes": [
+        "Union",
+        "Intersection",
+        "Exclusion",
+        "Difference"
+      ],
+      "code": "class BooleanOperations(Scene):\n\n    def construct(self):\n\n        ellipse1 = Ellipse(\n\n            width=4.0, height=5.0, fill_opacity=0.5, color=BLUE, stroke_width=10\n\n        ).move_to(LEFT)\n\n        ellipse2 = ellipse1.copy().set_color(color=RED).move_to(RIGHT)\n\n        bool_ops_text = MarkupText(\"<u>Boolean Operation</u>\").next_to(ellipse1, UP * 3)\n\n        ellipse_group = Group(bool_ops_text, ellipse1, ellipse2).move_to(LEFT * 3)\n\n        self.play(FadeIn(ellipse_group))\n\n\n        i = Intersection(ellipse1, ellipse2, color=GREEN, fill_opacity=0.5)\n\n        self.play(i.animate.scale(0.25).move_to(RIGHT * 5 + UP * 2.5))\n\n        intersection_text = Text(\"Intersection\", font_size=23).next_to(i, UP)\n\n        self.play(FadeIn(intersection_text))\n\n\n        u = Union(ellipse1, ellipse2, color=ORANGE, fill_opacity=0.5)\n\n        union_text = Text(\"Union\", font_size=23)\n\n        self.play(u.animate.scale(0.3).next_to(i, DOWN, buff=union_text.height * 3))\n\n        union_text.next_to(u, UP)\n\n        self.play(FadeIn(union_text))\n\n\n        e = Exclusion(ellipse1, ellipse2, color=YELLOW, fill_opacity=0.5)\n\n        exclusion_text = Text(\"Exclusion\", font_size=23)\n\n        self.play(e.animate.scale(0.3).next_to(u, DOWN, buff=exclusion_text.height * 3.5))\n\n        exclusion_text.next_to(e, UP)\n\n        self.play(FadeIn(exclusion_text))\n\n\n        d = Difference(ellipse1, ellipse2, color=PINK, fill_opacity=0.5)\n\n        difference_text = Text(\"Difference\", font_size=23)\n\n        self.play(d.animate.scale(0.3).next_to(u, LEFT, buff=difference_text.height * 3.5))\n\n        difference_text.next_to(d, UP)\n\n        self.play(FadeIn(difference_text))\n",
+      "source_file": "docs\\source\\examples.rst",
+      "id": "manim_example_00002"
+    },
+    {
+      "title": "BraceAnnotation",
+      "ref_classes": [
+        "Brace"
+      ],
+      "code": "class BraceAnnotation(Scene):\n\n    def construct(self):\n\n        dot = Dot([-2, -1, 0])\n\n        dot2 = Dot([2, 1, 0])\n\n        line = Line(dot.get_center(), dot2.get_center()).set_color(ORANGE)\n\n        b1 = Brace(line)\n\n        b1text = b1.get_text(\"Horizontal distance\")\n\n        b2 = Brace(line, direction=line.copy().rotate(PI / 2).get_unit_vector())\n\n        b2text = b2.get_tex(\"x-x_1\")\n\n        self.add(line, dot, dot2, b1, b2, b1text, b2text)\n",
+      "source_file": "docs\\source\\examples.rst",
+      "id": "manim_example_00003"
+    },
+    {
+      "title": "FixedInFrameMObjectTest",
+      "ref_classes": [
+        "ThreeDScene"
+      ],
+      "code": "class FixedInFrameMObjectTest(ThreeDScene):\n\n    def construct(self):\n\n        axes = ThreeDAxes()\n\n        self.set_camera_orientation(phi=75 * DEGREES, theta=-45 * DEGREES)\n\n        text3d = Text(\"This is a 3D text\")\n\n        self.add_fixed_in_frame_mobjects(text3d)\n\n        text3d.to_corner(UL)\n\n        self.add(axes)\n\n        self.wait()\n",
+      "source_file": "docs\\source\\examples.rst",
+      "id": "manim_example_00004"
+    },
+    {
+      "title": "FollowingGraphCamera",
+      "ref_classes": [
+        "MovingCameraScene",
+        "MoveAlongPath",
+        "Restore"
+      ],
+      "code": "class FollowingGraphCamera(MovingCameraScene):\n\n    def construct(self):\n\n        self.camera.frame.save_state()\n\n\n        # create the axes and the curve\n\n        ax = Axes(x_range=[-1, 10], y_range=[-1, 10])\n\n        graph = ax.plot(lambda x: np.sin(x), color=BLUE, x_range=[0, 3 * PI])\n\n\n        # create dots based on the graph\n\n        moving_dot = Dot(ax.i2gp(graph.t_min, graph), color=ORANGE)\n\n        dot_1 = Dot(ax.i2gp(graph.t_min, graph))\n\n        dot_2 = Dot(ax.i2gp(graph.t_max, graph))\n\n\n        self.add(ax, graph, dot_1, dot_2, moving_dot)\n\n        self.play(self.camera.frame.animate.scale(0.5).move_to(moving_dot))\n\n\n        def update_curve(mob):\n\n            mob.move_to(moving_dot.get_center())\n\n\n        self.camera.frame.add_updater(update_curve)\n\n        self.play(MoveAlongPath(moving_dot, graph, rate_func=linear))\n\n        self.camera.frame.remove_updater(update_curve)\n\n\n        self.play(Restore(self.camera.frame))\n",
+      "source_file": "docs\\source\\examples.rst",
+      "id": "manim_example_00005"
+    },
+    {
+      "title": "GradientImageFromArray",
+      "ref_classes": [
+        "ImageMobject"
+      ],
+      "code": "class GradientImageFromArray(Scene):\n\n    def construct(self):\n\n        n = 256\n\n        imageArray = np.uint8(\n\n            [[i * 256 / n for i in range(0, n)] for _ in range(0, n)]\n\n        )\n\n        image = ImageMobject(imageArray).scale(2)\n\n        image.background_rectangle = SurroundingRectangle(image, color=GREEN)\n\n        self.add(image, image.background_rectangle)\n",
+      "source_file": "docs\\source\\examples.rst",
+      "id": "manim_example_00006"
+    },
+    {
+      "title": "GraphAreaPlot",
+      "ref_classes": [],
+      "code": "class GraphAreaPlot(Scene):\n\n    def construct(self):\n\n        ax = Axes(\n\n            x_range=[0, 5],\n\n            y_range=[0, 6],\n\n            x_axis_config={\"numbers_to_include\": [2, 3]},\n\n            tips=False,\n\n        )\n\n\n        labels = ax.get_axis_labels()\n\n\n        curve_1 = ax.plot(lambda x: 4 * x - x ** 2, x_range=[0, 4], color=BLUE_C)\n\n        curve_2 = ax.plot(\n\n            lambda x: 0.8 * x ** 2 - 3 * x + 4,\n\n            x_range=[0, 4],\n\n            color=GREEN_B,\n\n        )\n\n\n        line_1 = ax.get_vertical_line(ax.input_to_graph_point(2, curve_1), color=YELLOW)\n\n        line_2 = ax.get_vertical_line(ax.i2gp(3, curve_1), color=YELLOW)\n\n\n        riemann_area = ax.get_riemann_rectangles(curve_1, x_range=[0.3, 0.6], dx=0.03, color=BLUE, fill_opacity=0.5)\n\n        area = ax.get_area(curve_2, [2, 3], bounded_graph=curve_1, color=GREY, opacity=0.5)\n\n\n        self.add(ax, labels, curve_1, curve_2, line_1, line_2, riemann_area, area)\n",
+      "source_file": "docs\\source\\examples.rst",
+      "id": "manim_example_00007"
+    },
+    {
+      "title": "HeatDiagramPlot",
+      "ref_classes": [],
+      "code": "class HeatDiagramPlot(Scene):\n\n    def construct(self):\n\n        ax = Axes(\n\n            x_range=[0, 40, 5],\n\n            y_range=[-8, 32, 5],\n\n            x_length=9,\n\n            y_length=6,\n\n            x_axis_config={\"numbers_to_include\": np.arange(0, 40, 5)},\n\n            y_axis_config={\"numbers_to_include\": np.arange(-5, 34, 5)},\n\n            tips=False,\n\n        )\n\n        labels = ax.get_axis_labels(\n\n            x_label=Tex(r\"$\\Delta Q$\"), y_label=Tex(r\"T[$^\\circ C$]\")\n\n        )\n\n\n        x_vals = [0, 8, 38, 39]\n\n        y_vals = [20, 0, 0, -5]\n\n        graph = ax.plot_line_graph(x_values=x_vals, y_values=y_vals)\n\n\n        self.add(ax, labels, graph)\n",
+      "source_file": "docs\\source\\examples.rst",
+      "id": "manim_example_00008"
+    },
+    {
+      "title": "ManimCELogo",
+      "ref_classes": [
+        "MathTex",
+        "Circle",
+        "Square",
+        "Triangle"
+      ],
+      "code": "class ManimCELogo(Scene):\n\n    def construct(self):\n\n        self.camera.background_color = \"#ece6e2\"\n\n        logo_green = \"#87c2a5\"\n\n        logo_blue = \"#525893\"\n\n        logo_red = \"#e07a5f\"\n\n        logo_black = \"#343434\"\n\n        ds_m = MathTex(r\"\\mathbb{M}\", fill_color=logo_black).scale(7)\n\n        ds_m.shift(2.25 * LEFT + 1.5 * UP)\n\n        circle = Circle(color=logo_green, fill_opacity=1).shift(LEFT)\n\n        square = Square(color=logo_blue, fill_opacity=1).shift(UP)\n\n        triangle = Triangle(color=logo_red, fill_opacity=1).shift(RIGHT)\n\n        logo = VGroup(triangle, square, circle, ds_m)  # order matters\n\n        logo.move_to(ORIGIN)\n\n        self.add(logo)\n",
+      "source_file": "docs\\source\\examples.rst",
+      "id": "manim_example_00009"
+    },
+    {
+      "title": "MovingAngle",
+      "ref_classes": [
+        "Angle"
+      ],
+      "code": "class MovingAngle(Scene):\n\n    def construct(self):\n\n        rotation_center = LEFT\n\n\n        theta_tracker = ValueTracker(110)\n\n        line1 = Line(LEFT, RIGHT)\n\n        line_moving = Line(LEFT, RIGHT)\n\n        line_ref = line_moving.copy()\n\n        line_moving.rotate(\n\n            theta_tracker.get_value() * DEGREES, about_point=rotation_center\n\n        )\n\n        a = Angle(line1, line_moving, radius=0.5, other_angle=False)\n\n        tex = MathTex(r\"\\theta\").move_to(\n\n            Angle(\n\n                line1, line_moving, radius=0.5 + 3 * SMALL_BUFF, other_angle=False\n\n            ).point_from_proportion(0.5)\n\n        )\n\n\n        self.add(line1, line_moving, a, tex)\n\n        self.wait()\n\n\n        line_moving.add_updater(\n\n            lambda x: x.become(line_ref.copy()).rotate(\n\n                theta_tracker.get_value() * DEGREES, about_point=rotation_center\n\n            )\n\n        )\n\n\n        a.add_updater(\n\n            lambda x: x.become(Angle(line1, line_moving, radius=0.5, other_angle=False))\n\n        )\n\n        tex.add_updater(\n\n            lambda x: x.move_to(\n\n                Angle(\n\n                    line1, line_moving, radius=0.5 + 3 * SMALL_BUFF, other_angle=False\n\n                ).point_from_proportion(0.5)\n\n            )\n\n        )\n\n\n        self.play(theta_tracker.animate.set_value(40))\n\n        self.play(theta_tracker.animate.increment_value(140))\n\n        self.play(tex.animate.set_color(RED), run_time=0.5)\n\n        self.play(theta_tracker.animate.set_value(350))\n",
+      "source_file": "docs\\source\\examples.rst",
+      "id": "manim_example_00010"
+    },
+    {
+      "title": "MovingAround",
+      "ref_classes": [],
+      "code": "class MovingAround(Scene):\n\n    def construct(self):\n\n        square = Square(color=BLUE, fill_opacity=1)\n\n\n        self.play(square.animate.shift(LEFT))\n\n        self.play(square.animate.set_fill(ORANGE))\n\n        self.play(square.animate.scale(0.3))\n\n        self.play(square.animate.rotate(0.4))\n",
+      "source_file": "docs\\source\\examples.rst",
+      "id": "manim_example_00011"
+    },
+    {
+      "title": "MovingDots",
+      "ref_classes": [],
+      "code": "class MovingDots(Scene):\n\n    def construct(self):\n\n        d1,d2=Dot(color=BLUE),Dot(color=GREEN)\n\n        dg=VGroup(d1,d2).arrange(RIGHT,buff=1)\n\n        l1=Line(d1.get_center(),d2.get_center()).set_color(RED)\n\n        x=ValueTracker(0)\n\n        y=ValueTracker(0)\n\n        d1.add_updater(lambda z: z.set_x(x.get_value()))\n\n        d2.add_updater(lambda z: z.set_y(y.get_value()))\n\n        l1.add_updater(lambda z: z.become(Line(d1.get_center(),d2.get_center())))\n\n        self.add(d1,d2,l1)\n\n        self.play(x.animate.set_value(5))\n\n        self.play(y.animate.set_value(4))\n\n        self.wait()\n",
+      "source_file": "docs\\source\\examples.rst",
+      "id": "manim_example_00012"
+    },
+    {
+      "title": "MovingFrameBox",
+      "ref_classes": [
+        "MathTex",
+        "SurroundingRectangle"
+      ],
+      "code": "class MovingFrameBox(Scene):\n\n    def construct(self):\n\n        text=MathTex(\n\n            \"\\\\frac{d}{dx}f(x)g(x)=\",\"f(x)\\\\frac{d}{dx}g(x)\",\"+\",\n\n            \"g(x)\\\\frac{d}{dx}f(x)\"\n\n        )\n\n        self.play(Write(text))\n\n        framebox1 = SurroundingRectangle(text[1], buff = .1)\n\n        framebox2 = SurroundingRectangle(text[3], buff = .1)\n\n        self.play(\n\n            Create(framebox1),\n\n        )\n\n        self.wait()\n\n        self.play(\n\n            ReplacementTransform(framebox1,framebox2),\n\n        )\n\n        self.wait()\n",
+      "source_file": "docs\\source\\examples.rst",
+      "id": "manim_example_00013"
+    },
+    {
+      "title": "MovingGroupToDestination",
+      "ref_classes": [],
+      "code": "class MovingGroupToDestination(Scene):\n\n    def construct(self):\n\n        group = VGroup(Dot(LEFT), Dot(ORIGIN), Dot(RIGHT, color=RED), Dot(2 * RIGHT)).scale(1.4)\n\n        dest = Dot([4, 3, 0], color=YELLOW)\n\n        self.add(group, dest)\n\n        self.play(group.animate.shift(dest.get_center() - group[2].get_center()))\n\n        self.wait(0.5)\n",
+      "source_file": "docs\\source\\examples.rst",
+      "id": "manim_example_00014"
+    },
+    {
+      "title": "MovingZoomedSceneAround",
+      "ref_classes": [
+        "ZoomedScene",
+        "BackgroundRectangle",
+        "UpdateFromFunc"
+      ],
+      "code": "class MovingZoomedSceneAround(ZoomedScene):\n\n# contributed by TheoremofBeethoven, www.youtube.com/c/TheoremofBeethoven\n\n    def __init__(self, **kwargs):\n\n        ZoomedScene.__init__(\n\n            self,\n\n            zoom_factor=0.3,\n\n            zoomed_display_height=1,\n\n            zoomed_display_width=6,\n\n            image_frame_stroke_width=20,\n\n            zoomed_camera_config={\n\n                \"default_frame_stroke_width\": 3,\n\n                },\n\n            **kwargs\n\n        )\n\n\n    def construct(self):\n\n        dot = Dot().shift(UL * 2)\n\n        image = ImageMobject(np.uint8([[0, 100, 30, 200],\n\n                                       [255, 0, 5, 33]]))\n\n        image.height = 7\n\n        frame_text = Text(\"Frame\", color=PURPLE, font_size=67)\n\n        zoomed_camera_text = Text(\"Zoomed camera\", color=RED, font_size=67)\n\n\n        self.add(image, dot)\n\n        zoomed_camera = self.zoomed_camera\n\n        zoomed_display = self.zoomed_display\n\n        frame = zoomed_camera.frame\n\n        zoomed_display_frame = zoomed_display.display_frame\n\n\n        frame.move_to(dot)\n\n        frame.set_color(PURPLE)\n\n        zoomed_display_frame.set_color(RED)\n\n        zoomed_display.shift(DOWN)\n\n\n        zd_rect = BackgroundRectangle(zoomed_display, fill_opacity=0, buff=MED_SMALL_BUFF)\n\n        self.add_foreground_mobject(zd_rect)\n\n\n        unfold_camera = UpdateFromFunc(zd_rect, lambda rect: rect.replace(zoomed_display))\n\n\n        frame_text.next_to(frame, DOWN)\n\n\n        self.play(Create(frame), FadeIn(frame_text, shift=UP))\n\n        self.activate_zooming()\n\n\n        self.play(self.get_zoomed_display_pop_out_animation(), unfold_camera)\n\n        zoomed_camera_text.next_to(zoomed_display_frame, DOWN)\n\n        self.play(FadeIn(zoomed_camera_text, shift=UP))\n\n        # Scale in        x   y  z\n\n        scale_factor = [0.5, 1.5, 0]\n\n        self.play(\n\n            frame.animate.scale(scale_factor),\n\n            zoomed_display.animate.scale(scale_factor),\n\n            FadeOut(zoomed_camera_text),\n\n            FadeOut(frame_text)\n\n        )\n\n        self.wait()\n\n        self.play(ScaleInPlace(zoomed_display, 2))\n\n        self.wait()\n\n        self.play(frame.animate.shift(2.5 * DOWN))\n\n        self.wait()\n\n        self.play(self.get_zoomed_display_pop_out_animation(), unfold_camera, rate_func=lambda t: smooth(1 - t))\n\n        self.play(Uncreate(zoomed_display_frame), FadeOut(frame))\n\n        self.wait()\n",
+      "source_file": "docs\\source\\examples.rst",
+      "id": "manim_example_00015"
+    },
+    {
+      "title": "OpeningManim",
+      "ref_classes": [
+        "Tex",
+        "MathTex",
+        "Write",
+        "FadeIn",
+        "LaggedStart",
+        "NumberPlane",
+        "Create"
+      ],
+      "code": "class OpeningManim(Scene):\n\n    def construct(self):\n\n        title = Tex(r\"This is some \\LaTeX\")\n\n        basel = MathTex(r\"\\sum_{n=1}^\\infty \\frac{1}{n^2} = \\frac{\\pi^2}{6}\")\n\n        VGroup(title, basel).arrange(DOWN)\n\n        self.play(\n\n            Write(title),\n\n            FadeIn(basel, shift=DOWN),\n\n        )\n\n        self.wait()\n\n\n        transform_title = Tex(\"That was a transform\")\n\n        transform_title.to_corner(UP + LEFT)\n\n        self.play(\n\n            Transform(title, transform_title),\n\n            LaggedStart(*[FadeOut(obj, shift=DOWN) for obj in basel]),\n\n        )\n\n        self.wait()\n\n\n        grid = NumberPlane()\n\n        grid_title = Tex(\"This is a grid\", font_size=72)\n\n        grid_title.move_to(transform_title)\n\n\n        self.add(grid, grid_title)  # Make sure title is on top of grid\n\n        self.play(\n\n            FadeOut(title),\n\n            FadeIn(grid_title, shift=UP),\n\n            Create(grid, run_time=3, lag_ratio=0.1),\n\n        )\n\n        self.wait()\n\n\n        grid_transform_title = Tex(\n\n            r\"That was a non-linear function \\\\ applied to the grid\"\n\n        )\n\n        grid_transform_title.move_to(grid_title, UL)\n\n        grid.prepare_for_nonlinear_transform()\n\n        self.play(\n\n            grid.animate.apply_function(\n\n                lambda p: p\n\n                          + np.array(\n\n                    [\n\n                        np.sin(p[1]),\n\n                        np.sin(p[0]),\n\n                        0,\n\n                    ]\n\n                )\n\n            ),\n\n            run_time=3,\n\n        )\n\n        self.wait()\n\n        self.play(Transform(grid_title, grid_transform_title))\n\n        self.wait()\n",
+      "source_file": "docs\\source\\examples.rst",
+      "id": "manim_example_00016"
+    },
+    {
+      "title": "PointMovingOnShapes",
+      "ref_classes": [
+        "Circle",
+        "Dot",
+        "Line",
+        "GrowFromCenter",
+        "Transform",
+        "MoveAlongPath",
+        "Rotating"
+      ],
+      "code": "class PointMovingOnShapes(Scene):\n\n    def construct(self):\n\n        circle = Circle(radius=1, color=BLUE)\n\n        dot = Dot()\n\n        dot2 = dot.copy().shift(RIGHT)\n\n        self.add(dot)\n\n\n        line = Line([3, 0, 0], [5, 0, 0])\n\n        self.add(line)\n\n\n        self.play(GrowFromCenter(circle))\n\n        self.play(Transform(dot, dot2))\n\n        self.play(MoveAlongPath(dot, circle), run_time=2, rate_func=linear)\n\n        self.play(Rotating(dot, about_point=[2, 0, 0]), run_time=1.5)\n\n        self.wait()\n",
+      "source_file": "docs\\source\\examples.rst",
+      "id": "manim_example_00017"
+    },
+    {
+      "title": "PointWithTrace",
+      "ref_classes": [
+        "Rotating"
+      ],
+      "code": "class PointWithTrace(Scene):\n\n    def construct(self):\n\n        path = VMobject()\n\n        dot = Dot()\n\n        path.set_points_as_corners([dot.get_center(), dot.get_center()])\n\n        def update_path(path):\n\n            previous_path = path.copy()\n\n            previous_path.add_points_as_corners([dot.get_center()])\n\n            path.become(previous_path)\n\n        path.add_updater(update_path)\n\n        self.add(path, dot)\n\n        self.play(Rotating(dot, radians=PI, about_point=RIGHT, run_time=2))\n\n        self.wait()\n\n        self.play(dot.animate.shift(UP))\n\n        self.play(dot.animate.shift(LEFT))\n\n        self.wait()\n",
+      "source_file": "docs\\source\\examples.rst",
+      "id": "manim_example_00018"
+    },
+    {
+      "title": "PolygonOnAxes",
+      "ref_classes": [
+        "Axes",
+        "Polygon"
+      ],
+      "code": "class PolygonOnAxes(Scene):\n\n    def get_rectangle_corners(self, bottom_left, top_right):\n\n        return [\n\n            (top_right[0], top_right[1]),\n\n            (bottom_left[0], top_right[1]),\n\n            (bottom_left[0], bottom_left[1]),\n\n            (top_right[0], bottom_left[1]),\n\n        ]\n\n\n    def construct(self):\n\n        ax = Axes(\n\n            x_range=[0, 10],\n\n            y_range=[0, 10],\n\n            x_length=6,\n\n            y_length=6,\n\n            axis_config={\"include_tip\": False},\n\n        )\n\n\n        t = ValueTracker(5)\n\n        k = 25\n\n\n        graph = ax.plot(\n\n            lambda x: k / x,\n\n            color=YELLOW_D,\n\n            x_range=[k / 10, 10.0, 0.01],\n\n            use_smoothing=False,\n\n        )\n\n\n        def get_rectangle():\n\n            polygon = Polygon(\n\n                *[\n\n                    ax.c2p(*i)\n\n                    for i in self.get_rectangle_corners(\n\n                        (0, 0), (t.get_value(), k / t.get_value())\n\n                    )\n\n                ]\n\n            )\n\n            polygon.stroke_width = 1\n\n            polygon.set_fill(BLUE, opacity=0.5)\n\n            polygon.set_stroke(YELLOW_B)\n\n            return polygon\n\n\n        polygon = always_redraw(get_rectangle)\n\n\n        dot = Dot()\n\n        dot.add_updater(lambda x: x.move_to(ax.c2p(t.get_value(), k / t.get_value())))\n\n        dot.set_z_index(10)\n\n\n        self.add(ax, graph, dot)\n\n        self.play(Create(polygon))\n\n        self.play(t.animate.set_value(10))\n\n        self.play(t.animate.set_value(k / 10))\n\n        self.play(t.animate.set_value(5))\n",
+      "source_file": "docs\\source\\examples.rst",
+      "id": "manim_example_00019"
+    },
+    {
+      "title": "RotationUpdater",
+      "ref_classes": [],
+      "code": "class RotationUpdater(Scene):\n\n    def construct(self):\n\n        def updater_forth(mobj, dt):\n\n            mobj.rotate_about_origin(dt)\n\n        def updater_back(mobj, dt):\n\n            mobj.rotate_about_origin(-dt)\n\n        line_reference = Line(ORIGIN, LEFT).set_color(WHITE)\n\n        line_moving = Line(ORIGIN, LEFT).set_color(YELLOW)\n\n        line_moving.add_updater(updater_forth)\n\n        self.add(line_reference, line_moving)\n\n        self.wait(2)\n\n        line_moving.remove_updater(updater_forth)\n\n        line_moving.add_updater(updater_back)\n\n        self.wait(2)\n\n        line_moving.remove_updater(updater_back)\n\n        self.wait(0.5)\n",
+      "source_file": "docs\\source\\examples.rst",
+      "id": "manim_example_00020"
+    },
+    {
+      "title": "SinAndCosFunctionPlot",
+      "ref_classes": [
+        "MathTex"
+      ],
+      "code": "class SinAndCosFunctionPlot(Scene):\n\n    def construct(self):\n\n        axes = Axes(\n\n            x_range=[-10, 10.3, 1],\n\n            y_range=[-1.5, 1.5, 1],\n\n            x_length=10,\n\n            axis_config={\"color\": GREEN},\n\n            x_axis_config={\n\n                \"numbers_to_include\": np.arange(-10, 10.01, 2),\n\n                \"numbers_with_elongated_ticks\": np.arange(-10, 10.01, 2),\n\n            },\n\n            tips=False,\n\n        )\n\n        axes_labels = axes.get_axis_labels()\n\n        sin_graph = axes.plot(lambda x: np.sin(x), color=BLUE)\n\n        cos_graph = axes.plot(lambda x: np.cos(x), color=RED)\n\n\n        sin_label = axes.get_graph_label(\n\n            sin_graph, \"\\\\sin(x)\", x_val=-10, direction=UP / 2\n\n        )\n\n        cos_label = axes.get_graph_label(cos_graph, label=\"\\\\cos(x)\")\n\n\n        vert_line = axes.get_vertical_line(\n\n            axes.i2gp(TAU, cos_graph), color=YELLOW, line_func=Line\n\n        )\n\n        line_label = axes.get_graph_label(\n\n            cos_graph, r\"x=2\\pi\", x_val=TAU, direction=UR, color=WHITE\n\n        )\n\n\n        plot = VGroup(axes, sin_graph, cos_graph, vert_line)\n\n        labels = VGroup(axes_labels, sin_label, cos_label, line_label)\n\n        self.add(plot, labels)\n",
+      "source_file": "docs\\source\\examples.rst",
+      "id": "manim_example_00021"
+    },
+    {
+      "title": "SineCurveUnitCircle",
+      "ref_classes": [
+        "MathTex",
+        "Circle",
+        "Dot",
+        "Line",
+        "VGroup"
+      ],
+      "code": "class SineCurveUnitCircle(Scene):\n\n    # contributed by heejin_park, https://infograph.tistory.com/230\n\n    def construct(self):\n\n        self.show_axis()\n\n        self.show_circle()\n\n        self.move_dot_and_draw_curve()\n\n        self.wait()\n\n\n    def show_axis(self):\n\n        x_start = np.array([-6,0,0])\n\n        x_end = np.array([6,0,0])\n\n\n        y_start = np.array([-4,-2,0])\n\n        y_end = np.array([-4,2,0])\n\n\n        x_axis = Line(x_start, x_end)\n\n        y_axis = Line(y_start, y_end)\n\n\n        self.add(x_axis, y_axis)\n\n        self.add_x_labels()\n\n\n        self.origin_point = np.array([-4,0,0])\n\n        self.curve_start = np.array([-3,0,0])\n\n\n    def add_x_labels(self):\n\n        x_labels = [\n\n            MathTex(r\"\\pi\"), MathTex(r\"2 \\pi\"),\n\n            MathTex(r\"3 \\pi\"), MathTex(r\"4 \\pi\"),\n\n        ]\n\n\n        for i in range(len(x_labels)):\n\n            x_labels[i].next_to(np.array([-1 + 2*i, 0, 0]), DOWN)\n\n            self.add(x_labels[i])\n\n\n    def show_circle(self):\n\n        circle = Circle(radius=1)\n\n        circle.move_to(self.origin_point)\n\n        self.add(circle)\n\n        self.circle = circle\n\n\n    def move_dot_and_draw_curve(self):\n\n        orbit = self.circle\n\n        origin_point = self.origin_point\n\n\n        dot = Dot(radius=0.08, color=YELLOW)\n\n        dot.move_to(orbit.point_from_proportion(0))\n\n        self.t_offset = 0\n\n        rate = 0.25\n\n\n        def go_around_circle(mob, dt):\n\n            self.t_offset += (dt * rate)\n\n            # print(self.t_offset)\n\n            mob.move_to(orbit.point_from_proportion(self.t_offset % 1))\n\n\n        def get_line_to_circle():\n\n            return Line(origin_point, dot.get_center(), color=BLUE)\n\n\n        def get_line_to_curve():\n\n            x = self.curve_start[0] + self.t_offset * 4\n\n            y = dot.get_center()[1]\n\n            return Line(dot.get_center(), np.array([x,y,0]), color=YELLOW_A, stroke_width=2 )\n\n\n\n        self.curve = VGroup()\n\n        self.curve.add(Line(self.curve_start,self.curve_start))\n\n        def get_curve():\n\n            last_line = self.curve[-1]\n\n            x = self.curve_start[0] + self.t_offset * 4\n\n            y = dot.get_center()[1]\n\n            new_line = Line(last_line.get_end(),np.array([x,y,0]), color=YELLOW_D)\n\n            self.curve.add(new_line)\n\n\n            return self.curve\n\n\n        dot.add_updater(go_around_circle)\n\n\n        origin_to_circle_line = always_redraw(get_line_to_circle)\n\n        dot_to_curve_line = always_redraw(get_line_to_curve)\n\n        sine_curve_line = always_redraw(get_curve)\n\n\n        self.add(dot)\n\n        self.add(orbit, origin_to_circle_line, dot_to_curve_line, sine_curve_line)\n\n        self.wait(8.5)\n\n\n        dot.remove_updater(go_around_circle)\n",
+      "source_file": "docs\\source\\examples.rst",
+      "id": "manim_example_00022"
+    },
+    {
+      "title": "ThreeDCameraIllusionRotation",
+      "ref_classes": [
+        "ThreeDScene",
+        "ThreeDAxes"
+      ],
+      "code": "class ThreeDCameraIllusionRotation(ThreeDScene):\n\n    def construct(self):\n\n        axes = ThreeDAxes()\n\n        circle=Circle()\n\n        self.set_camera_orientation(phi=75 * DEGREES, theta=30 * DEGREES)\n\n        self.add(circle,axes)\n\n        self.begin_3dillusion_camera_rotation(rate=2)\n\n        self.wait(PI/2)\n\n        self.stop_3dillusion_camera_rotation()\n",
+      "source_file": "docs\\source\\examples.rst",
+      "id": "manim_example_00023"
+    },
+    {
+      "title": "ThreeDCameraRotation",
+      "ref_classes": [
+        "ThreeDScene",
+        "ThreeDAxes"
+      ],
+      "code": "class ThreeDCameraRotation(ThreeDScene):\n\n    def construct(self):\n\n        axes = ThreeDAxes()\n\n        circle=Circle()\n\n        self.set_camera_orientation(phi=75 * DEGREES, theta=30 * DEGREES)\n\n        self.add(circle,axes)\n\n        self.begin_ambient_camera_rotation(rate=0.1)\n\n        self.wait()\n\n        self.stop_ambient_camera_rotation()\n\n        self.move_camera(phi=75 * DEGREES, theta=30 * DEGREES)\n\n        self.wait()\n",
+      "source_file": "docs\\source\\examples.rst",
+      "id": "manim_example_00024"
+    },
+    {
+      "title": "ThreeDLightSourcePosition",
+      "ref_classes": [
+        "ThreeDScene",
+        "ThreeDAxes",
+        "Surface"
+      ],
+      "code": "class ThreeDLightSourcePosition(ThreeDScene):\n\n    def construct(self):\n\n        axes = ThreeDAxes()\n\n        sphere = Surface(\n\n            lambda u, v: np.array([\n\n                1.5 * np.cos(u) * np.cos(v),\n\n                1.5 * np.cos(u) * np.sin(v),\n\n                1.5 * np.sin(u)\n\n            ]), v_range=[0, TAU], u_range=[-PI / 2, PI / 2],\n\n            checkerboard_colors=[RED_D, RED_E], resolution=(15, 32)\n\n        )\n\n        self.renderer.camera.light_source.move_to(3*IN) # changes the source of the light\n\n        self.set_camera_orientation(phi=75 * DEGREES, theta=30 * DEGREES)\n\n        self.add(axes, sphere)\n",
+      "source_file": "docs\\source\\examples.rst",
+      "id": "manim_example_00025"
+    },
+    {
+      "title": "ThreeDSurfacePlot",
+      "ref_classes": [
+        "ThreeDScene",
+        "Surface"
+      ],
+      "code": "class ThreeDSurfacePlot(ThreeDScene):\n\n    def construct(self):\n\n        resolution_fa = 24\n\n        self.set_camera_orientation(phi=75 * DEGREES, theta=-30 * DEGREES)\n\n\n        def param_gauss(u, v):\n\n            x = u\n\n            y = v\n\n            sigma, mu = 0.4, [0.0, 0.0]\n\n            d = np.linalg.norm(np.array([x - mu[0], y - mu[1]]))\n\n            z = np.exp(-(d ** 2 / (2.0 * sigma ** 2)))\n\n            return np.array([x, y, z])\n\n\n        gauss_plane = Surface(\n\n            param_gauss,\n\n            resolution=(resolution_fa, resolution_fa),\n\n            v_range=[-2, +2],\n\n            u_range=[-2, +2]\n\n        )\n\n\n        gauss_plane.scale(2, about_point=ORIGIN)\n\n        gauss_plane.set_style(fill_opacity=1,stroke_color=GREEN)\n\n        gauss_plane.set_fill_by_checkerboard(ORANGE, BLUE, opacity=0.5)\n\n        axes = ThreeDAxes()\n\n        self.add(axes,gauss_plane)\n",
+      "source_file": "docs\\source\\examples.rst",
+      "id": "manim_example_00026"
+    },
+    {
+      "title": "VectorArrow",
+      "ref_classes": [
+        "Dot",
+        "Arrow",
+        "NumberPlane",
+        "Text"
+      ],
+      "code": "class VectorArrow(Scene):\n\n    def construct(self):\n\n        dot = Dot(ORIGIN)\n\n        arrow = Arrow(ORIGIN, [2, 2, 0], buff=0)\n\n        numberplane = NumberPlane()\n\n        origin_text = Text('(0, 0)').next_to(dot, DOWN)\n\n        tip_text = Text('(2, 2)').next_to(arrow.get_end(), RIGHT)\n\n        self.add(numberplane, dot, arrow, origin_text, tip_text)\n",
+      "source_file": "docs\\source\\examples.rst",
+      "id": "manim_example_00027"
+    },
+    {
+      "title": "ShowScreenResolution",
+      "ref_classes": [],
+      "code": "class ShowScreenResolution(Scene):\n\n    def construct(self):\n\n        pixel_height = config[\"pixel_height\"]  #  1080 is default\n\n        pixel_width = config[\"pixel_width\"]  # 1920 is default\n\n        frame_width = config[\"frame_width\"]\n\n        frame_height = config[\"frame_height\"]\n\n        self.add(Dot())\n\n        d1 = Line(frame_width * LEFT / 2, frame_width * RIGHT / 2).to_edge(DOWN)\n\n        self.add(d1)\n\n        self.add(Text(str(pixel_width)).next_to(d1, UP))\n\n        d2 = Line(frame_height * UP / 2, frame_height * DOWN / 2).to_edge(LEFT)\n\n        self.add(d2)\n\n        self.add(Text(str(pixel_height)).next_to(d2, RIGHT))\n",
+      "source_file": "docs\\source\\guides\\configuration.rst",
+      "id": "manim_example_00028"
+    },
+    {
+      "title": "ToyExample",
+      "ref_classes": [],
+      "code": "class ToyExample(Scene):\n\n    def construct(self):\n\n        orange_square = Square(color=ORANGE, fill_opacity=0.5)\n\n        blue_circle = Circle(color=BLUE, fill_opacity=0.5)\n\n        self.add(orange_square)\n\n        self.play(ReplacementTransform(orange_square, blue_circle, run_time=3))\n\n        small_dot = Dot()\n\n        small_dot.add_updater(lambda mob: mob.next_to(blue_circle, DOWN))\n\n        self.play(Create(small_dot))\n\n        self.play(blue_circle.animate.shift(RIGHT))\n\n        self.wait()\n\n        self.play(FadeOut(blue_circle, small_dot))\n",
+      "source_file": "docs\\source\\guides\\deep_dive.rst",
+      "id": "manim_example_00029"
+    },
+    {
+      "title": "VMobjectDemo",
+      "ref_classes": [],
+      "code": "class VMobjectDemo(Scene):\n\n    def construct(self):\n\n        plane = NumberPlane()\n\n        my_vmobject = VMobject(color=GREEN)\n\n        my_vmobject.points = [\n\n            np.array([-2, -1, 0]),  # start of first curve\n\n            np.array([-3, 1, 0]),\n\n            np.array([0, 3, 0]),\n\n            np.array([1, 3, 0]),  # end of first curve\n\n            np.array([1, 3, 0]),  # start of second curve\n\n            np.array([0, 1, 0]),\n\n            np.array([4, 3, 0]),\n\n            np.array([4, -2, 0]),  # end of second curve\n\n        ]\n\n        handles = [\n\n            Dot(point, color=RED) for point in\n\n            [[-3, 1, 0], [0, 3, 0], [0, 1, 0], [4, 3, 0]]\n\n        ]\n\n        handle_lines = [\n\n            Line(\n\n                my_vmobject.points[ind],\n\n                my_vmobject.points[ind+1],\n\n                color=RED,\n\n                stroke_width=2\n\n            ) for ind in range(0, len(my_vmobject.points), 2)\n\n        ]\n\n        self.add(plane, *handles, *handle_lines, my_vmobject)\n",
+      "source_file": "docs\\source\\guides\\deep_dive.rst",
+      "id": "manim_example_00030"
+    },
+    {
+      "title": "AMSLaTeX",
+      "ref_classes": [],
+      "code": "class AMSLaTeX(Scene):\n\n    def construct(self):\n\n        tex = Tex(r'$\\mathtt{H} \\looparrowright$ \\LaTeX', font_size=144)\n\n        self.add(tex)\n",
+      "source_file": "docs\\source\\guides\\using_text.rst",
+      "id": "manim_example_00031"
+    },
+    {
+      "title": "AddPackageLatex",
+      "ref_classes": [],
+      "code": "class AddPackageLatex(Scene):\n\n    def construct(self):\n\n        myTemplate = TexTemplate()\n\n        myTemplate.add_to_preamble(r\"\\usepackage{mathrsfs}\")\n\n        tex = Tex(\n\n            r\"$\\mathscr{H} \\rightarrow \\mathbb{H}$\",\n\n            tex_template=myTemplate,\n\n            font_size=144,\n\n        )\n\n        self.add(tex)\n",
+      "source_file": "docs\\source\\guides\\using_text.rst",
+      "id": "manim_example_00032"
+    },
+    {
+      "title": "CorrectLaTeXSubstringColoring",
+      "ref_classes": [],
+      "code": "class CorrectLaTeXSubstringColoring(Scene):\n\n    def construct(self):\n\n        equation = MathTex(\n\n            r\"e^x = x^0 + x^1 + \\frac{1}{2} x^2 + \\frac{1}{6} x^3 + \\cdots + \\frac{1}{n!} x^n + \\cdots\",\n\n            substrings_to_isolate=\"x\"\n\n        )\n\n        equation.set_color_by_tex(\"x\", YELLOW)\n\n        self.add(equation)\n",
+      "source_file": "docs\\source\\guides\\using_text.rst",
+      "id": "manim_example_00033"
+    },
+    {
+      "title": "DifferentWeight",
+      "ref_classes": [],
+      "code": "class DifferentWeight(Scene):\n\n    def construct(self):\n\n        import manimpango\n\n\n        g = VGroup()\n\n        weight_list = dict(\n\n            sorted(\n\n                {\n\n                    weight: manimpango.Weight(weight).value\n\n                    for weight in manimpango.Weight\n\n                }.items(),\n\n                key=lambda x: x[1],\n\n            )\n\n        )\n\n        for weight in weight_list:\n\n            g += Text(weight.name, weight=weight.name, font=\"Open Sans\")\n\n        self.add(g.arrange(DOWN).scale(0.5))\n",
+      "source_file": "docs\\source\\guides\\using_text.rst",
+      "id": "manim_example_00034"
+    },
+    {
+      "title": "DisableLigature",
+      "ref_classes": [],
+      "code": "class DisableLigature(Scene):\n\n    def construct(self):\n\n        li = Text(\"fl ligature\",font_size=96)\n\n        nli = Text(\"fl ligature\", disable_ligatures=True, font_size=96)\n\n        self.add(Group(li, nli).arrange(DOWN, buff=.8))\n",
+      "source_file": "docs\\source\\guides\\using_text.rst",
+      "id": "manim_example_00035"
+    },
+    {
+      "title": "FontsExample",
+      "ref_classes": [],
+      "code": "class FontsExample(Scene):\n\n    def construct(self):\n\n        ft = Text(\"Noto Sans\", font=\"Noto Sans\")\n\n        self.add(ft)\n",
+      "source_file": "docs\\source\\guides\\using_text.rst",
+      "id": "manim_example_00036"
+    },
+    {
+      "title": "GradientExample",
+      "ref_classes": [],
+      "code": "class GradientExample(Scene):\n\n    def construct(self):\n\n        t = Text(\"Hello\", gradient=(RED, BLUE, GREEN), font_size=96)\n\n        self.add(t)\n",
+      "source_file": "docs\\source\\guides\\using_text.rst",
+      "id": "manim_example_00037"
+    },
+    {
+      "title": "HelloLaTeX",
+      "ref_classes": [],
+      "code": "class HelloLaTeX(Scene):\n\n    def construct(self):\n\n        tex = Tex(r\"\\LaTeX\", font_size=144)\n\n        self.add(tex)\n",
+      "source_file": "docs\\source\\guides\\using_text.rst",
+      "id": "manim_example_00038"
+    },
+    {
+      "title": "HelloWorld",
+      "ref_classes": [
+        "Text"
+      ],
+      "code": "class HelloWorld(Scene):\n\n    def construct(self):\n\n        text = Text(\"Hello world\", font_size=144)\n\n        self.add(text)\n",
+      "source_file": "docs\\source\\guides\\using_text.rst",
+      "id": "manim_example_00039"
+    },
+    {
+      "title": "IncorrectLaTeXSubstringColoring",
+      "ref_classes": [],
+      "code": "class IncorrectLaTeXSubstringColoring(Scene):\n\n    def construct(self):\n\n        equation = MathTex(\n\n            r\"e^x = x^0 + x^1 + \\frac{1}{2} x^2 + \\frac{1}{6} x^3 + \\cdots + \\frac{1}{n!} x^n + \\cdots\"\n\n        )\n\n        equation.set_color_by_tex(\"x\", YELLOW)\n\n        self.add(equation)\n",
+      "source_file": "docs\\source\\guides\\using_text.rst",
+      "id": "manim_example_00040"
+    },
+    {
+      "title": "IndexLabelsMathTex",
+      "ref_classes": [],
+      "code": "class IndexLabelsMathTex(Scene):\n\n    def construct(self):\n\n        text = MathTex(r\"\\binom{2n}{n+2}\", font_size=96)\n\n\n        # index the first (and only) term of the MathTex mob\n\n        self.add(index_labels(text[0]))\n\n\n        text[0][1:3].set_color(YELLOW)\n\n        text[0][3:6].set_color(RED)\n\n        self.add(text)\n",
+      "source_file": "docs\\source\\guides\\using_text.rst",
+      "id": "manim_example_00041"
+    },
+    {
+      "title": "IterateColor",
+      "ref_classes": [],
+      "code": "class IterateColor(Scene):\n\n    def construct(self):\n\n        text = Text(\"Colors\", font_size=96)\n\n        for letter in text:\n\n            letter.set_color(random_bright_color())\n\n        self.add(text)\n",
+      "source_file": "docs\\source\\guides\\using_text.rst",
+      "id": "manim_example_00042"
+    },
+    {
+      "title": "LaTeXAlignEnvironment",
+      "ref_classes": [],
+      "code": "class LaTeXAlignEnvironment(Scene):\n\n    def construct(self):\n\n        tex = MathTex(r'f(x) &= 3 + 2 + 1\\\\ &= 5 + 1 \\\\ &= 6', font_size=96)\n\n        self.add(tex)\n",
+      "source_file": "docs\\source\\guides\\using_text.rst",
+      "id": "manim_example_00043"
+    },
+    {
+      "title": "LaTeXAttributes",
+      "ref_classes": [],
+      "code": "class LaTeXAttributes(Scene):\n\n    def construct(self):\n\n        tex = Tex(r'Hello \\LaTeX', color=BLUE, font_size=144)\n\n        self.add(tex)\n",
+      "source_file": "docs\\source\\guides\\using_text.rst",
+      "id": "manim_example_00044"
+    },
+    {
+      "title": "LaTeXMathFonts",
+      "ref_classes": [],
+      "code": "class LaTeXMathFonts(Scene):\n\n    def construct(self):\n\n        tex = Tex(\n\n            r\"$x^2 + y^2 = z^2$\",\n\n            tex_template=TexFontTemplates.french_cursive,\n\n            font_size=144,\n\n        )\n\n        self.add(tex)\n",
+      "source_file": "docs\\source\\guides\\using_text.rst",
+      "id": "manim_example_00045"
+    },
+    {
+      "title": "LaTeXSubstrings",
+      "ref_classes": [],
+      "code": "class LaTeXSubstrings(Scene):\n\n    def construct(self):\n\n        tex = Tex('Hello', r'$\\bigstar$', r'\\LaTeX', font_size=144)\n\n        tex.set_color_by_tex('igsta', RED)\n\n        self.add(tex)\n",
+      "source_file": "docs\\source\\guides\\using_text.rst",
+      "id": "manim_example_00046"
+    },
+    {
+      "title": "LaTeXTemplateLibrary",
+      "ref_classes": [],
+      "code": "class LaTeXTemplateLibrary(Scene):\n\n    def construct(self):\n\n        tex = Tex('Hello 你好 \\\\LaTeX', tex_template=TexTemplateLibrary.ctex, font_size=144)\n\n        self.add(tex)\n",
+      "source_file": "docs\\source\\guides\\using_text.rst",
+      "id": "manim_example_00047"
+    },
+    {
+      "title": "LineSpacing",
+      "ref_classes": [],
+      "code": "class LineSpacing(Scene):\n\n    def construct(self):\n\n        a = Text(\"Hello\\nWorld\", line_spacing=1)\n\n        b = Text(\"Hello\\nWorld\", line_spacing=4)\n\n        self.add(Group(a,b).arrange(LEFT, buff=5))\n",
+      "source_file": "docs\\source\\guides\\using_text.rst",
+      "id": "manim_example_00048"
+    },
+    {
+      "title": "MarkupTest",
+      "ref_classes": [],
+      "code": "class MarkupTest(Scene):\n\n    def construct(self):\n\n        text = MarkupText(\n\n            f'<span underline=\"double\" underline_color=\"green\">double green underline</span> in red text<span fgcolor=\"{YELLOW}\"> except this</span>',\n\n            color=RED,\n\n            font_size=34\n\n        )\n\n        self.add(text)\n",
+      "source_file": "docs\\source\\guides\\using_text.rst",
+      "id": "manim_example_00049"
+    },
+    {
+      "title": "MathTeXDemo",
+      "ref_classes": [],
+      "code": "class MathTeXDemo(Scene):\n\n    def construct(self):\n\n        rtarrow0 = MathTex(r\"\\xrightarrow{x^6y^8}\", font_size=96)\n\n        rtarrow1 = Tex(r\"$\\xrightarrow{x^6y^8}$\", font_size=96)\n\n\n        self.add(VGroup(rtarrow0, rtarrow1).arrange(DOWN))\n",
+      "source_file": "docs\\source\\guides\\using_text.rst",
+      "id": "manim_example_00050"
+    },
+    {
+      "title": "SimpleColor",
+      "ref_classes": [],
+      "code": "class SimpleColor(Scene):\n\n    def construct(self):\n\n        col = Text(\"RED COLOR\", color=RED)\n\n        self.add(col)\n",
+      "source_file": "docs\\source\\guides\\using_text.rst",
+      "id": "manim_example_00051"
+    },
+    {
+      "title": "SingleLineColor",
+      "ref_classes": [
+        "MarkupText"
+      ],
+      "code": "class SingleLineColor(Scene):\n\n    def construct(self):\n\n        text = MarkupText(\n\n            f'all in red <span fgcolor=\"{YELLOW}\">except this</span>', color=RED\n\n        )\n\n        self.add(text)\n",
+      "source_file": "docs\\source\\guides\\using_text.rst",
+      "id": "manim_example_00052"
+    },
+    {
+      "title": "SlantsExample",
+      "ref_classes": [],
+      "code": "class SlantsExample(Scene):\n\n    def construct(self):\n\n        a = Text(\"Italic\", slant=ITALIC)\n\n        self.add(a)\n",
+      "source_file": "docs\\source\\guides\\using_text.rst",
+      "id": "manim_example_00053"
+    },
+    {
+      "title": "Textt2cExample",
+      "ref_classes": [],
+      "code": "class Textt2cExample(Scene):\n\n    def construct(self):\n\n        t2cindices = Text('Hello', t2c={'[1:-1]': BLUE}).move_to(LEFT)\n\n        t2cwords = Text('World',t2c={'rl':RED}).next_to(t2cindices, RIGHT)\n\n        self.add(t2cindices, t2cwords)\n",
+      "source_file": "docs\\source\\guides\\using_text.rst",
+      "id": "manim_example_00054"
+    },
+    {
+      "title": "t2gExample",
+      "ref_classes": [],
+      "code": "class t2gExample(Scene):\n\n    def construct(self):\n\n        t2gindices = Text(\n\n            'Hello',\n\n            t2g={\n\n                '[1:-1]': (RED,GREEN),\n\n            },\n\n        ).move_to(LEFT)\n\n        t2gwords = Text(\n\n            'World',\n\n            t2g={\n\n                'World':(RED,BLUE),\n\n            },\n\n        ).next_to(t2gindices, RIGHT)\n\n        self.add(t2gindices, t2gwords)\n",
+      "source_file": "docs\\source\\guides\\using_text.rst",
+      "id": "manim_example_00055"
+    },
+    {
+      "title": "AnimateExample",
+      "ref_classes": [
+        "Animation"
+      ],
+      "code": "class AnimateExample(Scene):\n\n    def construct(self):\n\n        square = Square().set_fill(RED, opacity=1.0)\n\n        self.add(square)\n\n\n        # animate the change of color\n\n        self.play(square.animate.set_fill(WHITE))\n\n        self.wait(1)\n\n\n        # animate the change of position and the rotation at the same time\n\n        self.play(square.animate.shift(UP).rotate(PI / 3))\n\n        self.wait(1)\n",
+      "source_file": "docs\\source\\tutorials\\building_blocks.rst",
+      "id": "manim_example_00056"
+    },
+    {
+      "title": "CountingScene",
+      "ref_classes": [
+        "Animation",
+        "DecimalNumber"
+      ],
+      "code": "class Count(Animation):\n\n    def __init__(self, number: DecimalNumber, start: float, end: float, **kwargs) -> None:\n\n        # Pass number as the mobject of the animation\n\n        super().__init__(number,  **kwargs)\n\n        # Set start and end\n\n        self.start = start\n\n        self.end = end\n\n\n    def interpolate_mobject(self, alpha: float) -> None:\n\n        # Set value of DecimalNumber according to alpha\n\n        value = self.start + (alpha * (self.end - self.start))\n\n        self.mobject.set_value(value)\n\n\n\nclass CountingScene(Scene):\n\n    def construct(self):\n\n        # Create Decimal Number and add it to scene\n\n        number = DecimalNumber().set_color(WHITE).scale(5)\n\n        # Add an updater to keep the DecimalNumber centered as its value changes\n\n        number.add_updater(lambda number: number.move_to(ORIGIN))\n\n\n        self.add(number)\n\n\n        self.wait()\n\n\n        # Play the Count Animation to count from 0 to 100 in 4 seconds\n\n        self.play(Count(number, 0, 100), run_time=4, rate_func=linear)\n\n\n        self.wait()\n",
+      "source_file": "docs\\source\\tutorials\\building_blocks.rst",
+      "id": "manim_example_00057"
+    },
+    {
+      "title": "CreatingMobjects",
+      "ref_classes": [],
+      "code": "class CreatingMobjects(Scene):\n\n    def construct(self):\n\n        circle = Circle()\n\n        self.add(circle)\n\n        self.wait(1)\n\n        self.remove(circle)\n\n        self.wait(1)\n",
+      "source_file": "docs\\source\\tutorials\\building_blocks.rst",
+      "id": "manim_example_00058"
+    },
+    {
+      "title": "ExampleRotation",
+      "ref_classes": [],
+      "code": "class ExampleRotation(Scene):\n\n    def construct(self):\n\n        self.camera.background_color = WHITE\n\n        m1a = Square().set_color(RED).shift(LEFT)\n\n        m1b = Circle().set_color(RED).shift(LEFT)\n\n        m2a = Square().set_color(BLUE).shift(RIGHT)\n\n        m2b = Circle().set_color(BLUE).shift(RIGHT)\n\n\n        points = m2a.points\n\n        points = np.roll(points, int(len(points)/4), axis=0)\n\n        m2a.points = points\n\n\n        self.play(Transform(m1a,m1b),Transform(m2a,m2b), run_time=1)\n",
+      "source_file": "docs\\source\\tutorials\\building_blocks.rst",
+      "id": "manim_example_00059"
+    },
+    {
+      "title": "ExampleTransform",
+      "ref_classes": [],
+      "code": "class ExampleTransform(Scene):\n\n    def construct(self):\n\n        self.camera.background_color = WHITE\n\n        m1 = Square().set_color(RED)\n\n        m2 = Rectangle().set_color(RED).rotate(0.2)\n\n        self.play(Transform(m1,m2))\n",
+      "source_file": "docs\\source\\tutorials\\building_blocks.rst",
+      "id": "manim_example_00060"
+    },
+    {
+      "title": "MobjectExample",
+      "ref_classes": [],
+      "code": "class MobjectExample(Scene):\n\n    def construct(self):\n\n        p1 = [-1,-1, 0]\n\n        p2 = [ 1,-1, 0]\n\n        p3 = [ 1, 1, 0]\n\n        p4 = [-1, 1, 0]\n\n        a  = Line(p1,p2).append_points(Line(p2,p3).points).append_points(Line(p3,p4).points)\n\n        point_start  = a.get_start()\n\n        point_end    = a.get_end()\n\n        point_center = a.get_center()\n\n        self.add(Text(f\"a.get_start() = {np.round(point_start,2).tolist()}\", font_size=24).to_edge(UR).set_color(YELLOW))\n\n        self.add(Text(f\"a.get_end() = {np.round(point_end,2).tolist()}\", font_size=24).next_to(self.mobjects[-1],DOWN).set_color(RED))\n\n        self.add(Text(f\"a.get_center() = {np.round(point_center,2).tolist()}\", font_size=24).next_to(self.mobjects[-1],DOWN).set_color(BLUE))\n\n\n        self.add(Dot(a.get_start()).set_color(YELLOW).scale(2))\n\n        self.add(Dot(a.get_end()).set_color(RED).scale(2))\n\n        self.add(Dot(a.get_top()).set_color(GREEN_A).scale(2))\n\n        self.add(Dot(a.get_bottom()).set_color(GREEN_D).scale(2))\n\n        self.add(Dot(a.get_center()).set_color(BLUE).scale(2))\n\n        self.add(Dot(a.point_from_proportion(0.5)).set_color(ORANGE).scale(2))\n\n        self.add(*[Dot(x) for x in a.points])\n\n        self.add(a)\n",
+      "source_file": "docs\\source\\tutorials\\building_blocks.rst",
+      "id": "manim_example_00061"
+    },
+    {
+      "title": "MobjectPlacement",
+      "ref_classes": [],
+      "code": "class MobjectPlacement(Scene):\n\n    def construct(self):\n\n        circle = Circle()\n\n        square = Square()\n\n        triangle = Triangle()\n\n\n        # place the circle two units left from the origin\n\n        circle.move_to(LEFT * 2)\n\n        # place the square to the left of the circle\n\n        square.next_to(circle, LEFT)\n\n        # align the left border of the triangle to the left border of the circle\n\n        triangle.align_to(circle, LEFT)\n\n\n        self.add(circle, square, triangle)\n\n        self.wait(1)\n",
+      "source_file": "docs\\source\\tutorials\\building_blocks.rst",
+      "id": "manim_example_00062"
+    },
+    {
+      "title": "MobjectStyling",
+      "ref_classes": [],
+      "code": "class MobjectStyling(Scene):\n\n    def construct(self):\n\n        circle = Circle().shift(LEFT)\n\n        square = Square().shift(UP)\n\n        triangle = Triangle().shift(RIGHT)\n\n\n        circle.set_stroke(color=GREEN, width=20)\n\n        square.set_fill(YELLOW, opacity=1.0)\n\n        triangle.set_fill(PINK, opacity=0.5)\n\n\n        self.add(circle, square, triangle)\n\n        self.wait(1)\n",
+      "source_file": "docs\\source\\tutorials\\building_blocks.rst",
+      "id": "manim_example_00063"
+    },
+    {
+      "title": "MobjectZOrder",
+      "ref_classes": [],
+      "code": "class MobjectZOrder(Scene):\n\n    def construct(self):\n\n        circle = Circle().shift(LEFT)\n\n        square = Square().shift(UP)\n\n        triangle = Triangle().shift(RIGHT)\n\n\n        circle.set_stroke(color=GREEN, width=20)\n\n        square.set_fill(YELLOW, opacity=1.0)\n\n        triangle.set_fill(PINK, opacity=0.5)\n\n\n        self.add(triangle, square, circle)\n\n        self.wait(1)\n",
+      "source_file": "docs\\source\\tutorials\\building_blocks.rst",
+      "id": "manim_example_00064"
+    },
+    {
+      "title": "RunTime",
+      "ref_classes": [],
+      "code": "class RunTime(Scene):\n\n    def construct(self):\n\n        square = Square()\n\n        self.add(square)\n\n        self.play(square.animate.shift(UP), run_time=3)\n\n        self.wait(1)\n",
+      "source_file": "docs\\source\\tutorials\\building_blocks.rst",
+      "id": "manim_example_00065"
+    },
+    {
+      "title": "Shapes",
+      "ref_classes": [],
+      "code": "class Shapes(Scene):\n\n    def construct(self):\n\n        circle = Circle()\n\n        square = Square()\n\n        triangle = Triangle()\n\n\n        circle.shift(LEFT)\n\n        square.shift(UP)\n\n        triangle.shift(RIGHT)\n\n\n        self.add(circle, square, triangle)\n\n        self.wait(1)\n",
+      "source_file": "docs\\source\\tutorials\\building_blocks.rst",
+      "id": "manim_example_00066"
+    },
+    {
+      "title": "SomeAnimations",
+      "ref_classes": [],
+      "code": "class SomeAnimations(Scene):\n\n    def construct(self):\n\n        square = Square()\n\n\n        # some animations display mobjects, ...\n\n        self.play(FadeIn(square))\n\n\n        # ... some move or rotate mobjects around...\n\n        self.play(Rotate(square, PI/4))\n\n\n        # some animations remove mobjects from the screen\n\n        self.play(FadeOut(square))\n\n\n        self.wait(1)\n",
+      "source_file": "docs\\source\\tutorials\\building_blocks.rst",
+      "id": "manim_example_00067"
+    },
+    {
+      "title": "SquareToCircle3",
+      "ref_classes": [],
+      "code": "class SquareToCircle3(Scene):\n\n    def construct(self):\n\n        circle = Circle()                    # create a circle\n\n        circle.set_fill(PINK, opacity=0.5)   # set color and transparency\n\n\n        square = Square()                    # create a square\n\n        square.flip(RIGHT)                   # flip horizontally\n\n        square.rotate(-3 * TAU / 8)          # rotate a certain amount\n\n\n        self.play(Create(square))      # animate the creation of the square\n\n        self.play(Transform(square, circle)) # interpolate the square into the circle\n\n        self.play(FadeOut(square))           # fade out animation\n",
+      "source_file": "docs\\source\\tutorials\\output_and_config.rst",
+      "id": "manim_example_00068"
+    },
+    {
+      "title": "AnimatedSquareToCircle2",
+      "ref_classes": [],
+      "code": "class AnimatedSquareToCircle2(Scene):\n\n    def construct(self):\n\n        circle = Circle()  # create a circle\n\n        square = Square()  # create a square\n\n\n        self.play(Create(square))  # show the square on screen\n\n        self.play(square.animate.rotate(PI / 4))  # rotate the square\n\n        self.play(Transform(square, circle))  # transform the square into a circle\n\n        self.play(square.animate.set_fill(PINK, opacity=0.5))  # color the circle on screen\n",
+      "source_file": "docs\\source\\tutorials\\quickstart.rst",
+      "id": "manim_example_00069"
+    },
+    {
+      "title": "CreateCircle",
+      "ref_classes": [],
+      "code": "class CreateCircle(Scene):\n\n    def construct(self):\n\n        circle = Circle()                   # create a circle\n\n        circle.set_fill(PINK, opacity=0.5)  # set the color and transparency\n\n        self.play(Create(circle))     # show the circle on screen\n",
+      "source_file": "docs\\source\\tutorials\\quickstart.rst",
+      "id": "manim_example_00070"
+    },
+    {
+      "title": "DifferentRotations2",
+      "ref_classes": [],
+      "code": "class DifferentRotations2(Scene):\n\n    def construct(self):\n\n        left_square = Square(color=BLUE, fill_opacity=0.7).shift(2*LEFT)\n\n        right_square = Square(color=GREEN, fill_opacity=0.7).shift(2*RIGHT)\n\n        self.play(left_square.animate.rotate(PI), Rotate(right_square, angle=PI), run_time=2)\n\n        self.wait()\n",
+      "source_file": "docs\\source\\tutorials\\quickstart.rst",
+      "id": "manim_example_00071"
+    },
+    {
+      "title": "SquareAndCircle2",
+      "ref_classes": [],
+      "code": "class SquareAndCircle2(Scene):\n\n    def construct(self):\n\n        circle = Circle()  # create a circle\n\n        circle.set_fill(PINK, opacity=0.5)  # set the color and transparency\n\n\n        square = Square() # create a square\n\n        square.set_fill(BLUE, opacity=0.5) # set the color and transparency\n\n\n        square.next_to(circle, RIGHT, buff=0.5) # set the position\n\n        self.play(Create(circle), Create(square))  # show the shapes on screen\n",
+      "source_file": "docs\\source\\tutorials\\quickstart.rst",
+      "id": "manim_example_00072"
+    },
+    {
+      "title": "SquareToCircle2",
+      "ref_classes": [],
+      "code": "class SquareToCircle2(Scene):\n\n    def construct(self):\n\n        circle = Circle()  # create a circle\n\n        circle.set_fill(PINK, opacity=0.5)  # set color and transparency\n\n\n        square = Square()  # create a square\n\n        square.rotate(PI / 4)  # rotate a certain amount\n\n\n        self.play(Create(square))  # animate the creation of the square\n\n        self.play(Transform(square, circle))  # interpolate the square into the circle\n\n        self.play(FadeOut(square))  # fade out animation\n",
+      "source_file": "docs\\source\\tutorials\\quickstart.rst",
+      "id": "manim_example_00073"
+    },
+    {
+      "title": "TransformCycle",
+      "ref_classes": [],
+      "code": "class TransformCycle(Scene):\n\n    def construct(self):\n\n        a = Circle()\n\n        t1 = Square()\n\n        t2 = Triangle()\n\n        self.add(a)\n\n        self.wait()\n\n        for t in [t1,t2]:\n\n            self.play(Transform(a,t))\n",
+      "source_file": "docs\\source\\tutorials\\quickstart.rst",
+      "id": "manim_example_00074"
+    }
+  ]
+}

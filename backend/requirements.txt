@@ -1,0 +1,10 @@
+chromadb
+fastapi>=0.115.0
+langchain-core>=0.3.0
+langchain-google-genai>=2.0.0
+langchain-huggingface>=1.2.2
+langgraph>=0.2.0
+manim==0.19.0
+python-dotenv>=1.0.0
+sentence-transformers
+uvicorn>=0.30.0
