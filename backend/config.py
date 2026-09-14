@@ -6,8 +6,11 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 load_dotenv()
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "").strip().strip('"').strip("'")
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
-GEMINI_MODEL_FAST = os.getenv("GEMINI_MODEL_FAST", "gemini-2.5-flash-lite")
+GEMINI_MODEL = "gemini-3.8-flash"
+GEMINI_MODEL_FAST = "gemini-3.5-flash-lite"
+
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_SECRET_KEY")
 
 BASE_DIR = Path(__file__).resolve().parent
 OUTPUT_DIR = BASE_DIR / "generated_videos"
