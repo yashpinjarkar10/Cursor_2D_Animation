@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import shutil
 import subprocess
+import sys
 import tempfile
 import time
 from pathlib import Path
@@ -22,6 +23,8 @@ def render_code(state: AnimationState) -> dict[str, Any]:
     quality = render_config.get("quality", "low")
     timeout = int(render_config.get("timeout") or MANIM_TIMEOUT)
 
+    print("Rendering the video")
+
     if not code.strip():
         return _failure("No generated code to render", "runtime")
 
@@ -35,6 +38,8 @@ def render_code(state: AnimationState) -> dict[str, Any]:
         media_dir = temp_path / "media"
 
         command = [
+            sys.executable,
+            "-m",
             "manim",
             QUALITY_FLAGS.get(quality, "-ql"),
             "--media_dir",
@@ -58,7 +63,8 @@ def render_code(state: AnimationState) -> dict[str, Any]:
 
         elapsed = time.perf_counter() - started
         if result.returncode != 0:
-            error = result.stderr.strip() or result.stdout.strip() or "Manim render failed"
+            raw_error = result.stderr.strip() or result.stdout.strip() or "Manim render failed"
+            error = _summarize_error(raw_error)
             return _failure(error, "runtime", result.stdout, result.stderr, elapsed)
 
         expected_path = media_dir / "videos" / source_path.stem / QUALITY_DIRS.get(quality, "480p15") / f"{scene_class}.mp4"
@@ -104,7 +110,7 @@ def _failure(
 ) -> dict[str, Any]:
     return {
         "execution_result": {
-            "status": "failure",
+            "status": "error",
             "video_path": None,
             "code_path": None,
             "duration": duration,
@@ -116,3 +122,18 @@ def _failure(
         "failure_type": failure_type,
         "repair_target": "renderer",
     }
+
+
+def _summarize_error(error: str) -> str:
+    """Keep the actionable traceback tail while preserving the original error."""
+    lines = [line.strip() for line in error.splitlines() if line.strip()]
+    if not lines:
+        return "Manim render failed"
+    traceback_lines = [
+        line
+        for line in lines
+        if "Error:" in line or line.startswith(("File ", "NameError", "TypeError", "AttributeError", "ValueError"))
+    ]
+    if traceback_lines:
+        return "\n".join(traceback_lines[-12:])
+    return "\n".join(lines[-12:])

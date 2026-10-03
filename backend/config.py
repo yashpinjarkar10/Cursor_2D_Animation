@@ -1,13 +1,17 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_groq import ChatGroq
 
 load_dotenv()
 
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "").strip().strip('"').strip("'")
-GEMINI_MODEL = "gemini-3.8-flash"
-GEMINI_MODEL_FAST = "gemini-3.5-flash-lite"
+
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+GROQ_MODEL = "openai/gpt-oss-120b"
+GROQ_MODEL_FAST = "openai/gpt-oss-20b"
+
+MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
+MISTRAL_EMBEDDING_MODEL = "mistral-embed"
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_SECRET_KEY")
@@ -18,13 +22,30 @@ OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 MAX_REPAIR_ATTEMPTS = 3
 MANIM_TIMEOUT = 120
+DEFAULT_GENERATION_MAX_TOKENS = 4000
+DEFAULT_REPAIR_MAX_TOKENS = 4000
+KNOWLEDGE_CAPABILITY_LIMIT = 10
+KNOWLEDGE_API_LIMIT = 12
+KNOWLEDGE_EXAMPLE_LIMIT = 6
+KNOWLEDGE_APIS_PER_CAPABILITY = 8
+KNOWLEDGE_EXAMPLES_PER_API = 3
+KNOWLEDGE_RELATED_APIS_PER_API = 5
 CORS_ORIGINS = [origin.strip() for origin in os.getenv("CORS_ORIGINS", "*").split(",") if origin.strip()]
 
-# Returns configured Gemini chat model
-def get_llm(fast: bool = False, temperature: float = 0.2) -> ChatGoogleGenerativeAI:
-    model = GEMINI_MODEL_FAST if fast else GEMINI_MODEL
-    return ChatGoogleGenerativeAI(
-        model=model,
-        google_api_key=GOOGLE_API_KEY,
-        temperature=temperature,
+
+def get_llm(
+    fast: bool = False,
+    temperature: float = 0.2,
+    max_tokens: int | None = None,
+) -> ChatGroq:
+    model = GROQ_MODEL_FAST if fast else GROQ_MODEL
+    options = {
+        "model": model,
+        "temperature": temperature,
+        "api_key": GROQ_API_KEY,
+    }
+    if max_tokens is not None:
+        options["max_tokens"] = max_tokens
+    return ChatGroq(
+        **options,
     )

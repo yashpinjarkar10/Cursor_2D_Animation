@@ -7,7 +7,7 @@ from langgraph.graph import END, START, StateGraph
 from config import MAX_REPAIR_ATTEMPTS
 from graph.nodes.capability_planner import plan_capabilities
 from graph.nodes.code_generator import generate_code
-from graph.nodes.normalization import normalize_request
+from graph.nodes.implementation_planner import plan_implementation
 from graph.nodes.renderer import render_code
 from graph.nodes.repair import repair_code
 from graph.nodes.retrieval import retrieve_knowledge
@@ -19,20 +19,20 @@ from graph.state import AnimationState
 def build_graph():
     """Build the Manim animation LangGraph workflow."""
     builder = StateGraph(AnimationState)
-    builder.add_node("normalization", normalize_request)
     builder.add_node("scene_director", direct_scene)
     builder.add_node("capability_planner", plan_capabilities)
     builder.add_node("retrieval", retrieve_knowledge)
+    builder.add_node("implementation_planner", plan_implementation)
     builder.add_node("code_generator", generate_code)
     builder.add_node("validator", validate_code)
     builder.add_node("renderer", render_code)
     builder.add_node("repair", repair_code)
 
-    builder.add_edge(START, "normalization")
-    builder.add_edge("normalization", "scene_director")
+    builder.add_edge(START, "scene_director")
     builder.add_edge("scene_director", "capability_planner")
     builder.add_edge("capability_planner", "retrieval")
-    builder.add_edge("retrieval", "code_generator")
+    builder.add_edge("retrieval", "implementation_planner")
+    builder.add_edge("implementation_planner", "code_generator")
     builder.add_edge("code_generator", "validator")
     builder.add_conditional_edges(
         "validator",
@@ -54,16 +54,27 @@ def build_graph():
 
 def initial_state(
     request: str,
+    mode: str = "create",
+    voiceover_enabled: bool = False,
+    duration: float | None = None,
+    aspect_ratio: str = "16:9",
     project_context: dict | None = None,
     render_config: dict | None = None,
 ) -> AnimationState:
     """Create the default state for a generation run."""
     return {
         "request": request,
+        "mode": mode,
+        "voiceover_enabled": voiceover_enabled,
+        "duration": duration,
+        "aspect_ratio": aspect_ratio,
         "project_context": project_context,
         "scene_plan": None,
         "capability_plan": None,
         "retrieved_knowledge": None,
+        "implementation_plan": None,
+        "retrieval_trace": None,
+        "repair_knowledge": None,
         "generated_code": None,
         "scene_class": "Scene1",
         "code_path": None,
@@ -77,7 +88,6 @@ def initial_state(
         "repair_target": None,
         "final_video": None,
         "error": None,
-        "voiceover_enabled": False,
         "voiceover_config": None,
     }
 

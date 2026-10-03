@@ -1,25 +1,33 @@
 from __future__ import annotations
 
 import json
+import logging
 import re
 from typing import Any
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from config import get_llm
+from config import DEFAULT_GENERATION_MAX_TOKENS, get_llm
 from graph.nodes.retrieval import get_knowledge
 from graph.state import AnimationState
 from prompts import CAPABILITY_PLANNER_PROMPT
 
+logger = logging.getLogger(__name__)
+
 
 def plan_capabilities(state: AnimationState) -> dict[str, Any]:
-    """Map storyboard scenes to targeted Manim capabilities."""
+    """Map storyboard scenes to targeted Manim semantic capabilities."""
     scene_plan = state.get("scene_plan") or {}
     scenes = scene_plan.get("scenes", [])
-    candidate_context = _build_candidate_context(scenes)
+    if not scenes:
+        return {"capability_plan": {"scenes": []}}
+
+    print(f"Planning semantic capabilities for {len(scenes)} scenes...")
+
+    candidate_context = _build_candidate_context(scenes, state)
 
     try:
-        llm = get_llm(temperature=0.2)
+        llm = get_llm(fast=False, temperature=0.1, max_tokens=DEFAULT_GENERATION_MAX_TOKENS)
         response = llm.invoke(
             [
                 SystemMessage(content=CAPABILITY_PLANNER_PROMPT),
@@ -27,107 +35,67 @@ def plan_capabilities(state: AnimationState) -> dict[str, Any]:
                     content=json.dumps(
                         {
                             "scene_plan": scene_plan,
-                            "candidate_context": candidate_context,
+                            "candidate_capabilities_by_scene": candidate_context.get("scenes", []),
                         },
                         ensure_ascii=False,
                     )
                 ),
             ]
         )
-        capability_plan = _load_json(str(response.content))
+        raw_plan = _load_json(str(response.content))
+        capability_plan = _coerce_capability_plan(raw_plan, scenes, candidate_context)
+        return {"capability_plan": capability_plan}
+
     except Exception as exc:
-        capability_plan = _fallback_capability_plan(scenes, candidate_context)
-        capability_plan["_warning"] = str(exc)
+        logger.error(f"Capability planning failed: {exc}", exc_info=True)
+        # Explicit error reporting without pretending to have intelligence
+        raise RuntimeError(f"Capability planning failed: {exc}") from exc
 
-    return {"capability_plan": _coerce_capability_plan(capability_plan, scenes, candidate_context)}
 
-
-def _build_candidate_context(scenes: list[dict[str, Any]]) -> dict[str, Any]:
+def _build_candidate_context(
+    scenes: list[dict[str, Any]],
+    state: AnimationState,
+) -> dict[str, Any]:
+    """Discover a small, bounded set of candidate capabilities per scene."""
     try:
         knowledge = get_knowledge()
     except Exception as exc:
-        return {"warning": str(exc), "scenes": []}
+        logger.error(f"Failed to access knowledge repository: {exc}")
+        raise RuntimeError(f"Capability discovery failed: {exc}") from exc
 
     scene_contexts = []
     for scene in scenes:
-        query = _scene_query(scene)
-        capabilities = knowledge.search_capabilities(query, top_k=5)
-        api_candidates: list[dict[str, Any]] = []
-        examples: list[dict[str, Any]] = []
+        if not isinstance(scene, dict):
+            continue
 
-        for result in capabilities[:3]:
-            capability_id = result.get("id")
-            if not capability_id:
-                continue
-            context = knowledge.get_capability_context(capability_id, max_apis=5, max_examples_per_api=1)
-            api_candidates.extend(context.get("apis", [])[:5])
-            examples.extend(context.get("examples", [])[:2])
-
-        if not api_candidates:
-            api_candidates.extend(knowledge.search_apis(query, top_k=5))
-        if not examples:
-            examples.extend(knowledge.search_examples(query, top_k=2))
+        query = _scene_query(scene, state)
+        # Retrieve candidate semantic capabilities only. Do not manufacture
+        # capability IDs when retrieval misses: that would hide a knowledge
+        # quality problem and make the planner appear grounded when it is not.
+        raw_candidates = knowledge.search_capabilities(query, top_k=8)
+        compact_candidates = [
+            {
+                "id": c.get("id"),
+                "name": c.get("name"),
+                "description": c.get("description", ""),
+            }
+            for c in raw_candidates
+            if c.get("id")
+        ]
 
         scene_contexts.append(
             {
                 "scene_id": scene.get("id"),
-                "query": query,
-                "capabilities": _compact_records(capabilities, ["id", "name", "description", "apis", "examples"]),
-                "api_candidates": _compact_records(api_candidates, ["id", "name", "kind", "signature", "description"]),
-                "examples": _compact_records(examples, ["id", "title", "description", "code"]),
+                "candidate_capabilities": compact_candidates,
             }
         )
+
+        if not compact_candidates:
+            raise ValueError(
+                f"No grounded capability candidates found for scene {scene.get('id')!r}."
+            )
 
     return {"scenes": scene_contexts}
-
-
-def _fallback_capability_plan(
-    scenes: list[dict[str, Any]],
-    candidate_context: dict[str, Any],
-) -> dict[str, Any]:
-    context_by_scene = {item.get("scene_id"): item for item in candidate_context.get("scenes", [])}
-    planned_scenes = []
-
-    for scene in scenes:
-        context = context_by_scene.get(scene.get("id"), {})
-        capabilities = [
-            {
-                "capability_id": capability.get("id"),
-                "priority": "required",
-                "reason": "Relevant to the scene requirement.",
-                "targets": scene.get("visual_elements", []),
-            }
-            for capability in context.get("capabilities", [])[:3]
-            if capability.get("id")
-        ]
-        api_candidates = [
-            api.get("id")
-            for api in context.get("api_candidates", [])
-            if api.get("id")
-        ][:8]
-        examples = [
-            example.get("id")
-            for example in context.get("examples", [])
-            if example.get("id")
-        ][:4]
-        planned_scenes.append(
-            {
-                "scene_id": scene.get("id"),
-                "duration": scene.get("duration"),
-                "capabilities": capabilities,
-                "implementation_requirements": [
-                    {
-                        "target": ", ".join(map(str, scene.get("visual_elements", []))) or "main visual",
-                        "requirement": "; ".join(map(str, scene.get("actions", []))) or scene.get("purpose", ""),
-                    }
-                ],
-                "api_candidates": api_candidates,
-                "examples": examples,
-                "constraints": ["Use Manim 0.19.0 APIs verified by retrieval."],
-            }
-        )
-
-    return {"scenes": planned_scenes}
 
 
 def _coerce_capability_plan(
@@ -135,56 +103,135 @@ def _coerce_capability_plan(
     scenes: list[dict[str, Any]],
     candidate_context: dict[str, Any],
 ) -> dict[str, Any]:
-    if not isinstance(capability_plan.get("scenes"), list) or not capability_plan["scenes"]:
-        return _fallback_capability_plan(scenes, candidate_context)
+    """Enforce strict grounding invariant: every chosen capability must exist in candidates."""
+    if not isinstance(capability_plan, dict) or not isinstance(capability_plan.get("scenes"), list):
+        raise ValueError("Capability plan returned invalid structure or missing 'scenes' list.")
 
+    context_by_scene = {
+        item.get("scene_id"): item
+        for item in candidate_context.get("scenes", [])
+        if isinstance(item, dict)
+    }
+
+    returned_by_id: dict[str, dict[str, Any]] = {}
     for scene in capability_plan["scenes"]:
         if not isinstance(scene, dict):
             continue
-        scene.setdefault("capabilities", [])
-        scene.setdefault("implementation_requirements", [])
-        scene.setdefault("api_candidates", [])
-        scene.setdefault("examples", [])
-        scene.setdefault("constraints", [])
-    return capability_plan
+        scene_id = scene.get("scene_id") or scene.get("id")
+        if scene_id in context_by_scene:
+            returned_by_id[scene_id] = scene
+
+    expected_ids = [
+        item.get("scene_id")
+        for item in candidate_context.get("scenes", [])
+        if isinstance(item, dict) and item.get("scene_id")
+    ]
+    missing_ids = [scene_id for scene_id in expected_ids if scene_id not in returned_by_id]
+    if missing_ids:
+        raise ValueError(f"Capability plan omitted storyboard scenes: {missing_ids}")
+
+    try:
+        knowledge = get_knowledge()
+    except Exception:
+        knowledge = None
+
+    validated_scenes = []
+    for scene_id in expected_ids:
+        scene = returned_by_id[scene_id]
+
+        context = context_by_scene.get(scene_id, {})
+        allowed_capabilities = {
+            item.get("id"): item
+            for item in context.get("candidate_capabilities", [])
+            if item.get("id")
+        }
+
+        # Filter strictly: only capabilities present in candidates are permitted.
+        accepted_capabilities = []
+        raw_caps = scene.get("capabilities") or scene.get("semantic_capabilities") or []
+        for cap in raw_caps:
+            if not isinstance(cap, dict):
+                continue
+            cap_id = cap.get("capability_id") or cap.get("id")
+            if cap_id in allowed_capabilities:
+                if knowledge is not None:
+                    cap_record = knowledge.get_capability(cap_id)
+                    if cap_record and not cap_record.get("apis"):
+                        continue
+                accepted_capabilities.append(
+                    {
+                        "capability_id": cap_id,
+                        "priority": cap.get("priority") if cap.get("priority") in {"required", "optional"} else "required",
+                        "reason": str(cap.get("reason") or "").strip(),
+                    }
+                )
+
+        if not accepted_capabilities:
+            raise ValueError(
+                f"Capability planner selected no grounded capabilities for scene {scene_id!r}."
+            )
+
+        cleaned_scene = {
+            "scene_id": scene_id,
+            "duration": scene.get("duration", 4),
+            "capabilities": accepted_capabilities,
+            "implementation_requirements": [
+                requirement
+                for requirement in scene.get("implementation_requirements", [])
+                if isinstance(requirement, dict)
+            ],
+            "constraints": [str(constraint) for constraint in scene.get("constraints", [])],
+        }
+        validated_scenes.append(cleaned_scene)
+
+    return {"scenes": validated_scenes}
 
 
-def _scene_query(scene: dict[str, Any]) -> str:
-    return " ".join(
-        str(part)
-        for part in [
-            scene.get("purpose"),
-            scene.get("visual_elements"),
-            scene.get("actions"),
-        ]
-        if part
-    )
+def _scene_query(scene: dict[str, Any], state: AnimationState) -> str:
+    """Formulate a targeted query focused on the scene's visual tasks and actions."""
+    visual_elements = scene.get("visual_elements")
+    if isinstance(visual_elements, list):
+        vis_str = ", ".join(map(str, visual_elements))
+    else:
+        vis_str = str(visual_elements or "")
 
+    actions = scene.get("actions")
+    if isinstance(actions, list):
+        act_str = ", ".join(map(str, actions))
+    else:
+        act_str = str(actions or "")
 
-def _compact_records(records: list[dict[str, Any]], keys: list[str]) -> list[dict[str, Any]]:
-    compacted = []
-    seen: set[str] = set()
-    for record in records:
-        record_id = record.get("id") or record.get("name")
-        if record_id in seen:
-            continue
-        seen.add(record_id)
-        compacted.append({key: _trim(record.get(key)) for key in keys if key in record})
-    return compacted
-
-
-def _trim(value: Any) -> Any:
-    if isinstance(value, str) and len(value) > 1200:
-        return value[:1200]
-    if isinstance(value, list):
-        return value[:12]
-    return value
+    parts = [
+        scene.get("purpose", ""),
+        vis_str,
+        act_str,
+        state.get("request", ""),
+    ]
+    text = " ".join(part for part in parts if part).strip()
+    lowered = text.lower()
+    if any(token in lowered for token in ("3d", "three-dimensional", "three dimensional")):
+        text += " 3D ThreeDScene camera orientation three dimensional"
+    return text
 
 
 def _load_json(text: str) -> dict[str, Any]:
+    """Parse JSON cleanly from LLM response, stripping markdown fences and repairing minor syntax errors."""
     text = text.strip()
     if text.startswith("```"):
         text = re.sub(r"^```(?:json)?", "", text).strip()
         text = re.sub(r"```$", "", text).strip()
     match = re.search(r"\{.*\}", text, re.S)
-    return json.loads(match.group(0) if match else text)
+    target = match.group(0) if match else text
+    try:
+        return json.loads(target)
+    except Exception:
+        try:
+            import json_repair
+
+            repaired = json_repair.loads(target)
+            if isinstance(repaired, dict):
+                return repaired
+        except Exception:
+            pass
+        return json.loads(target)
+

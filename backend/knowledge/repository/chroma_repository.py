@@ -1,14 +1,18 @@
 from __future__ import annotations
 
 import logging
+import os
 from pathlib import Path
 from typing import Any
 
 import chromadb
 from chromadb.api.types import Documents, EmbeddingFunction, Embeddings
-from langchain_huggingface import HuggingFaceEmbeddings
+from dotenv import load_dotenv
+from langchain_mistralai import MistralAIEmbeddings
 
 from knowledge.ingestion.documents import safe_json_dumps
+
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +46,7 @@ EXAMPLES_COLLECTION = "manim_examples"
 # Embedding model
 # -------------------------------------------------------------------
 
-EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
+EMBEDDING_MODEL = "mistral-embed"
 
 # Specific fields in each collection's metadata that were serialized as JSON strings
 CAPABILITY_JSON_FIELDS = {
@@ -115,15 +119,19 @@ class ChromaKnowledgeRepository:
         self,
         chroma_path: str | Path = CHROMA_DIR,
         embedding_model: str = EMBEDDING_MODEL,
+        api_key: str | None = None,
     ) -> None:
         self.chroma_path = Path(chroma_path)
 
-        hf_embeddings = HuggingFaceEmbeddings(
-            model_name=embedding_model,
-            model_kwargs={"device": "cpu"},
-            encode_kwargs={"normalize_embeddings": True},
+        mistral_key = api_key or os.getenv("MISTRAL_API_KEY")
+        if not mistral_key:
+            raise ValueError("MISTRAL_API_KEY not found in environment or arguments.")
+
+        embeddings = MistralAIEmbeddings(
+            model=embedding_model,
+            api_key=mistral_key,
         )
-        self.embedding_function = LangchainEmbeddingAdapter(hf_embeddings)
+        self.embedding_function = LangchainEmbeddingAdapter(embeddings)
 
         self.client = chromadb.PersistentClient(path=str(self.chroma_path))
 
@@ -154,10 +162,7 @@ class ChromaKnowledgeRepository:
         if limit <= 0:
             return []
 
-        results = self.capabilities.query(
-            query_texts=[query],
-            n_results=limit,
-        )
+        results = self.capabilities.query(query_texts=[query], n_results=limit)
 
         return self._format_results(results, CAPABILITY_JSON_FIELDS)
 

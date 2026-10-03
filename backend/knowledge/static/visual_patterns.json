@@ -1,0 +1,96 @@
+{
+  "patterns": [
+    {
+      "id": "hierarchical_tree",
+      "domain_keywords": ["binary search tree", "bst", "tree", "trie", "heap", "avl", "decision tree", "hierarchy"],
+      "visual_metaphor": "Nodes as VGroup(Circle, Text) and Edges as Arrow with explicit hierarchical coordinate offsets",
+      "coordinate_budget": {
+        "root": [0.0, 1.8, 0.0],
+        "level_1_offset_x": 2.5,
+        "level_1_y": 0.3,
+        "level_2_offset_x": 1.25,
+        "level_2_y": -1.2,
+        "node_radius": 0.4
+      },
+      "builder_snippet": "def make_node(val, pos, color=BLUE):\n    c = Circle(radius=0.4, color=color, fill_opacity=0.8).move_to(pos)\n    t = Text(str(val), font_size=24, color=WHITE).move_to(pos)\n    return VGroup(c, t)",
+      "animation_strategy": [
+        "Construct root and child nodes with FadeIn",
+        "Connect parent to child using GrowArrow(Arrow(parent[0].get_bottom(), child[0].get_top(), buff=0.1, color=GRAY))",
+        "Traverse tree by indicating entire node: self.play(Indicate(curr_node, color=YELLOW))",
+        "Highlight traversed edge: self.play(arrow.animate.set_color(YELLOW))",
+        "Clear temporary search labels using FadeOut before next action",
+        "In loops with updaters, bind default args: lambda mob, target=node: mob.next_to(target, UP)"
+      ]
+    },
+    {
+      "id": "array_and_sequences",
+      "domain_keywords": ["array", "list", "sorting", "binary search", "two pointers", "stack", "queue", "sliding window", "bubble sort", "quick sort"],
+      "visual_metaphor": "Row of adjacent Square/Rectangle cells with centered values and bottom index labels",
+      "coordinate_budget": {
+        "cell_size": 0.8,
+        "buff": 0.1,
+        "center": [0.0, 0.5, 0.0],
+        "pointer_buff": 0.2
+      },
+      "builder_snippet": "def make_array(values):\n    cells = VGroup(*[\n        VGroup(Square(side_length=0.8, color=BLUE, fill_opacity=0.3), Text(str(v), font_size=22))\n        for v in values\n    ]).arrange(RIGHT, buff=0.1).move_to(ORIGIN)\n    for c in cells:\n        c[1].move_to(c[0].get_center())\n    if cells.width > 11.0:\n        cells.scale_to_fit_width(11.0)\n    return cells",
+      "animation_strategy": [
+        "Display array with Create(cells)",
+        "Use pointers: pointer = Arrow(start=DOWN, end=UP, color=YELLOW).next_to(cells[i], DOWN, buff=0.2)",
+        "Move pointer: self.play(pointer.animate.next_to(cells[j], DOWN, buff=0.2))",
+        "Highlight comparison: self.play(cells[i][0].animate.set_fill(YELLOW, opacity=0.6))",
+        "Swap cells visually using animate: self.play(cells[i].animate.move_to(cells[j].get_center()), cells[j].animate.move_to(cells[i].get_center()), run_time=0.5)",
+        "After animating a swap, update the Python list to stay in sync: cells[i], cells[j] = cells[j], cells[i]",
+        "AVOID CyclicReplace for indexed arrays — it animates positions but does NOT reorder VGroup indices"
+      ]
+    },
+    {
+      "id": "graph_and_network",
+      "domain_keywords": ["graph", "network", "dijkstra", "bfs", "dfs", "shortest path", "neural network", "nodes and edges"],
+      "visual_metaphor": "Nodes positioned at defined 2D coordinates with connecting Line/Arrow edges",
+      "coordinate_budget": {
+        "node_radius": 0.35,
+        "bounds": "x=-5.5..5.5, y=-2.5..2.5"
+      },
+      "builder_snippet": "nodes = {name: VGroup(Circle(radius=0.35, color=BLUE, fill_opacity=0.8).move_to(pos), Text(name, font_size=20).move_to(pos)) for name, pos in positions.items()}",
+      "animation_strategy": [
+        "FadeIn all nodes, then Create all connecting edges with LaggedStart",
+        "Traverse with wavefront: self.play(Indicate(nodes[u]), edges[(u,v)].animate.set_color(YELLOW))",
+        "Mark visited: self.play(nodes[v][0].animate.set_fill(GREEN, opacity=0.8))"
+      ]
+    },
+    {
+      "id": "coordinate_calculus_and_curves",
+      "domain_keywords": ["derivative", "integral", "tangent", "curve", "plot", "gradient descent", "function", "calculus", "parabola", "optimization"],
+      "visual_metaphor": "Axes with plotted curves, moving Dot via ValueTracker, and dynamic TangentLine",
+      "coordinate_budget": {
+        "axes_x_range": [-3.5, 3.5, 1],
+        "axes_y_range": [-1, 5, 1],
+        "axes_x_length": 7.5,
+        "axes_y_length": 4.5
+      },
+      "builder_snippet": "axes = Axes(x_range=[-3.5, 3.5, 1], y_range=[-1, 5, 1], x_length=7.5, y_length=4.5).to_edge(DOWN, buff=0.6)\ncurve = axes.plot(lambda x: 0.35*x**2, x_range=[-3.0, 3.0], color=BLUE)\nt = ValueTracker(-2.5)\ndot = always_redraw(lambda: Dot(axes.c2p(t.get_value(), 0.35*t.get_value()**2), color=YELLOW))\n# alpha must be clamped to [0.001, 0.999] — it is arc-length proportion not cartesian x.\n# Use axes.get_secant_slope_group() instead if you need a visual tangent tied to x-position.\nslope_group = always_redraw(lambda: axes.get_secant_slope_group(t.get_value(), curve, dx=0.01, secant_line_length=3, secant_line_color=GREEN))",
+      "animation_strategy": [
+        "Draw axes and curve: self.play(Create(axes), Create(curve))",
+        "Add dynamic tracker dot: self.add(dot)",
+        "For tangent visualization: self.add(slope_group) — uses get_secant_slope_group tied to x-value tracker",
+        "Animate variable: self.play(t.animate.set_value(2.0), run_time=3, rate_func=linear)",
+        "AVOID: TangentLine with linear alpha mapping — alpha is arc-length proportion [0,1], not the x-coordinate"
+      ]
+    },
+    {
+      "id": "formula_derivation",
+      "domain_keywords": ["math proof", "derivation", "formula", "equation", "algebra", "theorem", "step by step math"],
+      "visual_metaphor": "MathTex parts transformed sequentially using TransformMatchingTex",
+      "coordinate_budget": {
+        "header_top": 2.8,
+        "formula_center": [0, 0.5, 0]
+      },
+      "builder_snippet": "step1 = MathTex('a^2 + b^2 = c^2', font_size=40).move_to(UP)\nstep2 = MathTex('c = \\\\sqrt{a^2 + b^2}', font_size=40).move_to(UP)",
+      "animation_strategy": [
+        "Write initial formula: self.play(Write(step1))",
+        "Transform to next step: self.play(TransformMatchingTex(step1, step2))",
+        "Box key result: box = SurroundingRectangle(step2, color=YELLOW); self.play(Create(box))"
+      ]
+    }
+  ]
+}

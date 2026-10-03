@@ -2,6 +2,15 @@ from __future__ import annotations
 
 from typing import Any
 
+from config import (
+    KNOWLEDGE_API_LIMIT,
+    KNOWLEDGE_APIS_PER_CAPABILITY,
+    KNOWLEDGE_CAPABILITY_LIMIT,
+    KNOWLEDGE_EXAMPLES_PER_API,
+    KNOWLEDGE_EXAMPLE_LIMIT,
+    KNOWLEDGE_RELATED_APIS_PER_API,
+)
+
 from knowledge.repository.chroma_repository import (
     ChromaKnowledgeRepository,
 )
@@ -218,7 +227,7 @@ class ManimKnowledge:
             api
             for api in api_names
             if isinstance(api, str)
-        ][:max_apis]
+        ]
 
         # --------------------------------------------------------------
         # Resolve APIs
@@ -233,6 +242,16 @@ class ManimKnowledge:
 
             if api is not None:
                 apis.append(api)
+            if len(apis) >= max_apis:
+                break
+
+        if api_names and not apis:
+            return {
+                "capability": capability,
+                "apis": [],
+                "related_apis": [],
+                "examples": [],
+            }
 
         # --------------------------------------------------------------
         # Related APIs
@@ -326,12 +345,12 @@ class ManimKnowledge:
     def search_implementation_context(
         self,
         query: str,
-        top_k_capabilities: int = 5,
-        top_k_apis: int = 8,
-        top_k_examples: int = 5,
-        max_apis_per_capability: int = 5,
-        max_examples_per_api: int = 2,
-        max_related_apis_per_api: int = 5,
+        top_k_capabilities: int = KNOWLEDGE_CAPABILITY_LIMIT,
+        top_k_apis: int = KNOWLEDGE_API_LIMIT,
+        top_k_examples: int = KNOWLEDGE_EXAMPLE_LIMIT,
+        max_apis_per_capability: int = KNOWLEDGE_APIS_PER_CAPABILITY,
+        max_examples_per_api: int = KNOWLEDGE_EXAMPLES_PER_API,
+        max_related_apis_per_api: int = KNOWLEDGE_RELATED_APIS_PER_API,
     ) -> dict[str, Any]:
         """
         Hybrid semantic + relationship retrieval.
@@ -430,6 +449,12 @@ class ManimKnowledge:
                 capability_api_names.append(
                     api_name
                 )
+
+        for result in api_results:
+            api_name = self._record_id(result)
+            if api_name and api_name not in capability_api_seen:
+                capability_api_seen.add(api_name)
+                capability_api_names.append(api_name)
 
         # --------------------------------------------------------------
         # 5. Resolve capability APIs
@@ -542,6 +567,53 @@ class ManimKnowledge:
                     example
                 )
 
+        semantic_api_records: list[dict[str, Any]] = []
+        semantic_api_seen: set[str] = set()
+        for result in api_results:
+            api_id = self._record_id(result)
+            if not api_id or api_id in semantic_api_seen:
+                continue
+            exact_api = self.get_api(api_id)
+            if exact_api is None:
+                continue
+            semantic_api_seen.add(api_id)
+            semantic_api_records.append(
+                {
+                    **exact_api,
+                    "retrieval_distance": result.get("distance"),
+                }
+            )
+
+        implementation_candidates: list[dict[str, Any]] = []
+        implementation_seen: set[str] = set()
+        for api in [*capability_apis, *semantic_api_records]:
+            api_id = self._record_id(api)
+            if not api_id or api_id in implementation_seen:
+                continue
+            implementation_seen.add(api_id)
+            implementation_candidates.append(api)
+
+        api_usage: list[dict[str, Any]] = []
+        usage_seen: set[tuple[str, str, str]] = set()
+        for example_id in relationship_example_ids:
+            for api_id in self.get_example_apis(example_id):
+                for usage in self.get_api_usage_in_example(api_id, example_id):
+                    usage_key = (
+                        api_id,
+                        example_id,
+                        str(usage.get("line") or usage.get("usage_type") or len(api_usage)),
+                    )
+                    if usage_key in usage_seen:
+                        continue
+                    usage_seen.add(usage_key)
+                    api_usage.append(
+                        {
+                            "api_id": api_id,
+                            "example_id": example_id,
+                            **usage,
+                        }
+                    )
+
         # --------------------------------------------------------------
         # 9. Return complete context
         # --------------------------------------------------------------
@@ -562,6 +634,8 @@ class ManimKnowledge:
             "relationship_examples": (
                 relationship_examples
             ),
+            "api_usage": api_usage,
+            "implementation_candidates": implementation_candidates,
         }
 
     # ==================================================================
@@ -604,6 +678,11 @@ class ManimKnowledge:
             return metadata
 
         return result
+
+    @staticmethod
+    def _record_id(record: dict[str, Any]) -> str | None:
+        value = record.get("id") or record.get("qualified_name") or record.get("name")
+        return value if isinstance(value, str) and value else None
 
     # ==================================================================
     # Health

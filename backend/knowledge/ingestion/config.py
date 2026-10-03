@@ -28,6 +28,6 @@ EXAMPLES_COLLECTION = "manim_examples"
 
 
 # Pin this to the embedding model used by the project.
-EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
+EMBEDDING_MODEL = "mistral-embed"
 
 MANIM_VERSION = "0.19.0"

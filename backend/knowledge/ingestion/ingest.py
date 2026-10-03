@@ -1,5 +1,9 @@
+import os
 import chromadb
-from langchain_huggingface import HuggingFaceEmbeddings
+from dotenv import load_dotenv
+from langchain_mistralai import MistralAIEmbeddings
+
+load_dotenv()
 
 try:
     from .config import (
@@ -76,18 +80,17 @@ class LangchainEmbeddingAdapter(EmbeddingFunction[Documents]):
         return self._embeddings.embed_documents(list(input))
 
 
-def create_embedding_function():
-    hf_embeddings = HuggingFaceEmbeddings(
-        model_name=EMBEDDING_MODEL,
-        model_kwargs={
-            "device": "cpu",
-        },
-        encode_kwargs={
-            "normalize_embeddings": True,
-        },
+def create_embedding_function(api_key: str | None = None, model: str = EMBEDDING_MODEL):
+    mistral_key = api_key or os.getenv("MISTRAL_API_KEY")
+    if not mistral_key:
+        raise ValueError("MISTRAL_API_KEY not found in environment or arguments.")
+
+    embeddings = MistralAIEmbeddings(
+        model=model,
+        api_key=mistral_key,
     )
 
-    return LangchainEmbeddingAdapter(hf_embeddings)
+    return LangchainEmbeddingAdapter(embeddings)
 
 
 def create_client():
@@ -114,6 +117,20 @@ def ingest_capabilities(client, embedding_function):
 
     data = load_json(CAPABILITIES_FILE)
     records = extract_records(data)
+    registry = load_json(API_REGISTRY_FILE).get("symbols", {})
+    invalid_api_ids = sorted(
+        {
+            api_id
+            for capability in records
+            for api_id in capability.get("apis", [])
+            if api_id not in registry
+        }
+    )
+    if invalid_api_ids:
+        raise ValueError(
+            "Capability catalog contains unknown API IDs: "
+            + ", ".join(invalid_api_ids)
+        )
 
     collection = client.get_or_create_collection(
         name=CAPABILITIES_COLLECTION,

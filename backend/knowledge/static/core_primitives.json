@@ -1,0 +1,207 @@
+{
+  "library": "Manim Community Edition",
+  "version": "0.19.0",
+  "description": "Universal foundational primitives guaranteed in every code generation context",
+  "primitives": {
+    "shapes_and_geometry": [
+      {
+        "name": "Circle",
+        "class": "manim.mobject.geometry.arc.Circle",
+        "constructor_example": "Circle(radius=0.4, color=BLUE, fill_opacity=0.8)",
+        "common_kwargs": ["radius", "color", "fill_opacity", "stroke_width", "stroke_color"]
+      },
+      {
+        "name": "Dot",
+        "class": "manim.mobject.geometry.arc.Dot",
+        "constructor_example": "Dot(point=ORIGIN, radius=0.08, color=WHITE)",
+        "common_kwargs": ["point", "radius", "color", "fill_opacity"]
+      },
+      {
+        "name": "Square",
+        "class": "manim.mobject.geometry.polygram.Square",
+        "constructor_example": "Square(side_length=1.0, color=BLUE, fill_opacity=0.5)",
+        "common_kwargs": ["side_length", "color", "fill_opacity", "stroke_width"]
+      },
+      {
+        "name": "Rectangle",
+        "class": "manim.mobject.geometry.polygram.Rectangle",
+        "constructor_example": "Rectangle(width=2.0, height=1.0, color=BLUE, fill_opacity=0.5)",
+        "common_kwargs": ["width", "height", "color", "fill_opacity", "stroke_width"]
+      },
+      {
+        "name": "RoundedRectangle",
+        "class": "manim.mobject.geometry.polygram.RoundedRectangle",
+        "constructor_example": "RoundedRectangle(corner_radius=0.2, width=2.0, height=1.0, color=BLUE)",
+        "common_kwargs": ["corner_radius", "width", "height", "color", "fill_opacity"]
+      },
+      {
+        "name": "Line",
+        "class": "manim.mobject.geometry.line.Line",
+        "constructor_example": "Line(start=LEFT, end=RIGHT, color=WHITE)",
+        "common_kwargs": ["start", "end", "color", "stroke_width"]
+      },
+      {
+        "name": "Arrow",
+        "class": "manim.mobject.geometry.line.Arrow",
+        "constructor_example": "Arrow(start=UP, end=DOWN, buff=0.1, color=GRAY)",
+        "common_kwargs": ["start", "end", "buff", "color", "stroke_width", "max_tip_length_to_length_ratio"]
+      },
+      {
+        "name": "CurvedArrow",
+        "class": "manim.mobject.geometry.arc.CurvedArrow",
+        "constructor_example": "CurvedArrow(start_point=LEFT, end_point=RIGHT, angle=TAU/4, color=YELLOW)",
+        "common_kwargs": ["start_point", "end_point", "angle", "color"]
+      },
+      {
+        "name": "VGroup",
+        "class": "manim.mobject.types.vectorized_mobject.VGroup",
+        "constructor_example": "VGroup(shape, text)",
+        "common_methods": ["arrange", "arrange_in_grid", "add", "shift", "scale", "to_edge", "to_corner"]
+      },
+      {
+        "name": "SurroundingRectangle",
+        "class": "manim.mobject.geometry.shape_matchers.SurroundingRectangle",
+        "constructor_example": "SurroundingRectangle(mobject, buff=0.1, color=YELLOW)",
+        "common_kwargs": ["mobject", "buff", "color", "stroke_width"]
+      },
+      {
+        "name": "TangentLine",
+        "class": "manim.mobject.geometry.line.TangentLine",
+        "constructor_example": "TangentLine(vmob=curve, alpha=0.5, length=3, color=YELLOW)",
+        "common_kwargs": ["vmob", "alpha", "length", "color"],
+        "note": "First positional arg is 'vmob'. alpha is the arc-length proportion [0,1] along the curve, NOT the x-coordinate. Clamp alpha strictly to [0.001, 0.999] to avoid ZeroDivisionError."
+      },
+      {
+        "name": "Brace",
+        "class": "manim.mobject.svg.brace.Brace",
+        "constructor_example": "Brace(mobject, direction=DOWN)",
+        "common_methods": ["get_text", "get_tex"]
+      }
+    ],
+    "typography_and_formulas": [
+      {
+        "name": "Text",
+        "class": "manim.mobject.text.text_mobject.Text",
+        "constructor_example": "Text('Binary Search Tree', font_size=32, color=WHITE)",
+        "common_kwargs": ["font_size", "color", "weight", "slant"]
+      },
+      {
+        "name": "Paragraph",
+        "class": "manim.mobject.text.text_mobject.Paragraph",
+        "constructor_example": "Paragraph('Line 1', 'Line 2', font_size=20, alignment='center')",
+        "common_kwargs": ["font_size", "alignment", "line_spacing"]
+      },
+      {
+        "name": "MathTex",
+        "class": "manim.mobject.text.tex_mobject.MathTex",
+        "constructor_example": "MathTex('f(x) = x^2', font_size=36, color=YELLOW)",
+        "common_kwargs": ["font_size", "color", "substrings_to_isolate"]
+      }
+    ],
+    "coordinate_systems": [
+      {
+        "name": "Axes",
+        "class": "manim.mobject.graphing.coordinate_systems.Axes",
+        "constructor_example": "Axes(x_range=[-5, 5, 1], y_range=[-3, 3, 1], x_length=8, y_length=5)",
+        "common_methods": ["plot", "c2p", "coords_to_point", "get_axis_labels", "get_secant_slope_group"]
+      },
+      {
+        "name": "NumberPlane",
+        "class": "manim.mobject.graphing.coordinate_systems.NumberPlane",
+        "constructor_example": "NumberPlane(x_range=[-5, 5, 1], y_range=[-3, 3, 1])",
+        "common_methods": ["plot", "c2p", "coords_to_point"]
+      },
+      {
+        "name": "NumberLine",
+        "class": "manim.mobject.graphing.number_line.NumberLine",
+        "constructor_example": "NumberLine(x_range=[0, 10, 1], length=8, include_numbers=True)",
+        "common_methods": ["n2p", "number_to_point"]
+      },
+      {
+        "name": "ThreeDAxes",
+        "class": "manim.mobject.graphing.coordinate_systems.ThreeDAxes",
+        "constructor_example": "ThreeDAxes(x_range=[-4, 4, 1], y_range=[-4, 4, 1], z_range=[-3, 3, 1])",
+        "common_methods": ["plot_surface", "c2p", "coords_to_point"]
+      }
+    ],
+    "three_d_objects": [
+      {
+        "name": "Sphere",
+        "class": "manim.mobject.three_d.three_dimensions.Sphere",
+        "constructor_example": "Sphere(center=ORIGIN, radius=1.0, color=BLUE)",
+        "common_kwargs": ["center", "radius", "color", "resolution"]
+      },
+      {
+        "name": "Cube",
+        "class": "manim.mobject.three_d.three_dimensions.Cube",
+        "constructor_example": "Cube(side_length=2.0, fill_opacity=0.7, fill_color=BLUE)",
+        "common_kwargs": ["side_length", "fill_color", "fill_opacity"],
+        "note": "Use fill_color not color; passing color= is silently ignored by Polyhedron"
+      },
+      {
+        "name": "Cylinder",
+        "class": "manim.mobject.three_d.three_dimensions.Cylinder",
+        "constructor_example": "Cylinder(radius=1.0, height=2.0, fill_color=GREEN, fill_opacity=0.8)",
+        "common_kwargs": ["radius", "height", "fill_color", "fill_opacity"],
+        "note": "Use fill_color not color; Cylinder inherits from Surface and ignores color= kwarg"
+      },
+      {
+        "name": "Surface",
+        "class": "manim.mobject.three_d.three_dimensions.Surface",
+        "constructor_example": "Surface(lambda u, v: np.array([u, v, np.sin(u) + np.cos(v)]), u_range=[-3, 3], v_range=[-3, 3])",
+        "common_kwargs": ["func", "u_range", "v_range"]
+      },
+      {
+        "name": "Dot3D",
+        "class": "manim.mobject.three_d.three_dimensions.Dot3D",
+        "constructor_example": "Dot3D(point=np.array([1, 1, 1]), radius=0.08, color=YELLOW)",
+        "common_kwargs": ["point", "radius", "color"]
+      },
+      {
+        "name": "Line3D",
+        "class": "manim.mobject.three_d.three_dimensions.Line3D",
+        "constructor_example": "Line3D(start=ORIGIN, end=np.array([1, 2, 3]), color=WHITE)",
+        "common_kwargs": ["start", "end", "color"]
+      }
+    ],
+    "camera_controls": [
+      {
+        "name": "MovingCameraScene",
+        "class": "manim.scene.moving_camera_scene.MovingCameraScene",
+        "usage_example": "self.play(self.camera.frame.animate.move_to(target).set(width=target.width * 1.5))"
+      },
+      {
+        "name": "ThreeDScene",
+        "class": "manim.scene.three_d_scene.ThreeDScene",
+        "usage_example": "self.set_camera_orientation(phi=75 * DEGREES, theta=-45 * DEGREES)\nself.begin_ambient_camera_rotation(rate=0.2)"
+      }
+    ],
+    "dynamic_state_and_updaters": [
+      {
+        "name": "ValueTracker",
+        "class": "manim.mobject.value_tracker.ValueTracker",
+        "constructor_example": "tracker = ValueTracker(0.0)",
+        "common_methods": ["get_value", "set_value", "animate.set_value"]
+      },
+      {
+        "name": "always_redraw",
+        "class": "manim.mobject.mobject.always_redraw",
+        "constructor_example": "always_redraw(lambda: Dot(axes.c2p(tracker.get_value(), f(tracker.get_value()))))"
+      },
+      {
+        "name": "add_updater",
+        "class": "manim.mobject.mobject.Mobject.add_updater",
+        "constructor_example": "label.add_updater(lambda mob: mob.next_to(dot, UP, buff=0.1))"
+      }
+    ],
+    "core_animations": [
+      "Create", "Uncreate", "Write", "Unwrite", "FadeIn", "FadeOut",
+      "Transform", "ReplacementTransform", "TransformMatchingTex",
+      "Indicate", "Circumscribe", "Flash", "GrowArrow", "Rotate",
+      "LaggedStart", "AnimationGroup", "Succession"
+    ],
+    "positioning_methods": [
+      "move_to", "next_to", "to_edge", "to_corner", "shift", "scale", "rotate", "align_to"
+    ]
+  }
+}
