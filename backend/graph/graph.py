@@ -1,0 +1,125 @@
+from __future__ import annotations
+
+from typing import Literal
+
+from langgraph.graph import END, START, StateGraph
+
+from config import MAX_REPAIR_ATTEMPTS
+from graph.nodes.capability_planner import plan_capabilities
+from graph.nodes.code_generator import generate_code
+from graph.nodes.implementation_planner import plan_implementation
+from graph.nodes.renderer import render_code
+from graph.nodes.repair import repair_code
+from graph.nodes.retrieval import retrieve_knowledge
+from graph.nodes.scene_director import direct_scene
+from graph.nodes.validator import validate_code
+from graph.state import AnimationState
+
+
+# Build compiled Manim animation LangGraph workflow
+def build_graph():
+    builder = StateGraph(AnimationState)
+    builder.add_node("scene_director", direct_scene)
+    builder.add_node("capability_planner", plan_capabilities)
+    builder.add_node("retrieval", retrieve_knowledge)
+    builder.add_node("implementation_planner", plan_implementation)
+    builder.add_node("code_generator", generate_code)
+    builder.add_node("validator", validate_code)
+    builder.add_node("renderer", render_code)
+    builder.add_node("repair", repair_code)
+
+    builder.add_edge(START, "scene_director")
+    builder.add_edge("scene_director", "capability_planner")
+    builder.add_edge("capability_planner", "retrieval")
+    builder.add_edge("retrieval", "implementation_planner")
+    builder.add_edge("implementation_planner", "code_generator")
+    builder.add_edge("code_generator", "validator")
+    builder.add_conditional_edges(
+        "validator",
+        _route_after_validation,
+        {"renderer": "renderer", "repair": "repair", "end": END},
+    )
+    builder.add_conditional_edges(
+        "renderer",
+        _route_after_render,
+        {"repair": "repair", "end": END},
+    )
+    builder.add_conditional_edges(
+        "repair",
+        _route_after_repair,
+        {"validator": "validator", "end": END},
+    )
+    return builder.compile()
+
+
+# Create initial animation generation state dictionary
+def initial_state(
+    request: str,
+    mode: str = "create",
+    voiceover_enabled: bool = False,
+    duration: float | None = None,
+    aspect_ratio: str = "16:9",
+    project_context: dict | None = None,
+    render_config: dict | None = None,
+    generation_id: str | None = None,
+) -> AnimationState:
+    return {
+        "request": request,
+        "generation_id": generation_id,
+        "mode": mode,
+        "voiceover_enabled": voiceover_enabled,
+        "duration": duration,
+        "aspect_ratio": aspect_ratio,
+        "project_context": project_context,
+        "scene_plan": None,
+        "capability_plan": None,
+        "retrieved_knowledge": None,
+        "implementation_plan": None,
+        "retrieval_trace": None,
+        "repair_knowledge": None,
+        "generated_code": None,
+        "scene_class": "Scene1",
+        "code_path": None,
+        "validation_result": None,
+        "execution_result": None,
+        "render_config": render_config or {},
+        "attempt_count": 0,
+        "max_attempts": MAX_REPAIR_ATTEMPTS,
+        "last_error": None,
+        "failure_type": None,
+        "repair_target": None,
+        "final_video": None,
+        "error": None,
+        "voiceover_config": None,
+    }
+
+
+# Route to renderer on pass, repair on retryable failure, or end
+def _route_after_validation(state: AnimationState) -> Literal["renderer", "repair", "end"]:
+    validation = state.get("validation_result") or {}
+    if validation.get("status") == "pass":
+        return "renderer"
+    if state.get("attempt_count", 0) >= state.get("max_attempts", MAX_REPAIR_ATTEMPTS):
+        return "end"
+    return "repair"
+
+
+# Route to end on render success or max attempts, otherwise repair
+def _route_after_render(state: AnimationState) -> Literal["repair", "end"]:
+    execution = state.get("execution_result") or {}
+    if execution.get("status") == "success":
+        return "end"
+    if state.get("attempt_count", 0) >= state.get("max_attempts", MAX_REPAIR_ATTEMPTS):
+        return "end"
+    return "repair"
+
+
+# Route repaired code back to validator or end on terminal failure
+def _route_after_repair(state: AnimationState) -> Literal["validator", "end"]:
+    if state.get("error") or state.get("attempt_count", 0) > state.get("max_attempts", MAX_REPAIR_ATTEMPTS):
+        return "end"
+    return "validator"
+
+
+# Global compiled LangGraph workflow instance
+graph = build_graph()
