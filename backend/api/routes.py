@@ -1,125 +1,554 @@
+# Production API routes for authentication, projects, chats, and animation generations
 from __future__ import annotations
 
-import asyncio
+import json
 from pathlib import Path
 from typing import Any
-from uuid import UUID, uuid4
+from uuid import UUID
 
-from fastapi import APIRouter, HTTPException
-from fastapi.responses import FileResponse, PlainTextResponse
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import StreamingResponse
 
+from api.middleware.auth import require_current_user
 from api.schemas import (
-    EditRequest,
-    GenerateRequest,
-    ProjectSummary,
-    RenderRequest,
-    SceneDetail,
-    SceneSummary,
+    AuthResponse,
+    AuthUserResponse,
+    ChatGenerateRequest,
+    ChatListResponse,
+    ChatResponse,
+    CreateChatRequest,
+    CreateProjectRequest,
+    GenerationListResponse,
+    GenerationResponse,
+    LoginRequest,
+    ProjectListResponse,
+    ProjectResponse,
+    RefreshRequest,
+    RefreshResponse,
+    SignupRequest,
+    UpdateProjectRequest,
 )
-from config import OUTPUT_DIR
-from graph.graph import graph, initial_state
-from graph.nodes.renderer import render_code
-from graph.nodes.retrieval import get_knowledge
-from graph.nodes.validator import validate_code
+from services import auth_service, database_service, generation_service, storage_service
+from services.auth_service import User
+from services.database_service import Chat, DatabaseError, Project
 
 router = APIRouter()
 
-_scene_results: dict[str, SceneDetail] = {}
-_project_scenes: dict[str, list[str]] = {}
 
-
-@router.post("/projects/{project_id}/generate", response_model=SceneDetail)
-async def generate(
-    project_id: UUID,
-    request: GenerateRequest,
-) -> SceneDetail:
-    """Generate and render a scene."""
-    if request.project_id != project_id:
-        raise HTTPException(status_code=400, detail="Body project_id must match path project_id")
-
-    return await generate_scene(project_id, request)
-
-
-@router.post("/scenes/{scene_id}/render", response_model=SceneDetail)
-async def render(
-    scene_id: UUID,
-    request: RenderRequest,
-) -> SceneDetail:
-    """Validator -> renderer. No planning or generation."""
-    return await render_scene(scene_id, request)
-
-
-@router.post("/scenes/{scene_id}/edit")
-async def edit(scene_id: UUID, request: EditRequest) -> None:
-    """Edit scenes once the code-editor workflow is implemented."""
-    raise HTTPException(status_code=501, detail="Edit workflow is not implemented yet.")
-
-
-@router.get("/projects/{project_id}/scenes", response_model=list[SceneSummary])
-async def list_scenes(project_id: UUID) -> list[SceneSummary]:
-    """All scenes/videos for a project."""
-    return await fetch_scenes(project_id)
-
-
-@router.get("/projects", response_model=list[ProjectSummary])
-async def list_projects() -> list[ProjectSummary]:
-    """All known in-memory projects."""
-    return await fetch_projects()
-
-
-@router.get("/scenes/{scene_id}", response_model=SceneDetail)
-async def get_scene(scene_id: UUID) -> SceneDetail:
-    """Current code, video URL, and version count for one scene."""
-    return await fetch_scene(scene_id)
-
-
-async def generate_scene(
-    project_id: UUID,
-    request: GenerateRequest,
-) -> SceneDetail:
-    scene_id = str(uuid4())
-    _project_scenes.setdefault(str(project_id), []).append(scene_id)
+# Fetch project by ID and verify authenticated user ownership
+async def _require_project(project_id: UUID, user: User) -> Project:
     try:
-        return await _run_generate(project_id, scene_id, request)
-    except Exception:
-        _project_scenes[str(project_id)].remove(scene_id)
-        raise
+        project = await database_service.get_project(project_id)
+    except DatabaseError as exc:
+        raise HTTPException(status_code=502, detail="Database error") from exc
+    if project is None:
+        raise HTTPException(status_code=404, detail="Project not found")
+    if project.user_id != user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    return project
 
 
-async def render_scene(scene_id: UUID, request: RenderRequest) -> SceneDetail:
-    return await _run_render(str(scene_id), request)
+# Fetch chat by ID and verify project and user ownership
+async def _require_chat(chat_id: UUID, project_id: UUID, user: User) -> Chat:
+    try:
+        chat = await database_service.get_chat(chat_id)
+    except DatabaseError as exc:
+        raise HTTPException(status_code=502, detail="Database error") from exc
+    if chat is None or chat.project_id != project_id:
+        raise HTTPException(status_code=404, detail="Chat not found")
+    if chat.user_id != user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    return chat
 
 
-async def fetch_scenes(project_id: UUID) -> list[SceneSummary]:
-    scene_ids = _project_scenes.get(str(project_id), [])
-    return [
-        SceneSummary(
-            scene_id=scene_id,
-            project_id=str(project_id),
-            name=_scene_results.get(scene_id).name if scene_id in _scene_results else None,
-            video_url=_scene_results.get(scene_id).video_url if scene_id in _scene_results else None,
+# Best-effort DB write on generation failure
+async def _record_generation_failure(
+    generation_id: UUID, error: str, state: dict[str, Any]
+) -> None:
+    try:
+        await database_service.update_generation_failure(
+            generation_id,
+            error,
+            str(state.get("failure_type") or "generation"),
+            int(state.get("attempt_count") or 0),
         )
-        for scene_id in scene_ids
-    ]
+    except DatabaseError:
+        pass
 
 
-async def fetch_projects() -> list[ProjectSummary]:
-    return [ProjectSummary(project_id=project_id) for project_id in _project_scenes]
+# Register a new user account via Supabase Auth
+@router.post(
+    "/auth/signup",
+    response_model=AuthResponse,
+    status_code=status.HTTP_201_CREATED,
+    tags=["Auth"],
+    summary="Register a new user account",
+)
+async def signup(request: SignupRequest) -> AuthResponse:
+    """
+    Create a new Supabase Auth account and return tokens.
 
-
-async def fetch_scene(scene_id: UUID) -> SceneDetail:
-    scene = _scene_results.get(str(scene_id))
-    if not scene:
-        raise HTTPException(
-            status_code=501,
-            detail="Scene persistence is not implemented yet; only scenes created during this process are available.",
+    - Stores user record in the `users` table automatically.
+    - Returns JWT access_token and refresh_token.
+    """
+    try:
+        result = auth_service.signup(
+            email=request.email,
+            password=request.password,
+            display_name=request.display_name,
         )
-    return scene
+    except auth_service.AuthenticationError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+    user_data = result["user"]
+    return AuthResponse(
+        access_token=result["access_token"],
+        refresh_token=result["refresh_token"],
+        expires_in=result.get("expires_in"),
+        user=AuthUserResponse(
+            id=user_data["id"],
+            email=user_data["email"],
+            display_name=user_data.get("display_name"),
+        ),
+    )
 
 
-@router.get("/storage/buckets")
-async def storage_buckets() -> list[Any]:
-    """Return Supabase storage buckets."""
+# Authenticate with email and password and return access and refresh tokens
+@router.post(
+    "/auth/login",
+    response_model=AuthResponse,
+    tags=["Auth"],
+    summary="Sign in with email and password",
+)
+async def login(request: LoginRequest) -> AuthResponse:
+    try:
+        result = auth_service.login(email=request.email, password=request.password)
+    except auth_service.AuthenticationError as exc:
+        raise HTTPException(status_code=401, detail=str(exc))
+
+    user_data = result["user"]
+    return AuthResponse(
+        access_token=result["access_token"],
+        refresh_token=result["refresh_token"],
+        expires_in=result.get("expires_in"),
+        user=AuthUserResponse(
+            id=user_data["id"],
+            email=user_data["email"],
+            display_name=user_data.get("display_name"),
+        ),
+    )
+
+
+# Exchange refresh token for a newly issued access token
+@router.post(
+    "/auth/refresh",
+    response_model=RefreshResponse,
+    tags=["Auth"],
+    summary="Refresh an access token",
+)
+async def refresh_token(request: RefreshRequest) -> RefreshResponse:
+    try:
+        result = auth_service.refresh_access_token(request.refresh_token)
+    except auth_service.AuthenticationError as exc:
+        raise HTTPException(status_code=401, detail=str(exc))
+
+    return RefreshResponse(
+        access_token=result["access_token"],
+        refresh_token=result["refresh_token"],
+        expires_in=result.get("expires_in"),
+    )
+
+
+# Return currently authenticated user profile extracted from JWT
+@router.get(
+    "/auth/me",
+    response_model=AuthUserResponse,
+    tags=["Auth"],
+    summary="Get the currently authenticated user",
+)
+async def get_me(user: User = Depends(require_current_user)) -> AuthUserResponse:
+    return AuthUserResponse(id=user.id, email=user.email, display_name=user.display_name)
+
+
+# Create a new project container for the authenticated user
+@router.post(
+    "/projects",
+    response_model=ProjectResponse,
+    status_code=status.HTTP_201_CREATED,
+    tags=["Projects"],
+    summary="Create a new project",
+)
+async def create_project(
+    request: CreateProjectRequest,
+    user: User = Depends(require_current_user),
+) -> ProjectResponse:
+    # Ensure user record is synced in database
+    await database_service.ensure_user_exists(user.id, user.email, user.display_name)
+
+    try:
+        project_id = await database_service.create_project(
+            user_id=user.id,
+            name=request.name,
+            description=request.description,
+        )
+        project = await database_service.get_project(project_id)
+    except DatabaseError as exc:
+        raise HTTPException(status_code=502, detail="Could not create project") from exc
+
+    if project is None:
+        raise HTTPException(status_code=500, detail="Project created but could not be retrieved")
+
+    return ProjectResponse(**project.model_dump())
+
+
+@router.get(
+    "/projects",
+    response_model=ProjectListResponse,
+    tags=["Projects"],
+    summary="List all projects for the current user",
+)
+async def list_projects(
+    user: User = Depends(require_current_user),
+) -> ProjectListResponse:
+    """Return all projects owned by the authenticated user, newest first."""
+    try:
+        projects = await database_service.list_user_projects(user.id)
+    except DatabaseError as exc:
+        raise HTTPException(status_code=502, detail="Could not fetch projects") from exc
+
+    return ProjectListResponse(
+        projects=[ProjectResponse(**p.model_dump()) for p in projects],
+        total=len(projects),
+    )
+
+
+@router.get(
+    "/projects/{project_id}",
+    response_model=ProjectResponse,
+    tags=["Projects"],
+    summary="Get a single project",
+)
+async def get_project(
+    project_id: UUID,
+    user: User = Depends(require_current_user),
+) -> ProjectResponse:
+    project = await _require_project(project_id, user)
+    return ProjectResponse(**project.model_dump())
+
+
+# Update project name or description
+@router.patch(
+    "/projects/{project_id}",
+    response_model=ProjectResponse,
+    tags=["Projects"],
+    summary="Update a project's name or description",
+)
+async def update_project(
+    project_id: UUID,
+    request: UpdateProjectRequest,
+    user: User = Depends(require_current_user),
+) -> ProjectResponse:
+    await _require_project(project_id, user)
+
+    try:
+        updated = await database_service.update_project(
+            project_id=project_id,
+            name=request.name,
+            description=request.description,
+        )
+    except DatabaseError as exc:
+        raise HTTPException(status_code=502, detail="Could not update project") from exc
+
+    if updated is None:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    return ProjectResponse(**updated.model_dump())
+
+
+# Permanently delete project and cascade delete chats and generations
+@router.delete(
+    "/projects/{project_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    tags=["Projects"],
+    summary="Delete a project and all its chats/generations",
+)
+async def delete_project(
+    project_id: UUID,
+    user: User = Depends(require_current_user),
+) -> None:
+    await _require_project(project_id, user)
+    try:
+        await database_service.delete_project(project_id)
+    except DatabaseError as exc:
+        raise HTTPException(status_code=502, detail="Could not delete project") from exc
+
+
+# Create a new chat session inside a project
+@router.post(
+    "/projects/{project_id}/chats",
+    response_model=ChatResponse,
+    status_code=status.HTTP_201_CREATED,
+    tags=["Chats"],
+    summary="Create a new chat in a project",
+)
+async def create_chat(
+    project_id: UUID,
+    request: CreateChatRequest,
+    user: User = Depends(require_current_user),
+) -> ChatResponse:
+    await _require_project(project_id, user)
+
+    try:
+        chat_id = await database_service.create_chat(
+            project_id=project_id,
+            user_id=user.id,
+            title=request.title,
+        )
+        chat = await database_service.get_chat(chat_id)
+    except DatabaseError as exc:
+        raise HTTPException(status_code=502, detail="Could not create chat") from exc
+
+    if chat is None:
+        raise HTTPException(status_code=500, detail="Chat created but could not be retrieved")
+
+    return ChatResponse(**chat.model_dump())
+
+
+@router.get(
+    "/projects/{project_id}/chats",
+    response_model=ChatListResponse,
+    tags=["Chats"],
+    summary="List all chats in a project",
+)
+async def list_chats(
+    project_id: UUID,
+    user: User = Depends(require_current_user),
+) -> ChatListResponse:
+    await _require_project(project_id, user)
+
+    try:
+        chats = await database_service.list_project_chats(project_id)
+    except DatabaseError as exc:
+        raise HTTPException(status_code=502, detail="Could not fetch chats") from exc
+
+    return ChatListResponse(
+        chats=[ChatResponse(**c.model_dump()) for c in chats],
+        project_id=project_id,
+        total=len(chats),
+    )
+
+
+@router.get(
+    "/projects/{project_id}/chats/{chat_id}",
+    response_model=ChatResponse,
+    tags=["Chats"],
+    summary="Get a single chat",
+)
+async def get_chat(
+    project_id: UUID,
+    chat_id: UUID,
+    user: User = Depends(require_current_user),
+) -> ChatResponse:
+    chat = await _require_chat(chat_id, project_id, user)
+    return ChatResponse(**chat.model_dump())
+
+
+# Permanently delete chat session and associated generation records
+@router.delete(
+    "/projects/{project_id}/chats/{chat_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    tags=["Chats"],
+    summary="Delete a chat and all its generations",
+)
+async def delete_chat(
+    project_id: UUID,
+    chat_id: UUID,
+    user: User = Depends(require_current_user),
+) -> None:
+    await _require_chat(chat_id, project_id, user)
+    try:
+        await database_service.delete_chat(chat_id)
+    except DatabaseError as exc:
+        raise HTTPException(status_code=502, detail="Could not delete chat") from exc
+
+
+# Generate animation and stream progress events via Server-Sent Events (SSE)
+@router.post(
+    "/projects/{project_id}/chats/{chat_id}/generate",
+    tags=["Generations"],
+    summary="Generate an animation (SSE stream)",
+    response_description="Server-Sent Events stream with progress and final video URL",
+)
+async def generate_animation(
+    project_id: UUID,
+    chat_id: UUID,
+    request: ChatGenerateRequest,
+    user: User = Depends(require_current_user),
+):
+    # Verify authorization
+    await _require_project(project_id, user)
+    await _require_chat(chat_id, project_id, user)
+
+    # --- Sync user record (non-blocking) ---
+    await database_service.ensure_user_exists(user.id, user.email, user.display_name)
+
+    # --- Create generation record (status=processing) ---
+    try:
+        generation_id = await database_service.create_generation(
+            chat_id=chat_id,
+            user_id=user.id,
+            query=request.query,
+            mode=request.mode,
+            duration=request.duration,
+            aspect_ratio=request.aspect_ratio,
+            quality=request.quality,
+            voiceover_enabled=request.voiceover_enabled,
+            project_context=request.project_context,
+        )
+    except DatabaseError as exc:
+        raise HTTPException(status_code=502, detail="Could not create generation record") from exc
+
+    # --- SSE generator ---
+    async def event_stream():
+        video_path: Path | None = None
+        final_state: dict | None = None
+        try:
+            async for item in generation_service.stream_generation_events(
+                generation_id=generation_id,
+                query=request.query,
+                mode=request.mode,
+                duration=request.duration,
+                aspect_ratio=request.aspect_ratio,
+                quality=request.quality,
+                voiceover_enabled=request.voiceover_enabled,
+                project_context=request.project_context,
+            ):
+                if hasattr(item, "event"):
+                    # SSE progress event — forward directly to client
+                    yield f"event: {item.event}\ndata: {json.dumps(item.data)}\n\n"
+                else:
+                    # Final state dict yielded by the service on success
+                    final_state = item
+
+            if final_state is None:
+                # generation_service already emitted an error SSE event; nothing more to do
+                return
+
+            # --- Upload to Supabase Storage ---
+            video_path = Path(str(final_state["final_video"]))
+            yield f"event: uploading\ndata: {json.dumps({'progress': 0.95, 'generation_id': str(generation_id)})}\n\n"
+
+            video_url = await storage_service.upload_video(generation_id, video_path)
+            execution = final_state.get("execution_result") or {}
+
+            # --- Persist success ---
+            await database_service.update_generation_success(
+                generation_id=generation_id,
+                code=str(final_state.get("generated_code") or ""),
+                video_url=video_url,
+                video_storage_path=f"{generation_id}.mp4",
+                scene_class=final_state.get("scene_class"),
+                scene_plan=final_state.get("scene_plan"),
+                capability_plan=final_state.get("capability_plan"),
+                retrieval_trace=final_state.get("retrieval_trace"),
+                implementation_plan=final_state.get("implementation_plan"),
+                attempt_count=int(final_state.get("attempt_count") or 0),
+            )
+
+            # --- Emit complete ---
+            complete_payload = json.dumps({
+                "generation_id": str(generation_id),
+                "chat_id": str(chat_id),
+                "project_id": str(project_id),
+                "status": "success",
+                "video_url": video_url,
+                "generated_code": final_state.get("generated_code"),
+                "scene_class": final_state.get("scene_class"),
+                "duration": execution.get("duration"),
+                "attempt_count": int(final_state.get("attempt_count") or 0),
+            })
+            yield f"event: complete\ndata: {complete_payload}\n\n"
+
+        except generation_service.GenerationError as exc:
+            await _record_generation_failure(generation_id, str(exc), exc.state)
+            yield f"event: error\ndata: {json.dumps({'error': str(exc), 'generation_id': str(generation_id), 'failure_type': 'generation'})}\n\n"
+
+        except storage_service.StorageError as exc:
+            await _record_generation_failure(generation_id, str(exc), {})
+            yield f"event: error\ndata: {json.dumps({'error': str(exc), 'generation_id': str(generation_id), 'failure_type': 'storage'})}\n\n"
+
+        except DatabaseError as exc:
+            await _record_generation_failure(generation_id, str(exc), {})
+            yield f"event: error\ndata: {json.dumps({'error': str(exc), 'generation_id': str(generation_id), 'failure_type': 'database'})}\n\n"
+
+        finally:
+            # Always clean up temp file
+            if video_path is not None:
+                await storage_service.delete_local_file(video_path)
+
+    return StreamingResponse(event_stream(), media_type="text/event-stream")
+
+
+# List all generations for a chat ordered newest first
+@router.get(
+    "/projects/{project_id}/chats/{chat_id}/generations",
+    response_model=GenerationListResponse,
+    tags=["Generations"],
+    summary="List all generations in a chat",
+)
+async def list_generations(
+    project_id: UUID,
+    chat_id: UUID,
+    user: User = Depends(require_current_user),
+) -> GenerationListResponse:
+    await _require_project(project_id, user)
+    await _require_chat(chat_id, project_id, user)
+
+    try:
+        generations = await database_service.list_chat_generations(chat_id)
+    except DatabaseError as exc:
+        raise HTTPException(status_code=502, detail="Could not fetch generations") from exc
+
+    return GenerationListResponse(
+        generations=[GenerationResponse(**g.model_dump()) for g in generations],
+        chat_id=chat_id,
+        total=len(generations),
+    )
+
+
+# Retrieve a single generation record by ID with owner authorization check
+@router.get(
+    "/generations/{generation_id}",
+    response_model=GenerationResponse,
+    tags=["Generations"],
+    summary="Get a single generation by ID",
+)
+async def get_generation(
+    generation_id: UUID,
+    user: User = Depends(require_current_user),
+) -> GenerationResponse:
+    try:
+        generation = await database_service.get_generation(generation_id)
+    except DatabaseError as exc:
+        raise HTTPException(status_code=502, detail="Could not fetch generation") from exc
+
+    if generation is None:
+        raise HTTPException(status_code=404, detail="Generation not found")
+    if generation.user_id != user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    return GenerationResponse(**generation.model_dump())
+
+
+# List configured Supabase Storage buckets for connectivity verification
+@router.get(
+    "/storage/buckets",
+    tags=["Storage"],
+    summary="List Supabase Storage buckets (diagnostics)",
+)
+async def storage_buckets(
+    user: User = Depends(require_current_user),  # noqa: ARG001 — auth gate only
+):
     from db.supabase_bucket import list_buckets
 
     try:
@@ -127,32 +556,18 @@ async def storage_buckets() -> list[Any]:
     except RuntimeError as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
     except Exception as exc:
-        raise HTTPException(status_code=502, detail=f"Supabase storage request failed: {exc}") from exc
+        raise HTTPException(status_code=502, detail=f"Supabase storage error: {exc}") from exc
 
 
-@router.get("/video/{filename}")
-async def video(filename: str) -> FileResponse:
-    """Serve a generated video file."""
-    path = _safe_output_path(filename)
-    if not path.exists() or path.suffix.lower() != ".mp4":
-        raise HTTPException(status_code=404, detail="Video file not found")
-    return FileResponse(path=path, media_type="video/mp4", filename=path.name)
+# Health check endpoint returning API status, version, and knowledge engine health
+@router.get(
+    "/health",
+    tags=["Health"],
+    summary="Health check",
+)
+async def health():
+    from graph.nodes.retrieval import get_knowledge
 
-
-@router.get("/get_code/{filename}", response_class=PlainTextResponse)
-async def get_code(filename: str) -> str:
-    """Return saved generated code."""
-    path = _safe_output_path(filename)
-    if path.suffix.lower() != ".py":
-        path = path.with_suffix(".py")
-    if not path.exists():
-        raise HTTPException(status_code=404, detail="Code file not found")
-    return path.read_text(encoding="utf-8")
-
-
-@router.get("/")
-async def health() -> dict[str, Any]:
-    """Return API and knowledge health."""
     try:
         knowledge_health = get_knowledge().health()
     except Exception as exc:
@@ -160,117 +575,28 @@ async def health() -> dict[str, Any]:
 
     return {
         "service": "Manim Animation API",
-        "version": "3.1.0",
+        "version": "4.0.0",
         "status": "running",
-        "endpoints": {
-            "POST /projects/{project_id}/generate": "Generate an animation",
-            "POST /scenes/{scene_id}/render": "Render scene code",
-            "POST /scenes/{scene_id}/edit": "Edit scene code",
-            "GET /projects/{project_id}/scenes": "List project scenes",
-            "GET /projects": "List projects",
-            "GET /scenes/{scene_id}": "Read scene details",
-            "GET /storage/buckets": "List Supabase storage buckets",
+        "routes": {
+            "auth": ["POST /auth/signup", "POST /auth/login", "POST /auth/refresh", "GET /auth/me"],
+            "projects": [
+                "POST /projects",
+                "GET /projects",
+                "GET /projects/{id}",
+                "PATCH /projects/{id}",
+                "DELETE /projects/{id}",
+            ],
+            "chats": [
+                "POST /projects/{id}/chats",
+                "GET /projects/{id}/chats",
+                "GET /projects/{id}/chats/{id}",
+                "DELETE /projects/{id}/chats/{id}",
+            ],
+            "generations": [
+                "POST /projects/{id}/chats/{id}/generate (SSE)",
+                "GET /projects/{id}/chats/{id}/generations",
+                "GET /generations/{id}",
+            ],
         },
         "knowledge": knowledge_health,
     }
-
-
-async def _run_generate(
-    project_id: UUID,
-    scene_id: str,
-    request: GenerateRequest,
-) -> SceneDetail:
-    state = initial_state(
-        request.query,
-        mode=request.mode,
-        voiceover_enabled=request.voiceover_enabled,
-        duration=request.duration,
-        aspect_ratio=request.aspect_ratio,
-        project_context=request.project_context,
-        render_config={"quality": request.quality, "duration": request.duration},
-    )
-    final_state: dict[str, Any] = dict(state)
-    async for update in graph.astream(state, stream_mode="updates"):
-        node_output = next(iter(update.values()))
-        if isinstance(node_output, dict):
-            final_state.update(node_output)
-
-    execution = final_state.get("execution_result") or {}
-    if execution.get("status") != "success" or not final_state.get("final_video"):
-        raise HTTPException(status_code=500, detail=_final_error(final_state) or "Generation failed")
-
-    scene = SceneDetail(
-        scene_id=scene_id,
-        project_id=str(project_id),
-        name=final_state.get("scene_class") or "Scene1",
-        video_url=_public_video_path(final_state.get("final_video")),
-        code=final_state.get("generated_code"),
-        duration=execution.get("duration"),
-        version_count=1,
-    )
-    _scene_results[scene_id] = scene
-    return scene
-
-
-async def _run_render(scene_id: str, request: RenderRequest) -> SceneDetail:
-    state = {
-        "generated_code": request.code,
-        "scene_class": request.scene_name,
-        "render_config": {"quality": request.quality},
-        "attempt_count": 0,
-        "max_attempts": 0,
-    }
-    state.update(validate_code(state))
-    validation = state.get("validation_result") or {}
-    if validation.get("status") != "pass":
-        errors = validation.get("errors") or [{"message": "Validation failed"}]
-        first = errors[0]
-        detail = first.get("message") if isinstance(first, dict) else str(first)
-        raise HTTPException(status_code=400, detail=detail)
-
-    state.update(await asyncio.to_thread(render_code, state))
-    execution = state.get("execution_result") or {}
-    if execution.get("status") != "success":
-        raise HTTPException(status_code=500, detail=execution.get("error") or "Render failed")
-
-    current = _scene_results.get(scene_id)
-    scene = SceneDetail(
-        scene_id=scene_id,
-        project_id=current.project_id if current else None,
-        name=request.scene_name,
-        video_url=_public_video_path(state.get("final_video")),
-        code=request.code,
-        duration=execution.get("duration"),
-        version_count=(current.version_count + 1) if current else 1,
-    )
-    _scene_results[scene_id] = scene
-    return scene
-
-
-def _safe_output_path(filename: str) -> Path:
-    return OUTPUT_DIR / Path(filename).name
-
-
-def _public_video_path(path: str | None) -> str | None:
-    if not path:
-        return None
-    return f"generated_videos/{Path(path).name}"
-
-
-def _final_error(state: dict[str, Any]) -> str | None:
-    if state.get("error"):
-        return str(state["error"])
-
-    execution = state.get("execution_result") or {}
-    if execution.get("error"):
-        return str(execution["error"])
-
-    validation = state.get("validation_result") or {}
-    errors = validation.get("errors") or []
-    if errors:
-        first = errors[0]
-        if isinstance(first, dict):
-            return str(first.get("message") or first)
-        return str(first)
-
-    return None

@@ -3,9 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from api.routes import router
 from config import CORS_ORIGINS
-import json
 
-app = FastAPI(title="Manim Animation API", version="3.0.0")
+# FastAPI application entrypoint with CORS middleware and router registration
+app = FastAPI(title="Manim Animation API", version="4.0.0")
 
 app.add_middleware(
     CORSMiddleware,

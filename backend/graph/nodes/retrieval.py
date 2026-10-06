@@ -4,6 +4,7 @@ from functools import lru_cache
 from typing import Any
 
 from graph.state import AnimationState
+from graph.utils import build_scene_query, unique_records, unique_relationships
 from knowledge.repository.manim_knowledge import ManimKnowledge
 
 
@@ -17,10 +18,8 @@ def retrieve_knowledge(state: AnimationState) -> dict[str, Any]:
     """Retrieve verified implementation context for every planned scene."""
     print("Running retrieval node")
 
-    knowledge = _safe_knowledge()
+    knowledge = get_knowledge()
     scenes = (state.get("scene_plan") or {}).get("scenes", [])
-    if knowledge is None:
-        raise RuntimeError("Knowledge service unavailable during implementation retrieval")
 
     capability_scenes = {
         scene.get("scene_id"): scene
@@ -41,7 +40,10 @@ def retrieve_knowledge(state: AnimationState) -> dict[str, Any]:
             continue
         scene_id = scene.get("id")
         planned_scene = capability_scenes.get(scene_id, {})
-        query = _scene_query(scene, state, planned_scene)
+        
+        # Build query from scene and state context
+        capabilities = [c.get("capability_id") for c in planned_scene.get("capabilities", []) if isinstance(c, dict)]
+        query = build_scene_query(scene, state.get("request", ""), state.get("mode"), capabilities)
         queries.append(query)
         context = _retrieve_scene_context(knowledge, query, planned_scene)
         scene_contexts.append({"scene_id": scene_id, **context})
@@ -60,11 +62,11 @@ def retrieve_knowledge(state: AnimationState) -> dict[str, Any]:
 
     retrieved = {
         "scenes": scene_contexts,
-        "apis": _unique_records(implementation_candidates),
-        "examples": _unique_records(examples),
-        "related_apis": _unique_relationships(related_apis),
-        "relationships": _unique_relationships(related_apis),
-        "implementation_candidates": _unique_records(implementation_candidates),
+        "apis": unique_records(implementation_candidates),
+        "examples": unique_records(examples),
+        "related_apis": unique_relationships(related_apis),
+        "relationships": unique_relationships(related_apis),
+        "implementation_candidates": unique_records(implementation_candidates),
     }
     return {
         "retrieved_knowledge": retrieved,
@@ -128,72 +130,11 @@ def _retrieve_scene_context(
         "capabilities": capability_records,
         "semantic_apis": semantic_context.get("semantic_apis", []),
         "semantic_examples": semantic_context.get("semantic_examples", []),
-        "implementation_candidates": _unique_records(implementation_candidates),
-        "related_apis": _unique_relationships(related_apis),
-        "relationship_examples": _unique_records(relationship_examples),
+        "implementation_candidates": unique_records(implementation_candidates),
+        "related_apis": unique_relationships(related_apis),
+        "relationship_examples": unique_records(relationship_examples),
         "api_usage": semantic_context.get("api_usage", []),
     }
 
 
-def _safe_knowledge() -> ManimKnowledge | None:
-    try:
-        return get_knowledge()
-    except Exception:
-        return None
 
-
-def _scene_query(
-    scene: dict[str, Any],
-    state: AnimationState,
-    planned_scene: dict[str, Any] | None = None,
-) -> str:
-    intent = (state.get("scene_plan") or {}).get("project_intent") or {}
-    text = " ".join(
-        str(part)
-        for part in [
-            state.get("request"),
-            state.get("mode"),
-            state.get("duration"),
-            state.get("aspect_ratio"),
-            intent.get("topic"),
-            intent.get("objective"),
-            scene.get("purpose"),
-            scene.get("visual_elements"),
-            scene.get("actions"),
-            scene.get("dependencies"),
-            scene.get("constraints"),
-            [capability.get("capability_id") for capability in (planned_scene or {}).get("capabilities", [])],
-        ]
-        if part
-    )
-    if any(token in text.lower() for token in ("3d", "three-dimensional", "three dimensional")):
-        text += " 3D ThreeDScene camera orientation parametric curve surface"
-    return text
-
-
-def _unique_records(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    unique: list[dict[str, Any]] = []
-    seen: set[str] = set()
-    for record in records:
-        record_id = record.get("id") or record.get("qualified_name")
-        if not record_id or record_id in seen:
-            continue
-        seen.add(record_id)
-        unique.append(record)
-    return unique
-
-
-def _unique_relationships(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    unique: list[dict[str, Any]] = []
-    seen: set[tuple[str, str, str]] = set()
-    for record in records:
-        key = (
-            str(record.get("source")),
-            str(record.get("target")),
-            str(record.get("relation")),
-        )
-        if key in seen:
-            continue
-        seen.add(key)
-        unique.append(record)
-    return unique

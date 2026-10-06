@@ -36,3 +36,6 @@ walkthrough.md.resolved
 # TESTING
 test_output/
 test*
+skills/
+data/
+skills-lock.json

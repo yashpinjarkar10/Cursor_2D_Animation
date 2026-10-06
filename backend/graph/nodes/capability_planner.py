@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import logging
-import re
 from typing import Any
 
 from langchain_core.messages import HumanMessage, SystemMessage
@@ -10,6 +9,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from config import DEFAULT_GENERATION_MAX_TOKENS, get_llm
 from graph.nodes.retrieval import get_knowledge
 from graph.state import AnimationState
+from graph.utils import build_scene_query, load_json
 from prompts import CAPABILITY_PLANNER_PROMPT
 
 logger = logging.getLogger(__name__)
@@ -42,7 +42,7 @@ def plan_capabilities(state: AnimationState) -> dict[str, Any]:
                 ),
             ]
         )
-        raw_plan = _load_json(str(response.content))
+        raw_plan = load_json(str(response.content))
         capability_plan = _coerce_capability_plan(raw_plan, scenes, candidate_context)
         return {"capability_plan": capability_plan}
 
@@ -68,7 +68,7 @@ def _build_candidate_context(
         if not isinstance(scene, dict):
             continue
 
-        query = _scene_query(scene, state)
+        query = build_scene_query(scene, state.get("request", ""), state.get("mode"))
         # Retrieve candidate semantic capabilities only. Do not manufacture
         # capability IDs when retrieval misses: that would hide a knowledge
         # quality problem and make the planner appear grounded when it is not.
@@ -187,51 +187,5 @@ def _coerce_capability_plan(
     return {"scenes": validated_scenes}
 
 
-def _scene_query(scene: dict[str, Any], state: AnimationState) -> str:
-    """Formulate a targeted query focused on the scene's visual tasks and actions."""
-    visual_elements = scene.get("visual_elements")
-    if isinstance(visual_elements, list):
-        vis_str = ", ".join(map(str, visual_elements))
-    else:
-        vis_str = str(visual_elements or "")
 
-    actions = scene.get("actions")
-    if isinstance(actions, list):
-        act_str = ", ".join(map(str, actions))
-    else:
-        act_str = str(actions or "")
-
-    parts = [
-        scene.get("purpose", ""),
-        vis_str,
-        act_str,
-        state.get("request", ""),
-    ]
-    text = " ".join(part for part in parts if part).strip()
-    lowered = text.lower()
-    if any(token in lowered for token in ("3d", "three-dimensional", "three dimensional")):
-        text += " 3D ThreeDScene camera orientation three dimensional"
-    return text
-
-
-def _load_json(text: str) -> dict[str, Any]:
-    """Parse JSON cleanly from LLM response, stripping markdown fences and repairing minor syntax errors."""
-    text = text.strip()
-    if text.startswith("```"):
-        text = re.sub(r"^```(?:json)?", "", text).strip()
-        text = re.sub(r"```$", "", text).strip()
-    match = re.search(r"\{.*\}", text, re.S)
-    target = match.group(0) if match else text
-    try:
-        return json.loads(target)
-    except Exception:
-        try:
-            import json_repair
-
-            repaired = json_repair.loads(target)
-            if isinstance(repaired, dict):
-                return repaired
-        except Exception:
-            pass
-        return json.loads(target)
 

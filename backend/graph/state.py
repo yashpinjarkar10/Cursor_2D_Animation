@@ -83,6 +83,7 @@ class ExecutionResult(TypedDict, total=False):
 
 class AnimationState(TypedDict, total=False):
     request: str
+    generation_id: str | None
     mode: str
     voiceover_enabled: bool
     duration: float | None

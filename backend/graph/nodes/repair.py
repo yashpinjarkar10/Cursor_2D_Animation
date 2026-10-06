@@ -10,6 +10,7 @@ from config import DEFAULT_REPAIR_MAX_TOKENS, get_llm
 from graph.nodes.code_generator import _compact_api, _compact_example, _compact_implementation_plan
 from graph.nodes.retrieval import get_knowledge
 from graph.state import AnimationState
+from graph.utils import unique_records
 from prompts import REPAIR_PROMPT
 
 
@@ -103,8 +104,8 @@ def _retrieve_repair_context(state: AnimationState, error: str) -> dict[str, Any
                     if example is not None:
                         exact_examples.append(example)
         context["error_symbols"] = symbols
-        context["exact_apis"] = _unique_records(exact_apis)
-        context["exact_examples"] = _unique_records(exact_examples)
+        context["exact_apis"] = unique_records(exact_apis)
+        context["exact_examples"] = unique_records(exact_examples)
         trace = dict(state.get("retrieval_trace") or {})
         trace.setdefault("queries", []).append(query)
         trace.setdefault("repair_queries", []).append(query)
@@ -129,17 +130,6 @@ def _extract_error_symbols(error: str) -> list[str]:
                 symbols.append(match)
     return symbols
 
-
-def _unique_records(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    unique: list[dict[str, Any]] = []
-    seen: set[str] = set()
-    for record in records:
-        record_id = record.get("id") or record.get("qualified_name")
-        if not record_id or record_id in seen:
-            continue
-        seen.add(record_id)
-        unique.append(record)
-    return unique
 
 
 def _compact_repair_context(context: dict[str, Any]) -> dict[str, Any]:

@@ -103,7 +103,6 @@ def plan_implementation(state: AnimationState) -> dict[str, Any]:
                 "base_scene": {"api": base_api_id if base_api else None},
                 "required_components": required_components,
                 "spatial_budget": spatial_budget,
-                "layout_blueprint": spatial_budget,
                 "visual_pattern": None,
                 "staging_transition": staging_transition,
                 "verified_apis": verified_apis,
@@ -142,6 +141,7 @@ def plan_implementation(state: AnimationState) -> dict[str, Any]:
 
 
 def _resolve_candidates(knowledge: Any, candidates: list[dict[str, Any]], rejected: list[str]) -> list[dict[str, Any]]:
+    """Verify candidate APIs against the knowledge repository."""
     resolved: list[dict[str, Any]] = []
     seen: set[str] = set()
     for candidate in candidates:
@@ -151,9 +151,9 @@ def _resolve_candidates(knowledge: Any, candidates: list[dict[str, Any]], reject
         exact = knowledge.get_api(api_id)
         if exact is None:
             rejected.append(api_id)
-            continue
-        seen.add(api_id)
-        resolved.append(exact)
+        else:
+            seen.add(api_id)
+            resolved.append(exact)
     return resolved
 
 
@@ -163,13 +163,11 @@ def _prepend_unique(api: dict[str, Any], records: list[dict[str, Any]]) -> list[
 
 
 def _is_3d_scene(scene: dict[str, Any], state: AnimationState) -> bool:
+    """Detect if a scene requires 3D rendering based on context."""
     text = " ".join(
         str(value)
         for value in [
             state.get("request"),
-            state.get("mode"),
-            state.get("duration"),
-            state.get("aspect_ratio"),
             scene.get("purpose"),
             scene.get("visual_elements"),
             scene.get("actions"),

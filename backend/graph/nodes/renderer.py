@@ -8,7 +8,7 @@ import time
 from pathlib import Path
 from typing import Any
 
-from config import MANIM_TIMEOUT, OUTPUT_DIR
+from config import MANIM_TIMEOUT, TEMP_VIDEO_DIR
 from graph.state import AnimationState
 
 QUALITY_FLAGS = {"low": "-ql", "medium": "-qm", "high": "-qh"}
@@ -22,13 +22,16 @@ def render_code(state: AnimationState) -> dict[str, Any]:
     render_config = state.get("render_config") or {}
     quality = render_config.get("quality", "low")
     timeout = int(render_config.get("timeout") or MANIM_TIMEOUT)
+    
+    # Get generation_id from state for temp filename
+    generation_id = state.get("generation_id")
 
     print("Rendering the video")
 
     if not code.strip():
         return _failure("No generated code to render", "runtime")
 
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    TEMP_VIDEO_DIR.mkdir(parents=True, exist_ok=True)
     started = time.perf_counter()
 
     with tempfile.TemporaryDirectory(prefix="manim_render_") as temp_dir:
@@ -75,16 +78,19 @@ def render_code(state: AnimationState) -> dict[str, Any]:
         if not expected_path.exists():
             return _failure(f"Video file not found at expected path: {expected_path}", "runtime", result.stdout, result.stderr, elapsed)
 
-        timestamp = int(time.time() * 1000)
-        video_path = OUTPUT_DIR / f"animation_{timestamp}.mp4"
-        code_path = OUTPUT_DIR / f"code_{timestamp}.py"
+        # Save to temp directory with generation_id as filename
+        if generation_id:
+            video_path = TEMP_VIDEO_DIR / f"{generation_id}.mp4"
+        else:
+            # Fallback to timestamp if no generation_id
+            timestamp = int(time.time() * 1000)
+            video_path = TEMP_VIDEO_DIR / f"animation_{timestamp}.mp4"
+        
         shutil.copy2(expected_path, video_path)
-        code_path.write_text(code, encoding="utf-8")
 
     execution_result = {
         "status": "success",
         "video_path": str(video_path),
-        "code_path": str(code_path),
         "duration": elapsed,
         "logs": result.stdout,
         "stderr": result.stderr,
@@ -93,7 +99,6 @@ def render_code(state: AnimationState) -> dict[str, Any]:
     return {
         "execution_result": execution_result,
         "final_video": str(video_path),
-        "code_path": str(code_path),
         "error": None,
         "last_error": None,
         "failure_type": None,

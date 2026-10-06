@@ -1,24 +1,30 @@
 import os
+import tempfile
 from pathlib import Path
 from dotenv import load_dotenv
-from langchain_groq import ChatGroq
+from langchain_nvidia_ai_endpoints import ChatNVIDIA
 
 load_dotenv()
 
 
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-GROQ_MODEL = "openai/gpt-oss-120b"
-GROQ_MODEL_FAST = "openai/gpt-oss-20b"
+NVIDIA_API_KEY = os.getenv("NVIDIA_API_KEY")
+MODEL = "nvidia/nemotron-3-super-120b-a12b"
+MODEL_FAST = "nvidia/nemotron-3-super-120b-a12b"
 
 MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
 MISTRAL_EMBEDDING_MODEL = "mistral-embed"
 
+# Supabase configuration
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_SECRET_KEY")
+SUPABASE_JWT_SECRET = os.getenv("SUPABASE_JWT_SECRET", "")
+SUPABASE_BUCKET_NAME = os.getenv("SUPABASE_BUCKET_NAME", "Rendered-videos")
 
 BASE_DIR = Path(__file__).resolve().parent
-OUTPUT_DIR = BASE_DIR / "generated_videos"
-OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+# Temporary local storage for video rendering
+TEMP_VIDEO_DIR = Path(os.getenv("TEMP_VIDEO_DIR", tempfile.gettempdir())) / "manim_renders"
+TEMP_VIDEO_DIR.mkdir(parents=True, exist_ok=True)
 
 MAX_REPAIR_ATTEMPTS = 3
 MANIM_TIMEOUT = 120
@@ -33,19 +39,20 @@ KNOWLEDGE_RELATED_APIS_PER_API = 5
 CORS_ORIGINS = [origin.strip() for origin in os.getenv("CORS_ORIGINS", "*").split(",") if origin.strip()]
 
 
+# Return configured NVIDIA Chat LLM instance
 def get_llm(
     fast: bool = False,
     temperature: float = 0.2,
     max_tokens: int | None = None,
-) -> ChatGroq:
-    model = GROQ_MODEL_FAST if fast else GROQ_MODEL
+) -> ChatNVIDIA:
+    model = MODEL_FAST if fast else MODEL
     options = {
         "model": model,
         "temperature": temperature,
-        "api_key": GROQ_API_KEY,
+        "api_key": NVIDIA_API_KEY,
     }
     if max_tokens is not None:
         options["max_tokens"] = max_tokens
-    return ChatGroq(
+    return ChatNVIDIA(
         **options,
     )

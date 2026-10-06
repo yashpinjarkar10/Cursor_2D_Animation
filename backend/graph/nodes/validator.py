@@ -61,23 +61,32 @@ def validate_code(state: AnimationState) -> dict[str, Any]:
 
 
 def _result(errors: list[dict[str, Any]], warnings: list[dict[str, Any]]) -> dict[str, Any]:
+    """Build validation result and extract error state for repair routing."""
     status = "fail" if errors else "pass"
     validation_result = {"status": status, "errors": errors, "warnings": warnings}
     update: dict[str, Any] = {"validation_result": validation_result}
+    
     if errors:
-        update["last_error"] = errors[0]["message"]
-        update["failure_type"] = errors[0]["type"]
-        update["repair_target"] = "validator"
-        update["error"] = errors[0]["message"]
+        first_error = errors[0]
+        update.update({
+            "last_error": first_error["message"],
+            "failure_type": first_error["type"],
+            "repair_target": "validator",
+            "error": first_error["message"],
+        })
     else:
-        update["last_error"] = None
-        update["failure_type"] = None
-        update["repair_target"] = None
-        update["error"] = None
+        update.update({
+            "last_error": None,
+            "failure_type": None,
+            "repair_target": None,
+            "error": None,
+        })
+    
     return update
 
 
 def _validate_imports(tree: ast.AST, errors: list[dict[str, Any]]) -> set[str]:
+    """Validate all imports and return set of imported names."""
     imported_names: set[str] = set()
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
@@ -89,7 +98,7 @@ def _validate_imports(tree: ast.AST, errors: list[dict[str, Any]]) -> set[str]:
                     errors.append({"type": "import", "message": f"Cannot import {alias.name}: {exc}", "line": node.lineno})
         elif isinstance(node, ast.ImportFrom):
             module_name = node.module or ""
-            if node.level:
+            if node.level:  # Skip relative imports
                 continue
             try:
                 module = importlib.import_module(module_name)
@@ -98,34 +107,28 @@ def _validate_imports(tree: ast.AST, errors: list[dict[str, Any]]) -> set[str]:
                 continue
             for alias in node.names:
                 imported_names.add(alias.asname or alias.name)
-                if alias.name != "*" and not hasattr(module, alias.name):
-                    errors.append({"type": "import", "message": f"{alias.name} is not exported by {module_name}", "line": node.lineno})
-                if alias.name == "*" and module_name == "manim":
+                if alias.name == "*":
                     imported_names.add("*")
+                elif not hasattr(module, alias.name):
+                    errors.append({"type": "import", "message": f"{alias.name} is not exported by {module_name}", "line": node.lineno})
     return imported_names
 
 
 def _find_scene_class(tree: ast.AST, imported_names: set[str]) -> ast.ClassDef | None:
+    """Find the Scene subclass in the AST."""
     scene_aliases = {
-        "Scene",
-        "ThreeDScene",
-        "SpecialThreeDScene",
-        "MovingCameraScene",
-        "ZoomedScene",
-        "LinearTransformationScene",
-        "VectorScene",
+        "Scene", "ThreeDScene", "SpecialThreeDScene", "MovingCameraScene",
+        "ZoomedScene", "LinearTransformationScene", "VectorScene",
     }
     if "*" in imported_names:
         scene_aliases.add("Scene")
 
     for node in ast.walk(tree):
-        if not isinstance(node, ast.ClassDef):
-            continue
-        for base in node.bases:
-            if isinstance(base, ast.Name) and base.id in scene_aliases:
-                return node
-            if isinstance(base, ast.Attribute) and base.attr in scene_aliases:
-                return node
+        if isinstance(node, ast.ClassDef):
+            for base in node.bases:
+                base_name = base.id if isinstance(base, ast.Name) else (base.attr if isinstance(base, ast.Attribute) else None)
+                if base_name in scene_aliases:
+                    return node
     return None
 
 
@@ -134,20 +137,20 @@ def _has_construct(scene_class: ast.ClassDef) -> bool:
 
 
 def _validate_dangerous_constructs(tree: ast.AST, errors: list[dict[str, Any]]) -> None:
+    """Check for dangerous constructs that should not appear in generated code."""
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
             for alias in node.names:
                 if alias.name.split(".")[0] in DANGEROUS_MODULES:
                     errors.append({"type": "dangerous", "message": f"Forbidden import: {alias.name}", "line": node.lineno})
-        elif isinstance(node, ast.ImportFrom):
-            if (node.module or "").split(".")[0] in DANGEROUS_MODULES:
-                errors.append({"type": "dangerous", "message": f"Forbidden import: {node.module}", "line": node.lineno})
-        elif isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id in DANGEROUS_CALLS:
-            errors.append({"type": "dangerous", "message": f"Forbidden call: {node.func.id}", "line": node.lineno})
-        elif isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
-            value = node.func.value
-            if isinstance(value, ast.Name) and (value.id, node.func.attr) in DANGEROUS_ATTRIBUTES:
-                errors.append({"type": "dangerous", "message": f"Forbidden call: {value.id}.{node.func.attr}", "line": node.lineno})
+        elif isinstance(node, ast.ImportFrom) and (node.module or "").split(".")[0] in DANGEROUS_MODULES:
+            errors.append({"type": "dangerous", "message": f"Forbidden import: {node.module}", "line": node.lineno})
+        elif isinstance(node, ast.Call):
+            if isinstance(node.func, ast.Name) and node.func.id in DANGEROUS_CALLS:
+                errors.append({"type": "dangerous", "message": f"Forbidden call: {node.func.id}", "line": node.lineno})
+            elif isinstance(node.func, ast.Attribute) and isinstance(node.func.value, ast.Name):
+                if (node.func.value.id, node.func.attr) in DANGEROUS_ATTRIBUTES:
+                    errors.append({"type": "dangerous", "message": f"Forbidden call: {node.func.value.id}.{node.func.attr}", "line": node.lineno})
         elif isinstance(node, ast.While) and isinstance(node.test, ast.Constant) and node.test.value is True:
             errors.append({"type": "dangerous", "message": "Forbidden loop: while True", "line": node.lineno})
 

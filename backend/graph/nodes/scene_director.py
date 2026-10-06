@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 import json
-import re
-from typing import Any
 import logging
+from typing import Any
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from config import get_llm
 from graph.state import AnimationState
+from graph.utils import load_json
 from prompts import SCENE_DIRECTOR_PROMPT
 
 
@@ -42,7 +42,7 @@ def direct_scene(state: AnimationState) -> dict[str, Any]:
                 ),
             ]
         )
-        scene_plan = _load_json(str(response.content))
+        scene_plan = load_json(str(response.content))
     except Exception as exc:
         logging.warning(f"Scene direction failed: {exc}")
         scene_plan = _fallback_scene_plan(request, mode, duration, render_config)
@@ -132,10 +132,4 @@ def _coerce_scene_plan(
     return scene_plan
 
 
-def _load_json(text: str) -> dict[str, Any]:
-    text = text.strip()
-    if text.startswith("```"):
-        text = re.sub(r"^```(?:json)?", "", text).strip()
-        text = re.sub(r"```$", "", text).strip()
-    match = re.search(r"\{.*\}", text, re.S)
-    return json.loads(match.group(0) if match else text)
+
