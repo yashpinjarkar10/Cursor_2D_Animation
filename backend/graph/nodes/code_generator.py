@@ -93,48 +93,38 @@ def _compact_knowledge(
 def _compact_implementation_plan(plan: dict[str, Any]) -> dict[str, Any]:
     """Keep the generator prompt bounded while retaining implementation evidence."""
     compact_scenes = []
-    for scene in plan.get("scenes", [])[:8]:
+    for scene in plan.get("scenes", [])[:4]:
         compact_scenes.append(
             {
                 "scene_id": scene.get("scene_id"),
                 "section_name": scene.get("section_name", scene.get("scene_id", "Act")),
                 "scene_type": scene.get("scene_type", "2d"),
-                "selected_capabilities": scene.get("selected_capabilities", [])[:6],
-                "base_scene": scene.get("base_scene"),
                 "required_components": [
                     {
                         "purpose": component.get("purpose"),
-                        "requirement": str(component.get("requirement", ""))[:180],
-                        "api_ids": component.get("api_ids", [])[:12],
+                        "requirement": str(component.get("requirement", ""))[:140],
+                        "api_ids": component.get("api_ids", [])[:4],
                     }
                     for component in scene.get("required_components", [])[:4]
                     if isinstance(component, dict)
                 ],
                 "spatial_budget": scene.get("spatial_budget") or scene.get("layout_blueprint", {}),
-                "visual_pattern": scene.get("visual_pattern"),
                 "staging_transition": scene.get("staging_transition", {}),
                 "verified_apis": [
                     _compact_api(api)
-                    for api in scene.get("verified_apis", [])[:8]
-                    if isinstance(api, dict)
-                ],
-                "supporting_apis": [
-                    _compact_api(api)
-                    for api in scene.get("supporting_apis", [])[:4]
+                    for api in scene.get("verified_apis", [])[:4]
                     if isinstance(api, dict)
                 ],
                 "reference_examples": [
                     _compact_example(example)
-                    for example in scene.get("reference_examples", [])[:2]
+                    for example in scene.get("reference_examples", [])[:1]
                     if isinstance(example, dict)
                 ],
-                "constraints": scene.get("constraints", [])[:8],
             }
         )
     return {
         "target_class": plan.get("target_class", "Scene1"),
         "base_class": plan.get("base_class", "Scene"),
-        "helper_methods": plan.get("helper_methods", []),
         "scenes": compact_scenes,
     }
 
@@ -194,26 +184,23 @@ def _compact_trace(trace: dict[str, Any]) -> dict[str, Any]:
 
 
 def _compact_api(api: dict[str, Any]) -> dict[str, Any]:
-    result = _select(
-        api,
-        [
-            "id",
-            "name",
-            "qualified_name",
-            "kind",
-            "signature",
-            "parameters",
-            "methods",
-            "description",
-            "constraints",
-        ],
-    )
-    if isinstance(result.get("parameters"), list):
-        result["parameters"] = result["parameters"][:20]
-    if isinstance(result.get("methods"), list):
-        result["methods"] = result["methods"][:12]
-    if isinstance(result.get("description"), str):
-        result["description"] = result["description"][:900]
+    name = api.get("name") or api.get("qualified_name") or api.get("id")
+    result: dict[str, Any] = {"name": name}
+    for key in ("id", "qualified_name", "kind", "signature"):
+        if api.get(key):
+            result[key] = api[key]
+    if api.get("parameters"):
+        result["parameters"] = [
+            {"name": p.get("name"), "kind": p.get("kind")} if isinstance(p, dict) else str(p)
+            for p in api["parameters"][:4]
+        ]
+    if api.get("methods"):
+        result["methods"] = [
+            {"name": m.get("name"), "signature": m.get("signature")} if isinstance(m, dict) else str(m)
+            for m in api["methods"][:3]
+        ]
+    if api.get("description"):
+        result["description"] = str(api["description"])[:250]
     return result
 
 
@@ -221,13 +208,11 @@ def _compact_example(example: dict[str, Any]) -> dict[str, Any]:
     result = _select(example, ["id", "title"])
     if example.get("code"):
         code = str(example["code"])
-        # Truncate only on complete-line boundaries to avoid injecting
-        # invalid mid-expression Python into the LLM context.
-        if len(code) > 600:
+        if len(code) > 400:
             lines = code.splitlines(keepends=True)
             truncated, total = [], 0
             for line in lines:
-                if total + len(line) > 600:
+                if total + len(line) > 400:
                     break
                 truncated.append(line)
                 total += len(line)
@@ -264,9 +249,16 @@ def _select(record: dict[str, Any], keys: list[str]) -> dict[str, Any]:
 
 def _strip_code_fence(text: str) -> str:
     text = text.strip()
+    fence_match = re.search(r"```(?:python)?\s*(.*?)\s*```", text, re.DOTALL)
+    if fence_match:
+        return fence_match.group(1).strip()
     if text.startswith("```"):
         text = re.sub(r"^```(?:python)?", "", text).strip()
         text = re.sub(r"```$", "", text).strip()
+        return text
+    code_match = re.search(r"((?:from manim|import manim|class\s+\w+\s*\().*)", text, re.DOTALL)
+    if code_match:
+        return code_match.group(1).strip()
     return text
 
 

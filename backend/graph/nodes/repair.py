@@ -7,7 +7,11 @@ from typing import Any
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from config import DEFAULT_REPAIR_MAX_TOKENS, get_llm
-from graph.nodes.code_generator import _compact_api, _compact_example, _compact_implementation_plan
+from graph.nodes.code_generator import (
+    _compact_api,
+    _compact_example,
+    _compact_implementation_plan,
+)
 from graph.nodes.retrieval import get_knowledge
 from graph.state import AnimationState
 from graph.utils import unique_records
@@ -134,14 +138,14 @@ def _extract_error_symbols(error: str) -> list[str]:
 
 def _compact_repair_context(context: dict[str, Any]) -> dict[str, Any]:
     return {
-        "query": str(context.get("query", ""))[:800],
-        "error_symbols": context.get("error_symbols", [])[:12],
-        "exact_apis": [_compact_api(api) for api in context.get("exact_apis", [])[:8]],
+        "query": str(context.get("query", ""))[:400],
+        "error_symbols": context.get("error_symbols", [])[:6],
+        "exact_apis": [_compact_api(api) for api in context.get("exact_apis", [])[:4]],
         "exact_examples": [
-            _compact_example(example) for example in context.get("exact_examples", [])[:2]
+            _compact_example(example) for example in context.get("exact_examples", [])[:1]
         ],
         "implementation_candidates": [
-            _compact_api(api) for api in context.get("implementation_candidates", [])[:8]
+            _compact_api(api) for api in context.get("implementation_candidates", [])[:4]
         ],
     }
 
@@ -149,13 +153,20 @@ def _compact_repair_context(context: dict[str, Any]) -> dict[str, Any]:
 def _compact_execution_result(result: dict[str, Any]) -> dict[str, Any]:
     return {
         "status": result.get("status"),
-        "error": str(result.get("error") or "")[-1200:],
+        "error": str(result.get("error") or "")[-600:],
     }
 
 
 def _strip_code_fence(text: str) -> str:
     text = text.strip()
+    fence_match = re.search(r"```(?:python)?\s*(.*?)\s*```", text, re.DOTALL)
+    if fence_match:
+        return fence_match.group(1).strip()
     if text.startswith("```"):
         text = re.sub(r"^```(?:python)?", "", text).strip()
         text = re.sub(r"```$", "", text).strip()
+        return text
+    code_match = re.search(r"((?:from manim|import manim|class\s+\w+\s*\().*)", text, re.DOTALL)
+    if code_match:
+        return code_match.group(1).strip()
     return text
